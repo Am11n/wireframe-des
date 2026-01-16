@@ -30,21 +30,91 @@ import {
   Globe
 } from 'lucide-react'
 
-type Step = 0 | 1 | 2 | 3 | 4 | 5
+type Category = 'lokaler' | 'utstyr' | 'opplevelser'
+type Step = 0 | 1 | 2 | 3 | 4 | 5 | 6
 
-const STEP_LABELS = [
-  'Oppstartsvalg',
-  'Lokasjon og egenskaper',
-  'Tilgjengelighet',
-  'Regler og godkjenning',
-  'Pris og betaling',
-  'Publisering'
-]
+interface UtleieobjektWizardKommuneProps {
+  category?: Category | null
+  mode?: 'new' | 'copy' | null
+  copyFromId?: string | null
+}
 
-export default function UtleieobjektWizardKommune() {
+const getInitialStepLabels = (): string[] => {
+  return [
+    'Velg kategori',
+    'Opprettelsesmetode'
+  ]
+}
+
+const getTypeStepLabels = (category: Category): string[] => {
+  if (category === 'lokaler') {
+    return [
+      'Lokasjon',
+      'Tilgjengelighet',
+      'Regler',
+      'Pris og betaling',
+      'Publisering'
+    ]
+  }
+  if (category === 'utstyr') {
+    return [
+      'Hentested/Logistikk',
+      'Antall/Lager',
+      'Tilgjengelighet',
+      'Regler',
+      'Pris/Depositum',
+      'Publisering'
+    ]
+  }
+  if (category === 'opplevelser') {
+    return [
+      'Tidspunkter/Forestillinger',
+      'Kapasitet/Billetter eller Påmelding',
+      'Pris',
+      'Vilkår',
+      'Publisering'
+    ]
+  }
+  return []
+}
+
+interface CopyObject {
+  id: string
+  name: string
+  location: string
+  status: string
+  category: Category
+}
+
+export default function UtleieobjektWizardKommune({ 
+  category: categoryProp, 
+  mode: modeProp,
+  copyFromId 
+}: UtleieobjektWizardKommuneProps = {}) {
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(categoryProp || null)
   const [currentStep, setCurrentStep] = useState<Step>(0)
   const [status, setStatus] = useState<'draft' | 'ready' | 'published'>('draft')
-  const [startChoice, setStartChoice] = useState<'new' | 'copy' | null>(null)
+  const [startChoice, setStartChoice] = useState<'new' | 'copy' | null>(modeProp || null)
+  const [copySearchQuery, setCopySearchQuery] = useState('')
+  const [selectedCopyObject, setSelectedCopyObject] = useState<string | null>(copyFromId || null)
+  const [copySettings, setCopySettings] = useState<string[]>([])
+
+  // Sample data for kopiering - i produksjon ville dette komme fra API
+  const copyObjects: CopyObject[] = [
+    { id: '1', name: 'Idrettshall A', location: 'Skien', status: 'Publisert', category: 'lokaler' },
+    { id: '2', name: 'Møterom 1', location: 'Skien', status: 'Publisert', category: 'lokaler' },
+    { id: '3', name: 'Fotballutstyr sett', location: 'Skien', status: 'Utkast', category: 'utstyr' },
+    { id: '4', name: 'Sommerfest 2024', location: 'Skien sentrum', status: 'Publisert', category: 'opplevelser' },
+  ]
+
+  // Filter kopier-objekter basert på søk og kategori
+  const filteredCopyObjects = copyObjects.filter(obj => {
+    const matchesCategory = !selectedCategory || obj.category === selectedCategory
+    const matchesSearch = !copySearchQuery || 
+      obj.name.toLowerCase().includes(copySearchQuery.toLowerCase()) ||
+      obj.location.toLowerCase().includes(copySearchQuery.toLowerCase())
+    return matchesCategory && matchesSearch
+  })
   
   const [formData, setFormData] = useState({
     locationAndBasis: {
@@ -142,12 +212,17 @@ export default function UtleieobjektWizardKommune() {
 
   const validationErrors: string[] = []
   
-  // Validation logic
-  if (currentStep === 0) {
+  // Validation logic - kategori-spesifikk
+  if (!selectedCategory && currentStep === 0) {
+    // Ingen validering når kategori skal velges
+  }
+
+  if (selectedCategory && ((currentStep === 0 && selectedCategory) || (currentStep === 1 && !startChoice))) {
     if (!startChoice) validationErrors.push('Velg opprettelsesmetode')
   }
 
-  if (currentStep === 1) {
+  // Lokaler validering
+  if (selectedCategory === 'lokaler' && currentStep === 1 && startChoice === 'new') {
     if (!formData.locationAndBasis.name) validationErrors.push('Navn på utleieobjekt må være fylt')
     if (!formData.locationAndBasis.address) validationErrors.push('Adresse må være fylt')
     if (!formData.locationAndBasis.postalCode) validationErrors.push('Postnummer må være fylt')
@@ -155,7 +230,7 @@ export default function UtleieobjektWizardKommune() {
     if (formData.properties.types.length === 0) validationErrors.push('Minst én type må være valgt')
   }
 
-  if (currentStep === 2) {
+  if (selectedCategory === 'lokaler' && currentStep === 2) {
     if (!formData.availability.rentalUnit) validationErrors.push('Leies ut per må være valgt')
     if (!formData.availability.interval) validationErrors.push('Intervall må være valgt')
     if (formData.availability.openingHours.filter(h => h.active).length === 0 && !formData.availability.presentationOnly) {
@@ -163,14 +238,14 @@ export default function UtleieobjektWizardKommune() {
     }
   }
 
-  if (currentStep === 3) {
+  if (selectedCategory === 'lokaler' && currentStep === 3) {
     if (!formData.rules.approvalMode) validationErrors.push('En godkjenningsmodus må være valgt')
     if (formData.rules.umbrellaDisposal.allowed && formData.rules.umbrellaDisposal.organizations.length === 0) {
       validationErrors.push('Hvis paraply = ja: minst én org + kvote må settes')
     }
   }
 
-  if (currentStep === 4) {
+  if (selectedCategory === 'lokaler' && currentStep === 4) {
     if (!formData.pricing.isFree) {
       if (!formData.pricing.priceModel) validationErrors.push('Prismodell må være valgt')
       if (formData.pricing.targetGroups.length === 0) validationErrors.push('Minst én pris må være definert')
@@ -181,17 +256,103 @@ export default function UtleieobjektWizardKommune() {
     }
   }
 
+  // Utstyr validering
+  if (selectedCategory === 'utstyr' && currentStep === 1 && startChoice === 'new') {
+    if (!formData.locationAndBasis.name) validationErrors.push('Navn på utstyr må være fylt')
+    if (!formData.locationAndBasis.address) validationErrors.push('Hentested må være fylt')
+    if (!formData.locationAndBasis.postalCode) validationErrors.push('Postnummer må være fylt')
+    if (!formData.locationAndBasis.postalArea) validationErrors.push('Poststed må være fylt')
+  }
+
+  if (selectedCategory === 'utstyr' && currentStep === 2) {
+    if (!formData.properties.size) validationErrors.push('Antall enheter må være fylt')
+  }
+
+  if (selectedCategory === 'utstyr' && currentStep === 4) {
+    if (!formData.rules.approvalMode) validationErrors.push('En godkjenningsmodus må være valgt')
+  }
+
+  if (selectedCategory === 'utstyr' && currentStep === 5) {
+    if (!formData.pricing.isFree) {
+      if (!formData.pricing.priceModel) validationErrors.push('Utleiepris må være fylt')
+      if (formData.payment.methods.length === 0) validationErrors.push('Minst én betalingsmetode må være valgt')
+    }
+  }
+
+  // Opplevelser validering
+  if (selectedCategory === 'opplevelser' && currentStep === 1 && startChoice === 'new') {
+    if (!formData.locationAndBasis.name) validationErrors.push('Navn på arrangement må være fylt')
+  }
+
+  if (selectedCategory === 'opplevelser' && currentStep === 2) {
+    if (!formData.properties.maxPersons) validationErrors.push('Maks antall deltakere må være fylt')
+  }
+
+  if (selectedCategory === 'opplevelser' && currentStep === 3) {
+    if (!formData.pricing.isFree) {
+      // Validering for pris hvis betalt
+    }
+  }
+
   const canProceed = validationErrors.length === 0
 
+  const getMaxStep = (): number => {
+    if (!selectedCategory) return 1
+    if (selectedCategory === 'lokaler') return 5
+    if (selectedCategory === 'utstyr') return 6
+    if (selectedCategory === 'opplevelser') return 5
+    return 1
+  }
+
   const handleNext = () => {
-    if (currentStep < 5 && canProceed) {
+    // Hvis vi er på opprettelsesmetode-steg og har valgt kopier, gå til første type-spesifikke steg
+    if (((currentStep === 0 && selectedCategory) || (currentStep === 1 && selectedCategory && (!startChoice || startChoice === 'copy'))) && startChoice) {
+      const firstTypeStep = selectedCategory === 'lokaler' ? 1 : selectedCategory === 'utstyr' ? 1 : 1
+      setCurrentStep(firstTypeStep as Step)
+      return
+    }
+    
+    const maxStep = getMaxStep()
+    if (currentStep < maxStep && canProceed) {
       setCurrentStep((prev) => (prev + 1) as Step)
     }
   }
 
   const handleBack = () => {
     if (currentStep > 0) {
+      // Hvis vi er på første type-spesifikke steg og har startChoice, gå tilbake til opprettelsesmetode
+      if (selectedCategory && startChoice) {
+        const firstTypeStep = selectedCategory === 'lokaler' ? 1 : selectedCategory === 'utstyr' ? 1 : 1
+        if (currentStep === firstTypeStep) {
+          setStartChoice(null)
+          // Gå til opprettelsesmetode-steg (0 hvis kategori er gitt som prop, ellers 1)
+          setCurrentStep(categoryProp ? 0 : 1)
+          return
+        }
+      }
+      
+      // Hvis vi er på opprettelsesmetode-steg og har kategori, gå tilbake til kategori-valg
+      if (selectedCategory && ((currentStep === 0 && selectedCategory) || (currentStep === 1 && (!startChoice || startChoice === 'copy')))) {
+        if (startChoice === 'copy') {
+          // Hvis vi er i kopier-modus, bare nullstill kopier-valg
+          setStartChoice(null)
+          setSelectedCopyObject(null)
+          setCopySearchQuery('')
+          setCopySettings([])
+        } else {
+          // Hvis vi ikke har valgt noe, gå tilbake til kategori-valg
+          setSelectedCategory(null)
+          setStartChoice(null)
+          setCurrentStep(0)
+        }
+        return
+      }
+      
+      // Standard: gå tilbake ett steg
       setCurrentStep((prev) => (prev - 1) as Step)
+    } else if (currentStep === 0 && selectedCategory) {
+      // Hvis vi er på steg 0 og har kategori, gå tilbake til kategori-valg
+      setSelectedCategory(null)
     }
   }
 
@@ -203,24 +364,64 @@ export default function UtleieobjektWizardKommune() {
     setStatus('published')
   }
 
-  // Checklist for publishing
-  const publishingChecklist = {
-    required: [
-      { label: 'Navn og adresse', checked: !!formData.locationAndBasis.name && !!formData.locationAndBasis.address },
-      { label: 'Type valgt', checked: formData.properties.types.length > 0 },
-      { label: 'Tilgjengelighet definert eller "kun presentasjon"', checked: formData.availability.presentationOnly || formData.availability.openingHours.some(h => h.active) },
-      ...(formData.pricing.isFree ? [] : [
-        { label: 'Pris definert', checked: formData.pricing.targetGroups.length > 0 },
-        { label: 'Betalingsmetode satt', checked: formData.payment.methods.length > 0 },
-        { label: 'Konto-oppsett ferdig', checked: true }
-      ])
-    ],
-    recommended: [
-      { label: 'Bilder', checked: formData.locationAndBasis.images.length > 0 },
-      { label: 'Leiebetingelser PDF', checked: !!formData.payment.terms.pdf },
-      { label: 'Universell utforming utfylt', checked: Object.values(formData.properties.universalDesign).some(v => v === true || (typeof v === 'string' && v.length > 0)) }
-    ]
+  // Checklist for publishing - kategori-spesifikk
+  const getPublishingChecklist = () => {
+    if (selectedCategory === 'lokaler') {
+      return {
+        required: [
+          { label: 'Navn og adresse', checked: !!formData.locationAndBasis.name && !!formData.locationAndBasis.address },
+          { label: 'Type valgt', checked: formData.properties.types.length > 0 },
+          { label: 'Tilgjengelighet definert eller "kun presentasjon"', checked: formData.availability.presentationOnly || formData.availability.openingHours.some(h => h.active) },
+          ...(formData.pricing.isFree ? [] : [
+            { label: 'Pris definert', checked: formData.pricing.targetGroups.length > 0 },
+            { label: 'Betalingsmetode satt', checked: formData.payment.methods.length > 0 },
+            { label: 'Konto-oppsett ferdig', checked: true }
+          ])
+        ],
+        recommended: [
+          { label: 'Bilder', checked: formData.locationAndBasis.images.length > 0 },
+          { label: 'Leiebetingelser PDF', checked: !!formData.payment.terms.pdf },
+          { label: 'Universell utforming utfylt', checked: Object.values(formData.properties.universalDesign).some(v => v === true || (typeof v === 'string' && v.length > 0)) }
+        ]
+      }
+    }
+    if (selectedCategory === 'utstyr') {
+      return {
+        required: [
+          { label: 'Navn og hentested', checked: !!formData.locationAndBasis.name && !!formData.locationAndBasis.address },
+          { label: 'Antall enheter', checked: !!formData.properties.size },
+          ...(formData.pricing.isFree ? [] : [
+            { label: 'Pris definert', checked: !!formData.pricing.priceModel },
+            { label: 'Betalingsmetode satt', checked: formData.payment.methods.length > 0 }
+          ])
+        ],
+        recommended: [
+          { label: 'Beskrivelse', checked: !!formData.locationAndBasis.longDescription },
+          { label: 'Kontaktpersoner', checked: formData.locationAndBasis.contacts.length > 0 },
+          { label: 'Vilkår PDF', checked: !!formData.payment.terms.pdf }
+        ]
+      }
+    }
+    if (selectedCategory === 'opplevelser') {
+      return {
+        required: [
+          { label: 'Navn på arrangement', checked: !!formData.locationAndBasis.name },
+          { label: 'Kapasitet definert', checked: !!formData.properties.maxPersons },
+          ...(formData.pricing.isFree ? [] : [
+            { label: 'Pris definert', checked: true }
+          ])
+        ],
+        recommended: [
+          { label: 'Beskrivelse', checked: !!formData.locationAndBasis.longDescription },
+          { label: 'Datoer definert', checked: true },
+          { label: 'Vilkår definert', checked: true }
+        ]
+      }
+    }
+    return { required: [], recommended: [] }
   }
+
+  const publishingChecklist = getPublishingChecklist()
 
   return (
     <div className="min-h-screen bg-stone-50 dark:bg-stone-900">
@@ -231,71 +432,244 @@ export default function UtleieobjektWizardKommune() {
             Opprett utleieobjekt
           </h1>
           <div className="flex items-center gap-2 text-sm text-stone-600 dark:text-stone-400 flex-wrap">
-            {STEP_LABELS.map((label, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <span className={index === currentStep ? 'font-medium text-stone-900 dark:text-stone-100' : ''}>
-                  {index + 1} {label}
-                </span>
-                {index < STEP_LABELS.length - 1 && <ChevronRight className="w-4 h-4" />}
-              </div>
-            ))}
+            {(() => {
+              // Hvis vi ikke har valgt kategori eller er på opprettelsesmetode, vis initial breadcrumb
+              if (!selectedCategory || (currentStep <= 1 && !startChoice)) {
+                const labels = getInitialStepLabels()
+                const stepIndex = !selectedCategory ? 0 : 1
+                return labels.map((label, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <span className={index === stepIndex ? 'font-medium text-stone-900 dark:text-stone-100' : ''}>
+                      {index + 1} {label}
+                    </span>
+                    {index < labels.length - 1 && <ChevronRight className="w-4 h-4" />}
+                  </div>
+                ))
+              }
+              // Ellers vis type-spesifikke steg
+              const labels = getTypeStepLabels(selectedCategory)
+              // Beregn hvilket steg vi er på i type-spesifikke steg
+              // For lokaler: steg 1 = Lokasjon (index 0), steg 2 = Tilgjengelighet (index 1), etc.
+              // For utstyr: steg 1 = Hentested (index 0), steg 2 = Antall/Lager (index 1), etc.
+              // For opplevelser: steg 1 = Tidspunkter (index 0), steg 2 = Kapasitet (index 1), etc.
+              let typeStepIndex = 0
+              if (selectedCategory === 'lokaler') {
+                typeStepIndex = currentStep === 1 ? 0 : currentStep === 2 ? 1 : currentStep === 3 ? 2 : currentStep === 4 ? 3 : currentStep === 5 ? 4 : 0
+              } else if (selectedCategory === 'utstyr') {
+                typeStepIndex = currentStep === 1 ? 0 : currentStep === 2 ? 1 : currentStep === 3 ? 2 : currentStep === 4 ? 3 : currentStep === 5 ? 4 : currentStep === 6 ? 5 : 0
+              } else if (selectedCategory === 'opplevelser') {
+                typeStepIndex = currentStep === 1 ? 0 : currentStep === 2 ? 1 : currentStep === 3 ? 2 : currentStep === 4 ? 3 : currentStep === 5 ? 4 : 0
+              }
+              return labels.map((label, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <span className={index === typeStepIndex ? 'font-medium text-stone-900 dark:text-stone-100' : ''}>
+                    {index + 1} {label}
+                  </span>
+                  {index < labels.length - 1 && <ChevronRight className="w-4 h-4" />}
+                </div>
+              ))
+            })()}
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Step 0: Oppstartsvalg */}
-            {currentStep === 0 && (
+            {/* Step 0: Velg kategori (hvis kategori ikke er gitt) */}
+            {currentStep === 0 && !selectedCategory && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Velg type utleieobjekt</CardTitle>
+                  <CardDescription>Velg hvilken type utleieobjekt du vil opprette</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-3 gap-6">
+                    <button
+                      onClick={() => {
+                        setSelectedCategory('lokaler')
+                        setCurrentStep(1)
+                      }}
+                      className="p-6 border-2 border-stone-200 dark:border-stone-700 rounded-lg hover:border-stone-900 dark:hover:border-stone-100 transition-colors text-left"
+                    >
+                      <div className="font-medium text-stone-900 dark:text-stone-100 mb-1">
+                        Lokaler og baner
+                      </div>
+                      <div className="text-sm text-stone-600 dark:text-stone-400">
+                        Idrettshaller, møterom, konferanserom, etc.
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedCategory('utstyr')
+                        setCurrentStep(1)
+                      }}
+                      className="p-6 border-2 border-stone-200 dark:border-stone-700 rounded-lg hover:border-stone-900 dark:hover:border-stone-100 transition-colors text-left"
+                    >
+                      <div className="font-medium text-stone-900 dark:text-stone-100 mb-1">
+                        Utstyr og inventar
+                      </div>
+                      <div className="text-sm text-stone-600 dark:text-stone-400">
+                        Sportsutstyr, møbler, utstyr, etc.
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedCategory('opplevelser')
+                        setCurrentStep(1)
+                      }}
+                      className="p-6 border-2 border-stone-200 dark:border-stone-700 rounded-lg hover:border-stone-900 dark:hover:border-stone-100 transition-colors text-left"
+                    >
+                      <div className="font-medium text-stone-900 dark:text-stone-100 mb-1">
+                        Opplevelser og arrangement
+                      </div>
+                      <div className="text-sm text-stone-600 dark:text-stone-400">
+                        Arrangementer, kurs, forestillinger, etc.
+                      </div>
+                    </button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Step 0/1: Opprettelsesmetode (hvis kategori er valgt) */}
+            {((currentStep === 0 && selectedCategory) || (currentStep === 1 && selectedCategory && (!startChoice || startChoice === 'copy'))) && (
               <Card>
                 <CardHeader>
                   <CardTitle>Opprettelsesmetode</CardTitle>
-                  <CardDescription>Velg hvordan du vil opprette utleieobjektet</CardDescription>
+                  <CardDescription>
+                    Velg hvordan du vil opprette utleieobjektet ({selectedCategory === 'lokaler' ? 'Lokaler og baner' : selectedCategory === 'utstyr' ? 'Utstyr og inventar' : 'Opplevelser og arrangement'})
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <button
-                    onClick={() => {
-                      setStartChoice('new')
-                      setCurrentStep(1)
-                    }}
-                    className="w-full p-6 border-2 border-stone-200 dark:border-stone-700 rounded-lg hover:border-stone-900 dark:hover:border-stone-100 transition-colors text-left"
-                  >
-                    <div className="font-medium text-stone-900 dark:text-stone-100 mb-1">
-                      Opprett nytt utleieobjekt
-                    </div>
-                    <div className="text-sm text-stone-600 dark:text-stone-400">
-                      Start fra scratch med et tomt objekt
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => setStartChoice('copy')}
-                    className="w-full p-6 border-2 border-stone-200 dark:border-stone-700 rounded-lg hover:border-stone-900 dark:hover:border-stone-100 transition-colors text-left"
-                  >
-                    <div className="font-medium text-stone-900 dark:text-stone-100 mb-1">
-                      Kopier eksisterende (mal)
-                    </div>
-                    <div className="text-sm text-stone-600 dark:text-stone-400">
-                      Bruk et eksisterende objekt som mal
-                    </div>
-                  </button>
+                  <div className="grid grid-cols-2 gap-4">
+                    <button
+                      onClick={() => {
+                        setStartChoice('new')
+                        setCurrentStep(selectedCategory === 'lokaler' ? 1 : selectedCategory === 'utstyr' ? 1 : 1)
+                      }}
+                      className="p-6 border-2 border-stone-200 dark:border-stone-700 rounded-lg hover:border-stone-900 dark:hover:border-stone-100 transition-colors text-left"
+                    >
+                      <div className="font-medium text-stone-900 dark:text-stone-100 mb-1">
+                        Opprette nytt utleieobjekt ({selectedCategory === 'lokaler' ? 'Lokaler og baner' : selectedCategory === 'utstyr' ? 'Utstyr og inventar' : 'Opplevelser og arrangement'})
+                      </div>
+                      <div className="text-sm text-stone-600 dark:text-stone-400">
+                        Start fra scratch med et tomt objekt
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => setStartChoice('copy')}
+                      className="p-6 border-2 border-stone-200 dark:border-stone-700 rounded-lg hover:border-stone-900 dark:hover:border-stone-100 transition-colors text-left"
+                    >
+                      <div className="font-medium text-stone-900 dark:text-stone-100 mb-1">
+                        Kopier eksisterende ({selectedCategory === 'lokaler' ? 'Lokaler og baner' : selectedCategory === 'utstyr' ? 'Utstyr og inventar' : 'Opplevelser og arrangement'})
+                      </div>
+                      <div className="text-sm text-stone-600 dark:text-stone-400">
+                        Bruk et eksisterende objekt som mal
+                      </div>
+                    </button>
+                  </div>
                   {startChoice === 'copy' && (
                     <div className="mt-4 p-4 bg-stone-100 dark:bg-stone-800 rounded-lg space-y-4">
                       <div>
                         <Label>Velg objekt å kopiere</Label>
-                        <Input placeholder="Søk etter objekt..." className="mt-2" />
+                        <div className="mt-2 space-y-2">
+                          <Input 
+                            placeholder="Søk etter objekt..." 
+                            className="w-full"
+                            value={copySearchQuery}
+                            onChange={(e) => setCopySearchQuery(e.target.value)}
+                          />
+                          {copySearchQuery && (
+                            <div className="border rounded-lg max-h-60 overflow-y-auto">
+                              {filteredCopyObjects.length === 0 ? (
+                                <div className="p-4 text-center text-sm text-stone-500">
+                                  Ingen objekter funnet
+                                </div>
+                              ) : (
+                                filteredCopyObjects.map((obj) => (
+                                  <button
+                                    key={obj.id}
+                                    onClick={() => {
+                                      setSelectedCopyObject(obj.id)
+                                      setCopySearchQuery(obj.name)
+                                    }}
+                                    className={`w-full p-3 text-left hover:bg-stone-200 dark:hover:bg-stone-700 border-b last:border-b-0 ${
+                                      selectedCopyObject === obj.id ? 'bg-stone-200 dark:bg-stone-700' : ''
+                                    }`}
+                                  >
+                                    <div className="font-medium">{obj.name}</div>
+                                    <div className="text-xs text-stone-500">{obj.location} • {obj.status}</div>
+                                  </button>
+                                ))
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
                       <div>
                         <Label>Kopier-innstillinger</Label>
                         <div className="mt-2 space-y-2">
-                          {['Lokasjon og egenskaper', 'Tilgjengelighet', 'Regler og godkjenning', 'Pris og betaling'].map((item) => (
+                          {selectedCategory === 'lokaler' && ['Lokasjon', 'Tilgjengelighet', 'Regler', 'Pris og betaling'].map((item) => (
                             <label key={item} className="flex items-center gap-2">
-                              <input type="checkbox" className="rounded" />
+                              <input 
+                                type="checkbox" 
+                                className="rounded"
+                                checked={copySettings.includes(item)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setCopySettings([...copySettings, item])
+                                  } else {
+                                    setCopySettings(copySettings.filter(s => s !== item))
+                                  }
+                                }}
+                              />
+                              <span className="text-sm">{item}</span>
+                            </label>
+                          ))}
+                          {selectedCategory === 'utstyr' && ['Hentested/Logistikk', 'Antall/Lager', 'Tilgjengelighet', 'Regler', 'Pris/Depositum'].map((item) => (
+                            <label key={item} className="flex items-center gap-2">
+                              <input 
+                                type="checkbox" 
+                                className="rounded"
+                                checked={copySettings.includes(item)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setCopySettings([...copySettings, item])
+                                  } else {
+                                    setCopySettings(copySettings.filter(s => s !== item))
+                                  }
+                                }}
+                              />
+                              <span className="text-sm">{item}</span>
+                            </label>
+                          ))}
+                          {selectedCategory === 'opplevelser' && ['Tidspunkter/Forestillinger', 'Kapasitet/Billetter eller Påmelding', 'Pris', 'Vilkår'].map((item) => (
+                            <label key={item} className="flex items-center gap-2">
+                              <input 
+                                type="checkbox" 
+                                className="rounded"
+                                checked={copySettings.includes(item)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setCopySettings([...copySettings, item])
+                                  } else {
+                                    setCopySettings(copySettings.filter(s => s !== item))
+                                  }
+                                }}
+                              />
                               <span className="text-sm">{item}</span>
                             </label>
                           ))}
                         </div>
                       </div>
-                      <Button onClick={() => setCurrentStep(1)} className="w-full">
+                      <Button 
+                        onClick={() => {
+                          // Her kan du legge til logikk for å faktisk kopiere data
+                          setCurrentStep(selectedCategory === 'lokaler' ? 1 : selectedCategory === 'utstyr' ? 1 : 1)
+                        }} 
+                        className="w-full"
+                        disabled={!selectedCopyObject || copySettings.length === 0}
+                      >
                         Fortsett med kopi
                       </Button>
                     </div>
@@ -304,12 +678,12 @@ export default function UtleieobjektWizardKommune() {
               </Card>
             )}
 
-            {/* Step 1: Lokasjon og egenskaper (kombinert) */}
-            {currentStep === 1 && (
+            {/* Lokaler: Step 1 - Lokasjon */}
+            {selectedCategory === 'lokaler' && currentStep === 1 && startChoice === 'new' && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Lokasjon og egenskaper</CardTitle>
-                  <CardDescription>Grunnleggende informasjon og egenskaper for utleieobjektet</CardDescription>
+                  <CardTitle>Lokasjon</CardTitle>
+                  <CardDescription>Grunnleggende informasjon om lokale/banen</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div>
@@ -661,8 +1035,8 @@ export default function UtleieobjektWizardKommune() {
               </Card>
             )}
 
-            {/* Step 2: Tilgjengelighet */}
-            {currentStep === 2 && (
+            {/* Lokaler: Step 2 - Tilgjengelighet */}
+            {selectedCategory === 'lokaler' && currentStep === 2 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Tilgjengelighet</CardTitle>
@@ -915,8 +1289,8 @@ export default function UtleieobjektWizardKommune() {
               </Card>
             )}
 
-            {/* Step 3: Regler og godkjenning */}
-            {currentStep === 3 && (
+            {/* Lokaler: Step 3 - Regler */}
+            {selectedCategory === 'lokaler' && currentStep === 3 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Regler og godkjenning</CardTitle>
@@ -1077,8 +1451,8 @@ export default function UtleieobjektWizardKommune() {
               </Card>
             )}
 
-            {/* Step 4: Pris og betaling (kombinert) */}
-            {currentStep === 4 && (
+            {/* Lokaler: Step 4 - Pris og betaling */}
+            {selectedCategory === 'lokaler' && currentStep === 4 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Pris og betaling</CardTitle>
@@ -1312,8 +1686,8 @@ export default function UtleieobjektWizardKommune() {
               </Card>
             )}
 
-            {/* Step 5: Publisering */}
-            {currentStep === 5 && (
+            {/* Lokaler: Step 5 - Publisering */}
+            {selectedCategory === 'lokaler' && currentStep === 5 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Publisering</CardTitle>
@@ -1410,10 +1784,915 @@ export default function UtleieobjektWizardKommune() {
               </Card>
             )}
 
+            {/* Utstyr: Step 1 - Hentested/Logistikk */}
+            {selectedCategory === 'utstyr' && currentStep === 1 && startChoice === 'new' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Hentested/Logistikk</CardTitle>
+                  <CardDescription>Hvor utstyret hentes/leveres og kontaktinformasjon</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <Label htmlFor="utstyr-name">Navn på utstyr {!formData.locationAndBasis.name && <span className="text-red-600">*</span>}</Label>
+                    <Input
+                      id="utstyr-name"
+                      value={formData.locationAndBasis.name}
+                      onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, name: e.target.value } })}
+                      className="mt-2"
+                      placeholder="F.eks. Fotballutstyr sett"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="utstyr-pickup-location">Hentested *</Label>
+                    <Input
+                      id="utstyr-pickup-location"
+                      value={formData.locationAndBasis.address}
+                      onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, address: e.target.value } })}
+                      className="mt-2"
+                      placeholder="F.eks. Idrettshall A, Lager 2"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="utstyr-postal-code">Postnummer *</Label>
+                      <Input
+                        id="utstyr-postal-code"
+                        value={formData.locationAndBasis.postalCode}
+                        onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, postalCode: e.target.value } })}
+                        className="mt-2"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="utstyr-postal-area">Poststed *</Label>
+                      <Input
+                        id="utstyr-postal-area"
+                        value={formData.locationAndBasis.postalArea}
+                        onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, postalArea: e.target.value } })}
+                        className="mt-2"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="utstyr-description">Beskrivelse</Label>
+                    <textarea
+                      id="utstyr-description"
+                      value={formData.locationAndBasis.longDescription}
+                      onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, longDescription: e.target.value } })}
+                      className="mt-2 w-full min-h-[120px] rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+                      placeholder="Beskriv utstyret, inkludert spesifikasjoner og tilstand"
+                    />
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label>Kontaktpersoner</Label>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setFormData({
+                          ...formData,
+                          locationAndBasis: {
+                            ...formData.locationAndBasis,
+                            contacts: [...formData.locationAndBasis.contacts, { name: '', role: '', email: '', phone: '' }]
+                          }
+                        })}
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Legg til kontakt
+                      </Button>
+                    </div>
+                    <div className="space-y-3 mt-2">
+                      {formData.locationAndBasis.contacts.map((contact, index) => (
+                        <div key={index} className="p-4 border rounded-lg space-y-2">
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Label className="text-xs">Navn</Label>
+                              <Input value={contact.name} className="mt-1" />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Rolle</Label>
+                              <select className="mt-1 w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm">
+                                <option value="">Velg rolle</option>
+                                <option value="drift">Drift</option>
+                                <option value="nokkel">Nøkkel</option>
+                                <option value="fagansvarlig">Fagansvarlig</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Label className="text-xs">E-post</Label>
+                              <Input type="email" value={contact.email} className="mt-1" />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Telefon</Label>
+                              <Input type="tel" value={contact.phone} className="mt-1" />
+                            </div>
+                          </div>
+                          <div className="flex justify-end">
+                            <Button variant="ghost" size="sm" onClick={() => {
+                              const updated = formData.locationAndBasis.contacts.filter((_, i) => i !== index)
+                              setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, contacts: updated } })
+                            }}>
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Slett
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Transportinfo</Label>
+                    <textarea
+                      value={formData.locationAndBasis.shortDescription}
+                      onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, shortDescription: e.target.value } })}
+                      className="mt-2 w-full min-h-[80px] rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+                      placeholder="Informasjon om transport, størrelse, vekt, etc."
+                    />
+                  </div>
+                  <Separator />
+                  <div>
+                    <Label>Media</Label>
+                    <div className="mt-2 space-y-3">
+                      <div className="border-2 border-dashed border-stone-300 dark:border-stone-700 rounded-lg p-6 text-center">
+                        <Upload className="w-8 h-8 mx-auto mb-2 text-stone-400" />
+                        <p className="text-sm text-stone-600 dark:text-stone-400 mb-2">Last opp bilder</p>
+                        <Button variant="outline" size="sm">
+                          <Upload className="w-4 h-4 mr-2" />
+                          Velg filer
+                        </Button>
+                      </div>
+                      {formData.locationAndBasis.images.length > 0 && (
+                        <div className="grid grid-cols-4 gap-2">
+                          {formData.locationAndBasis.images.map((img, index) => (
+                            <div key={index} className="relative aspect-square border rounded-lg overflow-hidden">
+                              <img src={img} alt={`Bilde ${index + 1}`} className="w-full h-full object-cover" />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="absolute top-1 right-1"
+                                onClick={() => {
+                                  const updated = formData.locationAndBasis.images.filter((_, i) => i !== index)
+                                  setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, images: updated } })
+                                }}
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Utstyr: Step 2 - Antall/Lager */}
+            {selectedCategory === 'utstyr' && currentStep === 2 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Antall/Lager</CardTitle>
+                  <CardDescription>Lagerstatus og tilgjengelighet per enhet</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <Label htmlFor="utstyr-quantity">Antall enheter *</Label>
+                    <Input
+                      id="utstyr-quantity"
+                      type="number"
+                      value={formData.properties.size}
+                      onChange={(e) => setFormData({ ...formData, properties: { ...formData.properties, size: e.target.value } })}
+                      className="mt-2"
+                      placeholder="F.eks. 10"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="utstyr-available">Tilgjengelige enheter</Label>
+                    <Input
+                      id="utstyr-available"
+                      type="number"
+                      value={formData.properties.maxPersons}
+                      onChange={(e) => setFormData({ ...formData, properties: { ...formData.properties, maxPersons: e.target.value } })}
+                      className="mt-2"
+                      placeholder="Antall enheter som kan leies ut samtidig"
+                    />
+                  </div>
+                  <div>
+                    <Label>Lagerstatus</Label>
+                    <div className="mt-2 space-y-2">
+                      <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
+                        <input type="radio" name="lagerstatus" value="available" />
+                        <div>
+                          <div className="font-medium">Tilgjengelig</div>
+                          <div className="text-xs text-stone-500">Utstyret er klart for utleie</div>
+                        </div>
+                      </label>
+                      <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
+                        <input type="radio" name="lagerstatus" value="limited" />
+                        <div>
+                          <div className="font-medium">Begrenset tilgjengelighet</div>
+                          <div className="text-xs text-stone-500">Noen enheter er utilgjengelige</div>
+                        </div>
+                      </label>
+                      <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
+                        <input type="radio" name="lagerstatus" value="maintenance" />
+                        <div>
+                          <div className="font-medium">Vedlikehold</div>
+                          <div className="text-xs text-stone-500">Utstyret er under vedlikehold</div>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Spesifikasjoner</Label>
+                    <textarea
+                      className="mt-2 w-full min-h-[100px] rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+                      placeholder="Detaljerte spesifikasjoner, modell, størrelse, vekt, etc."
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Utstyr: Step 3 - Tilgjengelighet (valgfri) */}
+            {selectedCategory === 'utstyr' && currentStep === 3 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Tilgjengelighet (valgfri)</CardTitle>
+                  <CardDescription>Når utstyret er tilgjengelig for utleie</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={!formData.availability.presentationOnly}
+                        onChange={(e) => setFormData({ ...formData, availability: { ...formData.availability, presentationOnly: !e.target.checked } })}
+                        className="rounded"
+                      />
+                      <span className="text-sm">Aktiver bookingintervall</span>
+                    </label>
+                  </div>
+                  {!formData.availability.presentationOnly && (
+                    <>
+                      <div>
+                        <Label>Bookingintervall</Label>
+                        <select
+                          value={formData.availability.interval}
+                          onChange={(e) => setFormData({ ...formData, availability: { ...formData.availability, interval: e.target.value } })}
+                          className="mt-2 w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                        >
+                          <option value="">Velg intervall</option>
+                          <option value="day">Per dag</option>
+                          <option value="week">Per uke</option>
+                          <option value="month">Per måned</option>
+                        </select>
+                      </div>
+                      <div>
+                        <Label>Åpningstider for utleie</Label>
+                        <div className="mt-2 space-y-2">
+                          {['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag'].map((day) => {
+                            const openingHour = formData.availability.openingHours.find(h => h.day === day) || { day, active: false, from: '08:00', to: '22:00' }
+                            return (
+                              <div key={day} className="flex items-center gap-4 p-3 border rounded-lg">
+                                <label className="flex items-center gap-2 min-w-[100px]">
+                                  <input
+                                    type="checkbox"
+                                    checked={openingHour.active}
+                                    onChange={(e) => {
+                                      if (e.target.checked) {
+                                        setFormData({ ...formData, availability: { ...formData.availability, openingHours: [...formData.availability.openingHours.filter(h => h.day !== day), { day, active: true, from: '08:00', to: '22:00' }] } })
+                                      } else {
+                                        setFormData({ ...formData, availability: { ...formData.availability, openingHours: formData.availability.openingHours.filter(h => h.day !== day) } })
+                                      }
+                                    }}
+                                    className="rounded"
+                                  />
+                                  <span className="text-sm">{day}</span>
+                                </label>
+                                {openingHour.active && (
+                                  <div className="flex items-center gap-2 flex-1">
+                                    <Input
+                                      type="time"
+                                      value={openingHour.from}
+                                      onChange={(e) => {
+                                        const updated = formData.availability.openingHours.map(h => h.day === day ? { ...h, from: e.target.value } : h)
+                                        setFormData({ ...formData, availability: { ...formData.availability, openingHours: updated } })
+                                      }}
+                                      className="w-32"
+                                    />
+                                    <span className="text-stone-500">til</span>
+                                    <Input
+                                      type="time"
+                                      value={openingHour.to}
+                                      onChange={(e) => {
+                                        const updated = formData.availability.openingHours.map(h => h.day === day ? { ...h, to: e.target.value } : h)
+                                        setFormData({ ...formData, availability: { ...formData.availability, openingHours: updated } })
+                                      }}
+                                      className="w-32"
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Utstyr: Step 4 - Regler */}
+            {selectedCategory === 'utstyr' && currentStep === 4 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Regler</CardTitle>
+                  <CardDescription>Godkjenning, begrensninger og returbetingelser</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <Label>Godkjenning {!formData.rules.approvalMode && <span className="text-red-600">*</span>}</Label>
+                    <div className="mt-2 space-y-2">
+                      <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
+                        <input type="radio" name="utstyr-approval" value="automatic" checked={formData.rules.approvalMode === 'automatic'} onChange={(e) => setFormData({ ...formData, rules: { ...formData.rules, approvalMode: e.target.value } })} />
+                        <div>
+                          <div className="font-medium">Automatisk bekreftelse</div>
+                          <div className="text-xs text-stone-500">Bookinger godkjennes automatisk</div>
+                        </div>
+                      </label>
+                      <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
+                        <input type="radio" name="utstyr-approval" value="manual" checked={formData.rules.approvalMode === 'manual'} onChange={(e) => setFormData({ ...formData, rules: { ...formData.rules, approvalMode: e.target.value } })} />
+                        <div>
+                          <div className="font-medium">Krever saksbehandlergodkjenning</div>
+                          <div className="text-xs text-stone-500">Alle bookinger må godkjennes manuelt</div>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                  <Separator />
+                  <div>
+                    <Label>Begrensninger</Label>
+                    <div className="mt-2 space-y-4">
+                      <div>
+                        <label className="flex items-center gap-2">
+                          <input type="checkbox" className="rounded" />
+                          <div>
+                            <div className="text-sm font-medium">Booking ikke skal utføres av personer under 18 år</div>
+                            <div className="text-xs text-stone-500">Anbefalt for utstyr som krever ansvarlig voksen</div>
+                          </div>
+                        </label>
+                      </div>
+                      <div>
+                        <Label className="text-xs">Avbestillingsfrist (timer før start)</Label>
+                        <Input
+                          type="number"
+                          value={formData.rules.restrictions.cancellationDeadline}
+                          onChange={(e) => setFormData({ ...formData, rules: { ...formData.rules, restrictions: { ...formData.rules.restrictions, cancellationDeadline: e.target.value } } })}
+                          className="mt-1"
+                          placeholder="F.eks. 24"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <Separator />
+                  <div>
+                    <Label>Returbetingelser</Label>
+                    <div className="mt-2 space-y-4">
+                      <div>
+                        <Label className="text-xs">Returfrist (dager etter utleie)</Label>
+                        <Input type="number" className="mt-1" placeholder="F.eks. 7" />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Skadeansvar</Label>
+                        <textarea
+                          className="mt-1 w-full min-h-[80px] rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+                          placeholder="Beskriv skadeansvar og hva som gjelder ved skade"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Utstyr: Step 5 - Pris/Depositum */}
+            {selectedCategory === 'utstyr' && currentStep === 5 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Pris/Depositum</CardTitle>
+                  <CardDescription>Utleiepris, depositum og betalingsmetoder</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <Label>Gratis eller betalt</Label>
+                    <div className="mt-2 flex gap-4">
+                      <label className="flex items-center gap-2">
+                        <input type="radio" name="utstyr-isFree" checked={formData.pricing.isFree} onChange={() => setFormData({ ...formData, pricing: { ...formData.pricing, isFree: true } })} />
+                        <span>Gratis</span>
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input type="radio" name="utstyr-isFree" checked={!formData.pricing.isFree} onChange={() => setFormData({ ...formData, pricing: { ...formData.pricing, isFree: false } })} />
+                        <span>Betalt</span>
+                      </label>
+                    </div>
+                  </div>
+                  {!formData.pricing.isFree && (
+                    <>
+                      <div>
+                        <Label htmlFor="utstyr-price">Utleiepris *</Label>
+                        <Input
+                          id="utstyr-price"
+                          type="number"
+                          value={formData.pricing.priceModel}
+                          onChange={(e) => setFormData({ ...formData, pricing: { ...formData.pricing, priceModel: e.target.value } })}
+                          className="mt-2"
+                          placeholder="F.eks. 500"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="utstyr-deposit">Depositum</Label>
+                          <Input id="utstyr-deposit" type="number" className="mt-2" placeholder="F.eks. 1000" />
+                        </div>
+                        <div>
+                          <Label htmlFor="utstyr-damage-fee">Skadeavgift</Label>
+                          <Input id="utstyr-damage-fee" type="number" className="mt-2" placeholder="F.eks. 500" />
+                        </div>
+                      </div>
+                      <div>
+                        <Label>Betalingsmetoder {formData.payment.methods.length === 0 && <span className="text-red-600">*</span>}</Label>
+                        <div className="mt-2 space-y-2">
+                          {['Faktura (EHF)', 'Kort', 'Vipps'].map((method) => (
+                            <label key={method} className="flex items-center gap-2 p-2 border rounded-lg cursor-pointer hover:bg-stone-50 dark:hover:bg-stone-800">
+                              <input
+                                type="checkbox"
+                                checked={formData.payment.methods.includes(method)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setFormData({ ...formData, payment: { ...formData.payment, methods: [...formData.payment.methods, method] } })
+                                  } else {
+                                    setFormData({ ...formData, payment: { ...formData.payment, methods: formData.payment.methods.filter(m => m !== method) } })
+                                  }
+                                }}
+                                className="rounded"
+                              />
+                              <span className="text-sm">{method}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  <Separator />
+                  <div>
+                    <Label>Vilkår</Label>
+                    <div className="mt-2 space-y-4">
+                      <div>
+                        <Label className="text-xs mb-2 block">Last opp vilkår (PDF)</Label>
+                        <Button variant="outline" size="sm">
+                          <Upload className="w-4 h-4 mr-2" />
+                          Last opp PDF
+                        </Button>
+                      </div>
+                      <label className="flex items-center gap-2">
+                        <input type="checkbox" checked={formData.payment.terms.requireAcceptance} onChange={(e) => setFormData({ ...formData, payment: { ...formData.payment, terms: { ...formData.payment.terms, requireAcceptance: e.target.checked } } })} className="rounded" />
+                        <span className="text-sm">Krev aksept ved bestilling</span>
+                      </label>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Utstyr: Step 6 - Publisering */}
+            {selectedCategory === 'utstyr' && currentStep === 6 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Publisering</CardTitle>
+                  <CardDescription>Kontrollert aktivering med tydelig status og sjekkliste</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <Label>Publiseringsvalg</Label>
+                    <div className="mt-2 space-y-2">
+                      <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
+                        <input type="radio" name="utstyr-publish" value="draft" checked={formData.publishing.choice === 'draft'} onChange={(e) => setFormData({ ...formData, publishing: { ...formData.publishing, choice: e.target.value } })} />
+                        <div className="font-medium">Lagre som utkast</div>
+                      </label>
+                      <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
+                        <input type="radio" name="utstyr-publish" value="publish" checked={formData.publishing.choice === 'publish'} onChange={(e) => setFormData({ ...formData, publishing: { ...formData.publishing, choice: e.target.value } })} />
+                        <div className="font-medium">Publiser og gjør tilgjengelig for utleie</div>
+                      </label>
+                    </div>
+                  </div>
+                  <Separator />
+                  <div>
+                    <Label>Sjekkliste før publisering</Label>
+                    <div className="mt-2 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-green-600" />
+                        <span className="text-sm">Navn og hentested</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-green-600" />
+                        <span className="text-sm">Antall enheter</span>
+                      </div>
+                      {!formData.pricing.isFree && (
+                        <>
+                          <div className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-600" />
+                            <span className="text-sm">Pris definert</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-600" />
+                            <span className="text-sm">Betalingsmetode satt</span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-4">
+                    <Button onClick={handlePublish} className="flex-1" disabled={!formData.locationAndBasis.name || !formData.locationAndBasis.address}>
+                      Publiser nå
+                    </Button>
+                    <Button variant="outline">
+                      <Eye className="w-4 h-4 mr-2" />
+                      Vis offentlig side
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Opplevelser: Step 1 - Tidspunkter/Forestillinger */}
+            {selectedCategory === 'opplevelser' && currentStep === 1 && startChoice === 'new' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Tidspunkter/Forestillinger</CardTitle>
+                  <CardDescription>Datoer, klokkeslett og varighet for arrangementet</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <Label htmlFor="opplevelser-name">Navn på arrangement {!formData.locationAndBasis.name && <span className="text-red-600">*</span>}</Label>
+                    <Input
+                      id="opplevelser-name"
+                      value={formData.locationAndBasis.name}
+                      onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, name: e.target.value } })}
+                      className="mt-2"
+                      placeholder="F.eks. Sommerfest 2024"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="opplevelser-description">Beskrivelse</Label>
+                    <textarea
+                      id="opplevelser-description"
+                      value={formData.locationAndBasis.longDescription}
+                      onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, longDescription: e.target.value } })}
+                      className="mt-2 w-full min-h-[120px] rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+                      placeholder="Beskriv arrangementet"
+                    />
+                  </div>
+                  <div>
+                    <Label>Datoer *</Label>
+                    <div className="mt-2 space-y-2">
+                      <div className="flex items-center gap-4 p-3 border rounded-lg">
+                        <div className="flex-1">
+                          <Label className="text-xs">Fra dato</Label>
+                          <Input type="date" className="mt-1" />
+                        </div>
+                        <div className="flex-1">
+                          <Label className="text-xs">Til dato</Label>
+                          <Input type="date" className="mt-1" />
+                        </div>
+                      </div>
+                      <Button variant="outline" size="sm">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Legg til dato
+                      </Button>
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Klokkeslett</Label>
+                    <div className="mt-2 grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-xs">Fra klokkeslett</Label>
+                        <Input type="time" className="mt-1" />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Til klokkeslett</Label>
+                        <Input type="time" className="mt-1" />
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Varighet</Label>
+                    <Input type="text" className="mt-2" placeholder="F.eks. 2 timer" />
+                  </div>
+                  <div>
+                    <label className="flex items-center gap-2">
+                      <input type="checkbox" className="rounded" />
+                      <span className="text-sm">Gjentakende arrangement</span>
+                    </label>
+                  </div>
+                  <Separator />
+                  <div>
+                    <Label>Media</Label>
+                    <div className="mt-2 space-y-3">
+                      <div className="border-2 border-dashed border-stone-300 dark:border-stone-700 rounded-lg p-6 text-center">
+                        <Upload className="w-8 h-8 mx-auto mb-2 text-stone-400" />
+                        <p className="text-sm text-stone-600 dark:text-stone-400 mb-2">Last opp bilder</p>
+                        <Button variant="outline" size="sm">
+                          <Upload className="w-4 h-4 mr-2" />
+                          Velg filer
+                        </Button>
+                      </div>
+                      {formData.locationAndBasis.images.length > 0 && (
+                        <div className="grid grid-cols-4 gap-2">
+                          {formData.locationAndBasis.images.map((img, index) => (
+                            <div key={index} className="relative aspect-square border rounded-lg overflow-hidden">
+                              <img src={img} alt={`Bilde ${index + 1}`} className="w-full h-full object-cover" />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="absolute top-1 right-1"
+                                onClick={() => {
+                                  const updated = formData.locationAndBasis.images.filter((_, i) => i !== index)
+                                  setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, images: updated } })
+                                }}
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Opplevelser: Step 2 - Kapasitet/Billetter eller Påmelding */}
+            {selectedCategory === 'opplevelser' && currentStep === 2 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Kapasitet/Billetter eller Påmelding</CardTitle>
+                  <CardDescription>Maks antall deltakere, billetttyper eller påmeldingsfrist</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <Label>Bookingtype</Label>
+                    <div className="mt-2 space-y-2">
+                      <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
+                        <input type="radio" name="opplevelser-booking" value="tickets" />
+                        <div>
+                          <div className="font-medium">Billetter</div>
+                          <div className="text-xs text-stone-500">Brukeren kjøper billetter</div>
+                        </div>
+                      </label>
+                      <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
+                        <input type="radio" name="opplevelser-booking" value="registration" />
+                        <div>
+                          <div className="font-medium">Påmelding</div>
+                          <div className="text-xs text-stone-500">Brukeren melder seg på</div>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="opplevelser-capacity">Maks antall deltakere *</Label>
+                    <Input
+                      id="opplevelser-capacity"
+                      type="number"
+                      value={formData.properties.maxPersons}
+                      onChange={(e) => setFormData({ ...formData, properties: { ...formData.properties, maxPersons: e.target.value } })}
+                      className="mt-2"
+                      placeholder="F.eks. 100"
+                    />
+                  </div>
+                  <div>
+                    <Label>Billetttyper (hvis billetter)</Label>
+                    <div className="mt-2 space-y-2">
+                      <Button variant="outline" size="sm">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Legg til billetttype
+                      </Button>
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Påmeldingsfrist (hvis påmelding)</Label>
+                    <div className="mt-2 grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-xs">Frist dato</Label>
+                        <Input type="date" className="mt-1" />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Frist klokkeslett</Label>
+                        <Input type="time" className="mt-1" />
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="flex items-center gap-2">
+                      <input type="checkbox" className="rounded" />
+                      <span className="text-sm">Tillat venteliste</span>
+                    </label>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Opplevelser: Step 3 - Pris */}
+            {selectedCategory === 'opplevelser' && currentStep === 3 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Pris</CardTitle>
+                  <CardDescription>Billettpriser, rabatter og målgrupper</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <Label>Gratis eller betalt</Label>
+                    <div className="mt-2 flex gap-4">
+                      <label className="flex items-center gap-2">
+                        <input type="radio" name="opplevelser-isFree" checked={formData.pricing.isFree} onChange={() => setFormData({ ...formData, pricing: { ...formData.pricing, isFree: true } })} />
+                        <span>Gratis</span>
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input type="radio" name="opplevelser-isFree" checked={!formData.pricing.isFree} onChange={() => setFormData({ ...formData, pricing: { ...formData.pricing, isFree: false } })} />
+                        <span>Betalt</span>
+                      </label>
+                    </div>
+                  </div>
+                  {!formData.pricing.isFree && (
+                    <>
+                      <div>
+                        <Label>Billettpriser</Label>
+                        <div className="mt-2 space-y-2">
+                          <Button variant="outline" size="sm">
+                            <Plus className="w-4 h-4 mr-2" />
+                            Legg til billettpris
+                          </Button>
+                        </div>
+                      </div>
+                      <div>
+                        <Label>Rabatter</Label>
+                        <div className="mt-2 space-y-2">
+                          <Button variant="outline" size="sm">
+                            <Plus className="w-4 h-4 mr-2" />
+                            Legg til rabatt
+                          </Button>
+                        </div>
+                      </div>
+                      <div>
+                        <Label>Målgrupper</Label>
+                        <div className="mt-2 space-y-2">
+                          <Button variant="outline" size="sm">
+                            <Plus className="w-4 h-4 mr-2" />
+                            Legg til målgruppe
+                          </Button>
+                        </div>
+                      </div>
+                      <div>
+                        <Label>Gruppepriser</Label>
+                        <div className="mt-2 space-y-2">
+                          <Button variant="outline" size="sm">
+                            <Plus className="w-4 h-4 mr-2" />
+                            Legg til gruppepris
+                          </Button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Opplevelser: Step 4 - Vilkår */}
+            {selectedCategory === 'opplevelser' && currentStep === 4 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Vilkår</CardTitle>
+                  <CardDescription>Deltakelsesvilkår, avbestillingsregler og aldersgrenser</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <Label>Deltakelsesvilkår</Label>
+                    <textarea
+                      className="mt-2 w-full min-h-[100px] rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+                      placeholder="Beskriv deltakelsesvilkårene"
+                    />
+                  </div>
+                  <div>
+                    <Label>Avbestillingsregler</Label>
+                    <div className="mt-2 space-y-4">
+                      <div>
+                        <Label className="text-xs">Avbestillingsfrist (timer før start)</Label>
+                        <Input type="number" className="mt-1" placeholder="F.eks. 24" />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Refunderingsregler</Label>
+                        <textarea
+                          className="mt-1 w-full min-h-[80px] rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+                          placeholder="Beskriv refunderingsregler"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Aldersgrenser</Label>
+                    <div className="mt-2 grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-xs">Minimum alder</Label>
+                        <Input type="number" className="mt-1" placeholder="F.eks. 18" />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Maksimum alder</Label>
+                        <Input type="number" className="mt-1" placeholder="F.eks. 99" />
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Påmelding</Label>
+                    <div className="mt-2 space-y-2">
+                      <label className="flex items-center gap-2">
+                        <input type="checkbox" className="rounded" />
+                        <span className="text-sm">Krev påmelding</span>
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input type="checkbox" className="rounded" />
+                        <span className="text-sm">Krev kontaktinformasjon</span>
+                      </label>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Opplevelser: Step 5 - Publisering */}
+            {selectedCategory === 'opplevelser' && currentStep === 5 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Publisering</CardTitle>
+                  <CardDescription>Kontrollert aktivering med tydelig status og sjekkliste</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <Label>Publiseringsvalg</Label>
+                    <div className="mt-2 space-y-2">
+                      <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
+                        <input type="radio" name="opplevelser-publish" value="draft" checked={formData.publishing.choice === 'draft'} onChange={(e) => setFormData({ ...formData, publishing: { ...formData.publishing, choice: e.target.value } })} />
+                        <div className="font-medium">Lagre som utkast</div>
+                      </label>
+                      <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
+                        <input type="radio" name="opplevelser-publish" value="publish" checked={formData.publishing.choice === 'publish'} onChange={(e) => setFormData({ ...formData, publishing: { ...formData.publishing, choice: e.target.value } })} />
+                        <div className="font-medium">Publiser og gjør tilgjengelig for booking</div>
+                      </label>
+                    </div>
+                  </div>
+                  <Separator />
+                  <div>
+                    <Label>Sjekkliste før publisering</Label>
+                    <div className="mt-2 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-green-600" />
+                        <span className="text-sm">Navn og tidspunkter</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-green-600" />
+                        <span className="text-sm">Kapasitet definert</span>
+                      </div>
+                      {!formData.pricing.isFree && (
+                        <div className="flex items-center gap-2">
+                          <Check className="w-4 h-4 text-green-600" />
+                          <span className="text-sm">Pris definert</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-4">
+                    <Button onClick={handlePublish} className="flex-1" disabled={!formData.locationAndBasis.name}>
+                      Publiser nå
+                    </Button>
+                    <Button variant="outline">
+                      <Eye className="w-4 h-4 mr-2" />
+                      Vis offentlig side
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Navigation Buttons */}
             <div className="flex items-center justify-between pt-4 border-t">
               <div className="flex gap-2">
-                <Button variant="outline" onClick={handleBack} disabled={currentStep === 0}>
+                <Button 
+                  variant="outline" 
+                  onClick={handleBack} 
+                  disabled={currentStep === 0 && !selectedCategory}
+                >
                   <ChevronLeft className="w-4 h-4 mr-2" />
                   Tilbake
                 </Button>
@@ -1423,16 +2702,32 @@ export default function UtleieobjektWizardKommune() {
                 </Button>
               </div>
               <div className="flex gap-2">
-                <Button variant="ghost" onClick={() => {}}>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => {
+                    // Reset til start
+                    setSelectedCategory(null)
+                    setCurrentStep(0)
+                    setStartChoice(null)
+                  }}
+                >
                   <X className="w-4 h-4 mr-2" />
                   Avbryt
                 </Button>
-                {currentStep === 0 ? (
-                  <Button onClick={handleNext} disabled={!startChoice}>
+                {currentStep === 0 && !selectedCategory ? (
+                  <Button onClick={handleNext} disabled={!selectedCategory}>
                     Neste
                     <ChevronRight className="w-4 h-4 ml-2" />
                   </Button>
-                ) : currentStep < 5 ? (
+                ) : ((currentStep === 0 && selectedCategory) || (currentStep === 1 && selectedCategory && (!startChoice || startChoice === 'copy'))) ? (
+                  <Button 
+                    onClick={handleNext} 
+                    disabled={startChoice === 'copy' ? (!selectedCopyObject || copySettings.length === 0) : !startChoice}
+                  >
+                    Neste
+                    <ChevronRight className="w-4 h-4 ml-2" />
+                  </Button>
+                ) : currentStep < getMaxStep() ? (
                   <Button onClick={handleNext} disabled={!canProceed}>
                     Neste
                     <ChevronRight className="w-4 h-4 ml-2" />
