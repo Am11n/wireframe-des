@@ -30,16 +30,14 @@ import {
   Globe
 } from 'lucide-react'
 
-type Step = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7
+type Step = 0 | 1 | 2 | 3 | 4 | 5
 
 const STEP_LABELS = [
   'Oppstartsvalg',
-  'Lokasjon og basis',
-  'Egenskaper',
+  'Lokasjon og egenskaper',
   'Tilgjengelighet',
   'Regler og godkjenning',
-  'Pris og målgrupper',
-  'Betaling og vilkår',
+  'Pris og betaling',
   'Publisering'
 ]
 
@@ -145,18 +143,19 @@ export default function UtleieobjektWizardKommune() {
   const validationErrors: string[] = []
   
   // Validation logic
+  if (currentStep === 0) {
+    if (!startChoice) validationErrors.push('Velg opprettelsesmetode')
+  }
+
   if (currentStep === 1) {
     if (!formData.locationAndBasis.name) validationErrors.push('Navn på utleieobjekt må være fylt')
     if (!formData.locationAndBasis.address) validationErrors.push('Adresse må være fylt')
     if (!formData.locationAndBasis.postalCode) validationErrors.push('Postnummer må være fylt')
     if (!formData.locationAndBasis.postalArea) validationErrors.push('Poststed må være fylt')
-  }
-
-  if (currentStep === 2) {
     if (formData.properties.types.length === 0) validationErrors.push('Minst én type må være valgt')
   }
 
-  if (currentStep === 3) {
+  if (currentStep === 2) {
     if (!formData.availability.rentalUnit) validationErrors.push('Leies ut per må være valgt')
     if (!formData.availability.interval) validationErrors.push('Intervall må være valgt')
     if (formData.availability.openingHours.filter(h => h.active).length === 0 && !formData.availability.presentationOnly) {
@@ -164,22 +163,17 @@ export default function UtleieobjektWizardKommune() {
     }
   }
 
-  if (currentStep === 4) {
+  if (currentStep === 3) {
     if (!formData.rules.approvalMode) validationErrors.push('En godkjenningsmodus må være valgt')
     if (formData.rules.umbrellaDisposal.allowed && formData.rules.umbrellaDisposal.organizations.length === 0) {
       validationErrors.push('Hvis paraply = ja: minst én org + kvote må settes')
     }
   }
 
-  if (currentStep === 5) {
+  if (currentStep === 4) {
     if (!formData.pricing.isFree) {
       if (!formData.pricing.priceModel) validationErrors.push('Prismodell må være valgt')
       if (formData.pricing.targetGroups.length === 0) validationErrors.push('Minst én pris må være definert')
-    }
-  }
-
-  if (currentStep === 6) {
-    if (!formData.pricing.isFree) {
       if (formData.payment.methods.length === 0) validationErrors.push('Minst én betalingsmetode må være valgt')
     }
     if (formData.payment.terms.requireAcceptance && !formData.payment.terms.pdf) {
@@ -190,7 +184,7 @@ export default function UtleieobjektWizardKommune() {
   const canProceed = validationErrors.length === 0
 
   const handleNext = () => {
-    if (currentStep < 7 && canProceed) {
+    if (currentStep < 5 && canProceed) {
       setCurrentStep((prev) => (prev + 1) as Step)
     }
   }
@@ -293,7 +287,7 @@ export default function UtleieobjektWizardKommune() {
                       <div>
                         <Label>Kopier-innstillinger</Label>
                         <div className="mt-2 space-y-2">
-                          {['Grunninfo', 'Detaljer og fasiliteter', 'Tilgjengelighet', 'Regler og godkjenning', 'Pris og målgrupper', 'Betaling og vilkår'].map((item) => (
+                          {['Lokasjon og egenskaper', 'Tilgjengelighet', 'Regler og godkjenning', 'Pris og betaling'].map((item) => (
                             <label key={item} className="flex items-center gap-2">
                               <input type="checkbox" className="rounded" />
                               <span className="text-sm">{item}</span>
@@ -310,16 +304,16 @@ export default function UtleieobjektWizardKommune() {
               </Card>
             )}
 
-            {/* Step 1: Lokasjon og basis - Simplified for space */}
+            {/* Step 1: Lokasjon og egenskaper (kombinert) */}
             {currentStep === 1 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Lokasjon og basis</CardTitle>
-                  <CardDescription>Grunnleggende informasjon om utleieobjektet</CardDescription>
+                  <CardTitle>Lokasjon og egenskaper</CardTitle>
+                  <CardDescription>Grunnleggende informasjon og egenskaper for utleieobjektet</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div>
-                    <Label htmlFor="name">Navn på utleieobjekt *</Label>
+                    <Label htmlFor="name">Navn på utleieobjekt {!formData.locationAndBasis.name && <span className="text-red-600">*</span>}</Label>
                     <Input
                       id="name"
                       value={formData.locationAndBasis.name}
@@ -329,7 +323,7 @@ export default function UtleieobjektWizardKommune() {
                   </div>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="col-span-2">
-                      <Label htmlFor="address">Adresse *</Label>
+                      <Label htmlFor="address">Adresse {!formData.locationAndBasis.address && <span className="text-red-600">*</span>}</Label>
                       <Input
                         id="address"
                         value={formData.locationAndBasis.address}
@@ -338,7 +332,7 @@ export default function UtleieobjektWizardKommune() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="postalCode">Postnummer *</Label>
+                      <Label htmlFor="postalCode">Postnummer {!formData.locationAndBasis.postalCode && <span className="text-red-600">*</span>}</Label>
                       <Input
                         id="postalCode"
                         value={formData.locationAndBasis.postalCode}
@@ -348,7 +342,7 @@ export default function UtleieobjektWizardKommune() {
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="postalArea">Poststed *</Label>
+                    <Label htmlFor="postalArea">Poststed {!formData.locationAndBasis.postalArea && <span className="text-red-600">*</span>}</Label>
                     <Input
                       id="postalArea"
                       value={formData.locationAndBasis.postalArea}
@@ -400,10 +394,110 @@ export default function UtleieobjektWizardKommune() {
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <Label>Kontaktpersoner</Label>
-                      <Button variant="outline" size="sm">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setFormData({
+                          ...formData,
+                          locationAndBasis: {
+                            ...formData.locationAndBasis,
+                            contacts: [...formData.locationAndBasis.contacts, { name: '', role: '', email: '', phone: '' }]
+                          }
+                        })}
+                      >
                         <Plus className="w-4 h-4 mr-2" />
                         Legg til kontakt
                       </Button>
+                    </div>
+                    <div className="space-y-3 mt-2">
+                      {formData.locationAndBasis.contacts.map((contact, index) => (
+                        <div key={index} className="p-4 border rounded-lg space-y-3">
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <Label className="text-xs">Navn</Label>
+                              <Input
+                                value={contact.name}
+                                onChange={(e) => {
+                                  const updated = formData.locationAndBasis.contacts.map((c, i) =>
+                                    i === index ? { ...c, name: e.target.value } : c
+                                  )
+                                  setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, contacts: updated } })
+                                }}
+                                className="mt-1"
+                                placeholder="F.eks. Ola Nordmann"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Rolle</Label>
+                              <select
+                                value={contact.role}
+                                onChange={(e) => {
+                                  const updated = formData.locationAndBasis.contacts.map((c, i) =>
+                                    i === index ? { ...c, role: e.target.value } : c
+                                  )
+                                  setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, contacts: updated } })
+                                }}
+                                className="mt-1 w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                              >
+                                <option value="">Velg rolle</option>
+                                <option value="drift">Drift</option>
+                                <option value="nokkel">Nøkkel</option>
+                                <option value="fagansvarlig">Fagansvarlig</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <Label className="text-xs">E-post</Label>
+                              <Input
+                                type="email"
+                                value={contact.email}
+                                onChange={(e) => {
+                                  const updated = formData.locationAndBasis.contacts.map((c, i) =>
+                                    i === index ? { ...c, email: e.target.value } : c
+                                  )
+                                  setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, contacts: updated } })
+                                }}
+                                className="mt-1"
+                                placeholder="ola@example.com"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Telefon</Label>
+                              <Input
+                                type="tel"
+                                value={contact.phone}
+                                onChange={(e) => {
+                                  const updated = formData.locationAndBasis.contacts.map((c, i) =>
+                                    i === index ? { ...c, phone: e.target.value } : c
+                                  )
+                                  setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, contacts: updated } })
+                                }}
+                                className="mt-1"
+                                placeholder="+47 123 45 678"
+                              />
+                            </div>
+                          </div>
+                          <div className="flex justify-end">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const updated = formData.locationAndBasis.contacts.filter((_, i) => i !== index)
+                                setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, contacts: updated } })
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Slett
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      {formData.locationAndBasis.contacts.length === 0 && (
+                        <div className="p-4 border border-dashed rounded-lg text-center text-stone-500 text-sm">
+                          Ingen kontaktpersoner lagt til ennå
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div>
@@ -429,20 +523,12 @@ export default function UtleieobjektWizardKommune() {
                       </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Step 2: Egenskaper */}
-            {currentStep === 2 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Egenskaper</CardTitle>
-                  <CardDescription>Kategori, kapasitet, fasiliteter og universell utforming</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
+                  <Separator />
                   <div>
-                    <Label>Type utleieobjekt (minst én) *</Label>
+                    <Label>Egenskaper</Label>
+                    <div className="mt-2 space-y-6">
+                      <div>
+                        <Label>Type utleieobjekt (minst én) {formData.properties.types.length === 0 && <span className="text-red-600">*</span>}</Label>
                     <div className="mt-2 space-y-2">
                       {['Lokaler og baner', 'Utstyr og inventar', 'Opplevelser og arrangement'].map((type) => (
                         <label key={type} className="flex items-center gap-2 p-2 border rounded-lg cursor-pointer hover:bg-stone-50 dark:hover:bg-stone-800">
@@ -461,11 +547,11 @@ export default function UtleieobjektWizardKommune() {
                           <span className="text-sm">{type}</span>
                         </label>
                       ))}
-                    </div>
-                  </div>
-                  <Separator />
-                  <div>
-                    <Label>Kapasitet og størrelse</Label>
+                        </div>
+                      </div>
+                      <Separator />
+                      <div>
+                        <Label>Kapasitet og størrelse</Label>
                     <div className="mt-2 grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="size" className="text-xs">Størrelse m² (valgfri)</Label>
@@ -475,10 +561,10 @@ export default function UtleieobjektWizardKommune() {
                         <Label htmlFor="maxPersons" className="text-xs">Max antall personer (valgfri)</Label>
                         <Input id="maxPersons" type="number" value={formData.properties.maxPersons} onChange={(e) => setFormData({ ...formData, properties: { ...formData.properties, maxPersons: e.target.value } })} className="mt-1" />
                       </div>
-                    </div>
-                  </div>
-                  <div>
-                    <Label>Fasiliteter (valgfri, men sterk anbefaling)</Label>
+                      </div>
+                      </div>
+                      <div>
+                        <Label>Fasiliteter (valgfri, men sterk anbefaling)</Label>
                     <div className="mt-2 grid grid-cols-2 gap-2">
                       {['Kjøkken', 'Garderobe', 'Dusj', 'Parkering', 'WiFi', 'Projektor/TV', 'Lydanlegg', 'Scene', 'Kiosk', 'Catering', 'Teleslynge', 'Toalett', 'Vertskap/betjening', 'Annet'].map((facility) => (
                         <label key={facility} className="flex items-center gap-2">
@@ -497,11 +583,11 @@ export default function UtleieobjektWizardKommune() {
                           <span className="text-sm">{facility}</span>
                         </label>
                       ))}
-                    </div>
-                  </div>
-                  <Separator />
-                  <div>
-                    <Label>Universell utforming</Label>
+                        </div>
+                      </div>
+                      <Separator />
+                      <div>
+                        <Label>Universell utforming</Label>
                     <div className="mt-2 space-y-3">
                       <label className="flex items-center gap-2">
                         <input type="checkbox" checked={formData.properties.universalDesign.stepFreeAccess} onChange={(e) => setFormData({ ...formData, properties: { ...formData.properties, universalDesign: { ...formData.properties.universalDesign, stepFreeAccess: e.target.checked } } })} className="rounded" />
@@ -527,12 +613,12 @@ export default function UtleieobjektWizardKommune() {
                         <Label className="text-xs">Annen tilrettelegging (tekst)</Label>
                         <textarea value={formData.properties.universalDesign.otherAccommodation} onChange={(e) => setFormData({ ...formData, properties: { ...formData.properties, universalDesign: { ...formData.properties.universalDesign, otherAccommodation: e.target.value } } })} className="mt-1 w-full min-h-[60px] rounded-md border border-input bg-transparent px-3 py-2 text-sm" />
                       </div>
-                    </div>
-                  </div>
-                  <Separator />
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <Label>Tilleggstjenester (valgfri, men sentral)</Label>
+                      </div>
+                      </div>
+                      <Separator />
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <Label>Tilleggstjenester (valgfri, men sentral)</Label>
                       <Button variant="outline" size="sm" onClick={() => setFormData({ ...formData, properties: { ...formData.properties, addOnServices: [...formData.properties.addOnServices, { name: '', description: '', price: '', required: false, needsApproval: false }] } })}>
                         <Plus className="w-4 h-4 mr-2" />
                         Legg til tjeneste
@@ -567,14 +653,16 @@ export default function UtleieobjektWizardKommune() {
                           </div>
                         </div>
                       ))}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             )}
 
-            {/* Step 3: Tilgjengelighet - Simplified */}
-            {currentStep === 3 && (
+            {/* Step 2: Tilgjengelighet */}
+            {currentStep === 2 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Tilgjengelighet</CardTitle>
@@ -582,7 +670,7 @@ export default function UtleieobjektWizardKommune() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div>
-                    <Label>Leies ut per *</Label>
+                    <Label>Leies ut per {!formData.availability.rentalUnit && <span className="text-red-600">*</span>}</Label>
                     <div className="mt-2 flex gap-4">
                       <label className="flex items-center gap-2">
                         <input type="radio" name="rentalUnit" value="hour" checked={formData.availability.rentalUnit === 'hour'} onChange={(e) => setFormData({ ...formData, availability: { ...formData.availability, rentalUnit: e.target.value } })} />
@@ -595,7 +683,7 @@ export default function UtleieobjektWizardKommune() {
                     </div>
                   </div>
                   <div>
-                    <Label>Intervall *</Label>
+                    <Label>Intervall {!formData.availability.interval && <span className="text-red-600">*</span>}</Label>
                     {formData.availability.rentalUnit === 'hour' ? (
                       <select value={formData.availability.interval} onChange={(e) => setFormData({ ...formData, availability: { ...formData.availability, interval: e.target.value } })} className="mt-2 w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm">
                         <option value="">Velg intervall</option>
@@ -624,7 +712,7 @@ export default function UtleieobjektWizardKommune() {
                   </div>
                   <Separator />
                   <div>
-                    <Label>Åpningstider *</Label>
+                    <Label>Åpningstider {(formData.availability.openingHours.filter(h => h.active).length === 0 && !formData.availability.presentationOnly) && <span className="text-red-600">*</span>}</Label>
                     <div className="mt-2 space-y-2">
                       {['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag'].map((day) => {
                         const openingHour = formData.availability.openingHours.find(h => h.day === day) || { day, active: false, from: '08:00', to: '22:00' }
@@ -668,18 +756,167 @@ export default function UtleieobjektWizardKommune() {
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <Label>Unntak og sperringer</Label>
-                      <Button variant="outline" size="sm">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setFormData({
+                          ...formData,
+                          availability: {
+                            ...formData.availability,
+                            exceptions: [...formData.availability.exceptions, { fromDate: '', toDate: '', fromTime: '', toTime: '', reason: '', visible: true, repeating: false }]
+                          }
+                        })}
+                      >
                         <Plus className="w-4 h-4 mr-2" />
                         Legg til sperring
                       </Button>
+                    </div>
+                    <div className="space-y-2">
+                      {formData.availability.exceptions.map((exception, index) => (
+                        <div key={index} className="p-4 border rounded-lg space-y-2">
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Label className="text-xs">Fra dato</Label>
+                              <Input
+                                type="date"
+                                value={exception.fromDate}
+                                onChange={(e) => {
+                                  const updated = formData.availability.exceptions.map((ex, i) =>
+                                    i === index ? { ...ex, fromDate: e.target.value } : ex
+                                  )
+                                  setFormData({ ...formData, availability: { ...formData.availability, exceptions: updated } })
+                                }}
+                                className="mt-1"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Til dato</Label>
+                              <Input
+                                type="date"
+                                value={exception.toDate}
+                                onChange={(e) => {
+                                  const updated = formData.availability.exceptions.map((ex, i) =>
+                                    i === index ? { ...ex, toDate: e.target.value } : ex
+                                  )
+                                  setFormData({ ...formData, availability: { ...formData.availability, exceptions: updated } })
+                                }}
+                                className="mt-1"
+                              />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Label className="text-xs">Fra klokkeslett (valgfri)</Label>
+                              <Input
+                                type="time"
+                                value={exception.fromTime}
+                                onChange={(e) => {
+                                  const updated = formData.availability.exceptions.map((ex, i) =>
+                                    i === index ? { ...ex, fromTime: e.target.value } : ex
+                                  )
+                                  setFormData({ ...formData, availability: { ...formData.availability, exceptions: updated } })
+                                }}
+                                className="mt-1"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Til klokkeslett (valgfri)</Label>
+                              <Input
+                                type="time"
+                                value={exception.toTime}
+                                onChange={(e) => {
+                                  const updated = formData.availability.exceptions.map((ex, i) =>
+                                    i === index ? { ...ex, toTime: e.target.value } : ex
+                                  )
+                                  setFormData({ ...formData, availability: { ...formData.availability, exceptions: updated } })
+                                }}
+                                className="mt-1"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <Label className="text-xs">Årsak</Label>
+                            <Input
+                              value={exception.reason}
+                              onChange={(e) => {
+                                const updated = formData.availability.exceptions.map((ex, i) =>
+                                  i === index ? { ...ex, reason: e.target.value } : ex
+                                )
+                                setFormData({ ...formData, availability: { ...formData.availability, exceptions: updated } })
+                              }}
+                              className="mt-1"
+                              placeholder="F.eks. Vedlikehold, Stengt, Arrangement, Ferie"
+                            />
+                          </div>
+                          <div className="flex gap-4">
+                            <label className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                checked={exception.visible}
+                                onChange={(e) => {
+                                  const updated = formData.availability.exceptions.map((ex, i) =>
+                                    i === index ? { ...ex, visible: e.target.checked } : ex
+                                  )
+                                  setFormData({ ...formData, availability: { ...formData.availability, exceptions: updated } })
+                                }}
+                                className="rounded"
+                              />
+                              <span className="text-xs">Synlig for søker</span>
+                            </label>
+                            <label className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                checked={exception.repeating}
+                                onChange={(e) => {
+                                  const updated = formData.availability.exceptions.map((ex, i) =>
+                                    i === index ? { ...ex, repeating: e.target.checked } : ex
+                                  )
+                                  setFormData({ ...formData, availability: { ...formData.availability, exceptions: updated } })
+                                }}
+                                className="rounded"
+                              />
+                              <span className="text-xs">Gjentakende sperring</span>
+                            </label>
+                          </div>
+                          {exception.repeating && (
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <Label className="text-xs">Periode</Label>
+                                <select className="mt-1 w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm">
+                                  <option>Ukentlig</option>
+                                  <option>Månedlig</option>
+                                </select>
+                              </div>
+                            </div>
+                          )}
+                          <div className="flex justify-end">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const updated = formData.availability.exceptions.filter((_, i) => i !== index)
+                                setFormData({ ...formData, availability: { ...formData.availability, exceptions: updated } })
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Slett
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      {formData.availability.exceptions.length === 0 && (
+                        <div className="p-4 border border-dashed rounded-lg text-center text-stone-500 text-sm">
+                          Ingen sperringer lagt til ennå
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>
               </Card>
             )}
 
-            {/* Steps 4-7 are similar structure - showing key parts only due to length */}
-            {currentStep === 4 && (
+            {/* Step 3: Regler og godkjenning */}
+            {currentStep === 3 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Regler og godkjenning</CardTitle>
@@ -687,7 +924,7 @@ export default function UtleieobjektWizardKommune() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div>
-                    <Label>Godkjenning *</Label>
+                    <Label>Godkjenning {!formData.rules.approvalMode && <span className="text-red-600">*</span>}</Label>
                     <div className="mt-2 space-y-2">
                       <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
                         <input type="radio" name="approvalMode" value="automatic" checked={formData.rules.approvalMode === 'automatic'} onChange={(e) => setFormData({ ...formData, rules: { ...formData.rules, approvalMode: e.target.value } })} />
@@ -712,31 +949,97 @@ export default function UtleieobjektWizardKommune() {
                       </label>
                     </div>
                   </div>
-                  <Separator />
-                  <div>
-                    <Label>Begrensninger (anbefalt)</Label>
-                    <div className="mt-2 space-y-4">
-                      <div>
-                        <Label className="text-xs">Ledetid før booking</Label>
-                        <div className="flex gap-2 mt-1">
-                          <Input type="number" className="flex-1" />
-                          <select className="w-32 h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm">
-                            <option>Timer</option>
-                            <option>Dager</option>
-                          </select>
+
+                  {formData.rules.approvalMode === 'partial' && (
+                    <div>
+                      <Label>Regler ved delvis godkjenning</Label>
+                      <div className="mt-2 space-y-4">
+                        <div>
+                          <Label className="text-xs mb-2 block">Målgruppe-regler</Label>
+                          <div className="space-y-2">
+                            {['Barn/unge', 'Ideell', 'Kommersiell'].map((group) => {
+                              const rule = formData.rules.approvalRules.targetGroupRules.find(r => r.group === group)
+                              return (
+                                <div key={group} className="flex items-center gap-4 p-2 border rounded">
+                                  <span className="text-sm min-w-[100px]">{group}:</span>
+                                  <label className="flex items-center gap-2">
+                                    <input
+                                      type="radio"
+                                      name={`group-${group}`}
+                                      value="automatic"
+                                      checked={rule?.mode === 'automatic'}
+                                      onChange={(e) => {
+                                        const existing = formData.rules.approvalRules.targetGroupRules.filter(r => r.group !== group)
+                                        setFormData({
+                                          ...formData,
+                                          rules: {
+                                            ...formData.rules,
+                                            approvalRules: {
+                                              ...formData.rules.approvalRules,
+                                              targetGroupRules: [...existing, { group, mode: e.target.value }]
+                                            }
+                                          }
+                                        })
+                                      }}
+                                    />
+                                    <span className="text-xs">Automatisk</span>
+                                  </label>
+                                  <label className="flex items-center gap-2">
+                                    <input
+                                      type="radio"
+                                      name={`group-${group}`}
+                                      value="manual"
+                                      checked={rule?.mode === 'manual'}
+                                      onChange={(e) => {
+                                        const existing = formData.rules.approvalRules.targetGroupRules.filter(r => r.group !== group)
+                                        setFormData({
+                                          ...formData,
+                                          rules: {
+                                            ...formData.rules,
+                                            approvalRules: {
+                                              ...formData.rules.approvalRules,
+                                              targetGroupRules: [...existing, { group, mode: e.target.value }]
+                                            }
+                                          }
+                                        })
+                                      }}
+                                    />
+                                    <span className="text-xs">Manuell</span>
+                                  </label>
+                                </div>
+                              )
+                            })}
+                          </div>
                         </div>
                       </div>
+                    </div>
+                  )}
+
+                  <Separator />
+                  <div>
+                    <Label>Begrensninger</Label>
+                    <div className="mt-2 space-y-4">
                       <div>
-                        <Label className="text-xs">Maks varighet per booking</Label>
-                        <Input type="number" className="mt-1" />
-                      </div>
-                      <div>
-                        <Label className="text-xs">Maks bookinger per uke per organisasjon</Label>
-                        <Input type="number" className="mt-1" />
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            className="rounded"
+                          />
+                          <div>
+                            <div className="text-sm font-medium">Booking ikke skal utføres av personer under 18 år</div>
+                            <div className="text-xs text-stone-500">Anbefalt for lokaler som krever ansvarlig voksen ved booking</div>
+                          </div>
+                        </label>
                       </div>
                       <div>
                         <Label className="text-xs">Avbestillingsfrist (timer før start)</Label>
-                        <Input type="number" className="mt-1" />
+                        <Input
+                          type="number"
+                          value={formData.rules.restrictions.cancellationDeadline}
+                          onChange={(e) => setFormData({ ...formData, rules: { ...formData.rules, restrictions: { ...formData.rules.restrictions, cancellationDeadline: e.target.value } } })}
+                          className="mt-1"
+                          placeholder="F.eks. 24"
+                        />
                       </div>
                     </div>
                   </div>
@@ -774,12 +1077,12 @@ export default function UtleieobjektWizardKommune() {
               </Card>
             )}
 
-            {/* Step 5: Pris og målgrupper - Simplified */}
-            {currentStep === 5 && (
+            {/* Step 4: Pris og betaling (kombinert) */}
+            {currentStep === 4 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Pris og målgrupper</CardTitle>
-                  <CardDescription>Kommunal prisstyring med MVA/avgiftskode og målgrupper</CardDescription>
+                  <CardTitle>Pris og betaling</CardTitle>
+                  <CardDescription>Kommunal prisstyring, betalingsmetoder og vilkår</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div>
@@ -798,7 +1101,7 @@ export default function UtleieobjektWizardKommune() {
                   {!formData.pricing.isFree && (
                     <>
                       <div>
-                        <Label htmlFor="priceModel">Prismodell *</Label>
+                        <Label htmlFor="priceModel">Prismodell {!formData.pricing.priceModel && <span className="text-red-600">*</span>}</Label>
                         <select id="priceModel" value={formData.pricing.priceModel} onChange={(e) => setFormData({ ...formData, pricing: { ...formData.pricing, priceModel: e.target.value } })} className="mt-2 w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm">
                           <option value="">Velg prismodell</option>
                           <option value="per-hour">Pris per time</option>
@@ -824,28 +1127,67 @@ export default function UtleieobjektWizardKommune() {
                             Legg til målgruppe-linje
                           </Button>
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-4">
                           {formData.pricing.targetGroups.map((tg, index) => (
-                            <div key={index} className="p-3 border rounded-lg">
-                              <div className="grid grid-cols-3 gap-2">
-                                <div>
+                            <div key={index} className="p-4 border rounded-lg w-full">
+                              <div className="grid grid-cols-3 gap-4 items-end">
+                                <div className="flex-1">
                                   <Label className="text-xs">Målgruppe</Label>
-                                  <select className="mt-1 w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm">
-                                    <option>Velg målgruppe</option>
-                                    <option>Ideell</option>
-                                    <option>Kommersiell</option>
-                                    <option>Barn og unge</option>
+                                  <select
+                                    value={tg.group}
+                                    onChange={(e) => {
+                                      const updated = formData.pricing.targetGroups.map((item, i) =>
+                                        i === index ? { ...item, group: e.target.value } : item
+                                      )
+                                      setFormData({ ...formData, pricing: { ...formData.pricing, targetGroups: updated } })
+                                    }}
+                                    className="mt-1 w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                                  >
+                                    <option value="">Velg målgruppe</option>
+                                    <option value="Ideell">Ideell</option>
+                                    <option value="Kommersiell">Kommersiell</option>
+                                    <option value="Barn og unge">Barn og unge</option>
                                   </select>
                                 </div>
-                                <div>
+                                <div className="flex-1">
                                   <Label className="text-xs">Prisreduksjon prosent</Label>
-                                  <Input type="number" value={tg.priceReduction} className="mt-1" />
+                                  <Input
+                                    type="number"
+                                    value={tg.priceReduction}
+                                    onChange={(e) => {
+                                      const updated = formData.pricing.targetGroups.map((item, i) =>
+                                        i === index ? { ...item, priceReduction: e.target.value } : item
+                                      )
+                                      setFormData({ ...formData, pricing: { ...formData.pricing, targetGroups: updated } })
+                                    }}
+                                    className="mt-1 w-full"
+                                  />
                                 </div>
-                                <div className="flex items-end">
+                                <div className="flex items-end justify-end gap-3">
                                   <label className="flex items-center gap-2">
-                                    <input type="checkbox" checked={tg.free} className="rounded" />
+                                    <input
+                                      type="checkbox"
+                                      checked={tg.free}
+                                      onChange={(e) => {
+                                        const updated = formData.pricing.targetGroups.map((item, i) =>
+                                          i === index ? { ...item, free: e.target.checked } : item
+                                        )
+                                        setFormData({ ...formData, pricing: { ...formData.pricing, targetGroups: updated } })
+                                      }}
+                                      className="rounded"
+                                    />
                                     <span className="text-xs">Gratis for målgruppen</span>
                                   </label>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      const updated = formData.pricing.targetGroups.filter((_, i) => i !== index)
+                                      setFormData({ ...formData, pricing: { ...formData.pricing, targetGroups: updated } })
+                                    }}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
                                 </div>
                               </div>
                             </div>
@@ -871,22 +1213,12 @@ export default function UtleieobjektWizardKommune() {
                       </div>
                     </>
                   )}
-                </CardContent>
-              </Card>
-            )}
 
-            {/* Step 6: Betaling og vilkår - Simplified */}
-            {currentStep === 6 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Betaling og vilkår</CardTitle>
-                  <CardDescription>Sikre korrekt oppgjør, riktig betalingsmåte og leiebetingelser</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
                   {!formData.pricing.isFree && (
                     <>
+                      <Separator />
                       <div>
-                        <Label>Betalingsmetoder *</Label>
+                        <Label>Betalingsmetoder {formData.payment.methods.length === 0 && <span className="text-red-600">*</span>}</Label>
                         <div className="mt-2 space-y-2">
                           {['Faktura (EHF)', 'Kort', 'Vipps', 'Betaling utenfor systemet'].map((method) => (
                             <label key={method} className="flex items-center gap-2 p-2 border rounded-lg cursor-pointer hover:bg-stone-50 dark:hover:bg-stone-800">
@@ -980,8 +1312,8 @@ export default function UtleieobjektWizardKommune() {
               </Card>
             )}
 
-            {/* Step 7: Publisering */}
-            {currentStep === 7 && (
+            {/* Step 5: Publisering */}
+            {currentStep === 5 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Publisering</CardTitle>
@@ -1009,20 +1341,6 @@ export default function UtleieobjektWizardKommune() {
                           <div className="font-medium">Ikke aktiv kalender, kun presentasjon</div>
                           <div className="text-xs text-stone-500">For lokaler som ikke skal bookes digitalt</div>
                         </div>
-                      </label>
-                    </div>
-                  </div>
-                  <Separator />
-                  <div>
-                    <Label>Synlighet</Label>
-                    <div className="mt-2 space-y-3">
-                      <label className="flex items-center gap-2">
-                        <input type="checkbox" checked={formData.publishing.visibility.publicCatalog} onChange={(e) => setFormData({ ...formData, publishing: { ...formData.publishing, visibility: { ...formData.publishing.visibility, publicCatalog: e.target.checked } } })} className="rounded" />
-                        <span className="text-sm">Synlig i offentlig katalog</span>
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input type="checkbox" checked={formData.publishing.visibility.selectedTargetGroups} onChange={(e) => setFormData({ ...formData, publishing: { ...formData.publishing, visibility: { ...formData.publishing.visibility, selectedTargetGroups: e.target.checked } } })} className="rounded" />
-                        <span className="text-sm">Synlig kun for utvalgte målgrupper/organisasjoner</span>
                       </label>
                     </div>
                   </div>
@@ -1093,36 +1411,39 @@ export default function UtleieobjektWizardKommune() {
             )}
 
             {/* Navigation Buttons */}
-            {currentStep > 0 && (
-              <div className="flex items-center justify-between pt-4 border-t">
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={handleBack} disabled={currentStep === 0}>
-                    <ChevronLeft className="w-4 h-4 mr-2" />
-                    Tilbake
-                  </Button>
-                  <Button variant="ghost" onClick={handleSaveDraft}>
-                    <Save className="w-4 h-4 mr-2" />
-                    Lagre utkast
-                  </Button>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="ghost" onClick={() => {}}>
-                    <X className="w-4 h-4 mr-2" />
-                    Avbryt
-                  </Button>
-                  {currentStep < 7 ? (
-                    <Button onClick={handleNext} disabled={!canProceed}>
-                      Neste
-                      <ChevronRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  ) : (
-                    <Button onClick={handlePublish} disabled={!publishingChecklist.required.every(item => item.checked)}>
-                      Publiser
-                    </Button>
-                  )}
-                </div>
+            <div className="flex items-center justify-between pt-4 border-t">
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={handleBack} disabled={currentStep === 0}>
+                  <ChevronLeft className="w-4 h-4 mr-2" />
+                  Tilbake
+                </Button>
+                <Button variant="ghost" onClick={handleSaveDraft}>
+                  <Save className="w-4 h-4 mr-2" />
+                  Lagre utkast
+                </Button>
               </div>
-            )}
+              <div className="flex gap-2">
+                <Button variant="ghost" onClick={() => {}}>
+                  <X className="w-4 h-4 mr-2" />
+                  Avbryt
+                </Button>
+                {currentStep === 0 ? (
+                  <Button onClick={handleNext} disabled={!startChoice}>
+                    Neste
+                    <ChevronRight className="w-4 h-4 ml-2" />
+                  </Button>
+                ) : currentStep < 5 ? (
+                  <Button onClick={handleNext} disabled={!canProceed}>
+                    Neste
+                    <ChevronRight className="w-4 h-4 ml-2" />
+                  </Button>
+                ) : (
+                  <Button onClick={handlePublish} disabled={!publishingChecklist.required.every(item => item.checked)}>
+                    Publiser
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Side Panel */}
