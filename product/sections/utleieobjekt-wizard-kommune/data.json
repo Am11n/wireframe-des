@@ -1,0 +1,119 @@
+{
+  "wizard": {
+    "currentStep": 0,
+    "status": "draft",
+    "validationErrors": [],
+    "formData": {
+      "startChoice": null,
+      "copyFrom": null,
+      "copyOptions": [],
+      "locationAndBasis": {
+        "name": "",
+        "address": "",
+        "postalCode": "",
+        "postalArea": "",
+        "map": {
+          "lat": null,
+          "lng": null,
+          "markerDraggable": true
+        },
+        "shortDescription": "",
+        "longDescription": "",
+        "contacts": [],
+        "images": [],
+        "documents": {
+          "houseRules": null,
+          "fireInstructions": null,
+          "floorPlan": null
+        }
+      },
+      "properties": {
+        "types": [],
+        "size": "",
+        "maxPersons": "",
+        "facilities": [],
+        "universalDesign": {
+          "stepFreeAccess": false,
+          "wcAccessible": false,
+          "elevator": false,
+          "hearingLoop": false,
+          "accessibleParking": false,
+          "otherAccommodation": ""
+        },
+        "addOnServices": []
+      },
+      "availability": {
+        "rentalUnit": "",
+        "interval": "",
+        "openingHours": [],
+        "exceptions": [],
+        "presentationOnly": false
+      },
+      "rules": {
+        "approvalMode": "",
+        "approvalRules": {
+          "targetGroupRules": [],
+          "timeRules": [],
+          "riskRules": []
+        },
+        "restrictions": {
+          "leadTime": "",
+          "maxDuration": "",
+          "maxBookingsPerWeek": "",
+          "cancellationDeadline": ""
+        },
+        "umbrellaDisposal": {
+          "allowed": false,
+          "organizations": [],
+          "quotaPerWeek": "",
+          "canDistributeToSubclubs": false,
+          "canLockTimes": false
+        }
+      },
+      "pricing": {
+        "isFree": true,
+        "priceModel": "",
+        "vat": "",
+        "feeCode": "",
+        "targetGroups": [],
+        "timeBasedPricing": {
+          "weekdays": "",
+          "weekend": ""
+        },
+        "externalPriceList": {
+          "active": false,
+          "attachment": null,
+          "link": "",
+          "explanation": ""
+        }
+      },
+      "payment": {
+        "methods": [],
+        "accountSetup": {
+          "cardAccount": "",
+          "vippsAccount": "",
+          "invoiceRecipient": ""
+        },
+        "terms": {
+          "pdf": null,
+          "requireAcceptance": false,
+          "visibleOnReceipt": false
+        },
+        "identityLevel": {
+          "requireLogin": false,
+          "requireStrongAuth": false
+        }
+      },
+      "publishing": {
+        "choice": "draft",
+        "visibility": {
+          "publicCatalog": false,
+          "selectedTargetGroups": false,
+          "selectedOrganizations": false,
+          "targetGroups": [],
+          "organizations": []
+        }
+      }
+    }
+  }
+}

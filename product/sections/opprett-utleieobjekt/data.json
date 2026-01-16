@@ -1,0 +1,70 @@
+{
+  "wizard": {
+    "currentStep": 0,
+    "status": "draft",
+    "validationErrors": [],
+    "formData": {
+      "startChoice": null,
+      "copyFrom": null,
+      "copyOptions": [],
+      "basicInfo": {
+        "name": "",
+        "category": "",
+        "location": {
+          "building": "",
+          "address": "",
+          "roomName": ""
+        },
+        "shortDescription": "",
+        "longDescription": "",
+        "capacity": {
+          "maxPersons": null,
+          "seated": null,
+          "standing": null
+        },
+        "images": [],
+        "documents": [],
+        "equipment": [],
+        "publishInCatalog": false,
+        "requiresSupervision": false
+      },
+      "availability": {
+        "timezone": "Europe/Oslo",
+        "weekdays": [],
+        "bookingInterval": "60",
+        "exceptions": []
+      },
+      "rules": {
+        "approvalMode": "",
+        "approvalRules": [],
+        "restrictions": {
+          "minLeadTime": null,
+          "maxDuration": null,
+          "maxBookingsPerWeek": null,
+          "maxBookingsPerMonth": null,
+          "cancellationDeadline": null
+        },
+        "priority": {
+          "level": null,
+          "umbrellaCanDispose": false,
+          "disposeOrganizations": [],
+          "quotaPerWeek": null,
+          "canDistributeToSubclubs": false
+        }
+      },
+      "pricing": {
+        "isFree": true,
+        "priceModel": "",
+        "basePrice": null,
+        "priceGroups": [],
+        "billingMethod": "",
+        "addOnServices": []
+      },
+      "bookingForm": {
+        "standardFields": [],
+        "messageTemplates": [],
+        "publishNow": false
+      }
+    }
+  }
+}
