@@ -227,7 +227,6 @@ export default function UtleieobjektWizardKommune({
     if (!formData.locationAndBasis.address) validationErrors.push('Adresse må være fylt')
     if (!formData.locationAndBasis.postalCode) validationErrors.push('Postnummer må være fylt')
     if (!formData.locationAndBasis.postalArea) validationErrors.push('Poststed må være fylt')
-    if (formData.properties.types.length === 0) validationErrors.push('Minst én type må være valgt')
   }
 
   if (selectedCategory === 'lokaler' && currentStep === 2) {
@@ -370,7 +369,6 @@ export default function UtleieobjektWizardKommune({
       return {
         required: [
           { label: 'Navn og adresse', checked: !!formData.locationAndBasis.name && !!formData.locationAndBasis.address },
-          { label: 'Type valgt', checked: formData.properties.types.length > 0 },
           { label: 'Tilgjengelighet definert eller "kun presentasjon"', checked: formData.availability.presentationOnly || formData.availability.openingHours.some(h => h.active) },
           ...(formData.pricing.isFree ? [] : [
             { label: 'Pris definert', checked: formData.pricing.targetGroups.length > 0 },
@@ -901,29 +899,6 @@ export default function UtleieobjektWizardKommune({
                   <div>
                     <Label>Egenskaper</Label>
                     <div className="mt-2 space-y-6">
-                      <div>
-                        <Label>Type utleieobjekt (minst én) {formData.properties.types.length === 0 && <span className="text-red-600">*</span>}</Label>
-                    <div className="mt-2 space-y-2">
-                      {['Lokaler og baner', 'Utstyr og inventar', 'Opplevelser og arrangement'].map((type) => (
-                        <label key={type} className="flex items-center gap-2 p-2 border rounded-lg cursor-pointer hover:bg-stone-50 dark:hover:bg-stone-800">
-                          <input
-                            type="checkbox"
-                            checked={formData.properties.types.includes(type)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setFormData({ ...formData, properties: { ...formData.properties, types: [...formData.properties.types, type] } })
-                              } else {
-                                setFormData({ ...formData, properties: { ...formData.properties, types: formData.properties.types.filter(t => t !== type) } })
-                              }
-                            }}
-                            className="rounded"
-                          />
-                          <span className="text-sm">{type}</span>
-                        </label>
-                      ))}
-                        </div>
-                      </div>
-                      <Separator />
                       <div>
                         <Label>Kapasitet og størrelse</Label>
                     <div className="mt-2 grid grid-cols-2 gap-4">
@@ -1723,7 +1698,7 @@ export default function UtleieobjektWizardKommune({
                     <Label>Oppsummering før publisering</Label>
                     <div className="mt-2 p-4 bg-stone-100 dark:bg-stone-800 rounded-lg space-y-2 text-sm">
                       <div><span className="text-stone-500">Navn og adresse:</span> <span className="font-medium">{formData.locationAndBasis.name || 'Ikke satt'}, {formData.locationAndBasis.address || 'Ikke satt'}</span></div>
-                      <div><span className="text-stone-500">Type:</span> <span className="font-medium">{formData.properties.types.join(', ') || 'Ikke satt'}</span></div>
+                      <div><span className="text-stone-500">Kategori:</span> <span className="font-medium">{selectedCategory === 'lokaler' ? 'Lokaler og baner' : selectedCategory === 'utstyr' ? 'Utstyr og inventar' : 'Opplevelser og arrangement'}</span></div>
                       <div><span className="text-stone-500">Leies ut per og intervall:</span> <span className="font-medium">{formData.availability.rentalUnit || 'Ikke satt'} / {formData.availability.interval || 'Ikke satt'}</span></div>
                       <div><span className="text-stone-500">Godkjenning:</span> <span className="font-medium">{formData.rules.approvalMode || 'Ikke satt'}</span></div>
                       <div><span className="text-stone-500">Pris og målgrupper:</span> <span className="font-medium">{formData.pricing.isFree ? 'Gratis' : formData.pricing.targetGroups.length > 0 ? `${formData.pricing.targetGroups.length} målgrupper` : 'Ikke satt'}</span></div>
@@ -2783,7 +2758,7 @@ export default function UtleieobjektWizardKommune({
                     </div>
                     <div>
                       <span className="text-stone-500">Kategori:</span>
-                      <div className="font-medium">{formData.properties.types.join(', ') || 'Ikke satt'}</div>
+                      <div className="font-medium">{selectedCategory === 'lokaler' ? 'Lokaler og baner' : selectedCategory === 'utstyr' ? 'Utstyr og inventar' : selectedCategory === 'opplevelser' ? 'Opplevelser og arrangement' : 'Ikke satt'}</div>
                     </div>
                     <div>
                       <span className="text-stone-500">Leies ut per:</span>
