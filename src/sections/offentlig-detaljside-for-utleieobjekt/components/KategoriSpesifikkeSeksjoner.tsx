@@ -73,51 +73,57 @@ export default function KategoriSpesifikkeSeksjoner({
           </Card>
         )}
 
-        {/* Pricing details */}
-        {!lokale.pricing.isFree && (
-          <>
-            {/* Tidsbasert prising */}
-            {lokale.pricing.timeBasedPricing && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Pris etter tidsrom</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {lokale.pricing.timeBasedPricing.weekdays && (
-                    <div className="text-stone-700 dark:text-stone-300">
-                      Hverdager: {lokale.pricing.timeBasedPricing.weekdays} kr
-                    </div>
-                  )}
-                  {lokale.pricing.timeBasedPricing.weekend && (
-                    <div className="text-stone-700 dark:text-stone-300">
-                      Helg: {lokale.pricing.timeBasedPricing.weekend} kr
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Betalingsmetoder */}
-            {lokale.pricing.paymentMethods && lokale.pricing.paymentMethods.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Betalingsmetoder</CardTitle>
-                </CardHeader>
-                <CardContent>
+        {/* Pris og betaling - kombinert */}
+        {!lokale.pricing.isFree && (lokale.pricing.timeBasedPricing || (lokale.pricing.paymentMethods && lokale.pricing.paymentMethods.length > 0)) && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Pris og betaling</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {lokale.pricing.timeBasedPricing && (
+                <div>
+                  <div className="text-sm font-medium text-stone-600 dark:text-stone-400 mb-2">
+                    Pris etter tidsrom
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {lokale.pricing.timeBasedPricing.weekdays && (
+                      <div>
+                        <div className="text-xs text-stone-500 dark:text-stone-400">Hverdager</div>
+                        <div className="text-lg font-semibold text-stone-900 dark:text-stone-100">
+                          {lokale.pricing.timeBasedPricing.weekdays} kr
+                        </div>
+                      </div>
+                    )}
+                    {lokale.pricing.timeBasedPricing.weekend && (
+                      <div>
+                        <div className="text-xs text-stone-500 dark:text-stone-400">Helg</div>
+                        <div className="text-lg font-semibold text-stone-900 dark:text-stone-100">
+                          {lokale.pricing.timeBasedPricing.weekend} kr
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              {lokale.pricing.paymentMethods && lokale.pricing.paymentMethods.length > 0 && (
+                <div className={lokale.pricing.timeBasedPricing ? 'pt-3 border-t border-stone-200 dark:border-stone-700' : ''}>
+                  <div className="text-sm font-medium text-stone-600 dark:text-stone-400 mb-2">
+                    Betalingsmetoder
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     {lokale.pricing.paymentMethods.map((method, index) => (
                       <span
                         key={index}
-                        className="px-3 py-1 bg-stone-100 dark:bg-stone-800 rounded-md text-sm text-stone-700 dark:text-stone-300"
+                        className="px-2.5 py-1 bg-stone-100 dark:bg-stone-800 rounded-md text-xs text-stone-700 dark:text-stone-300"
                       >
                         {method}
                       </span>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-            )}
-          </>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         )}
       </>
     )
@@ -126,22 +132,8 @@ export default function KategoriSpesifikkeSeksjoner({
   if (utleieobjekt.category === 'utstyr') {
     const utstyr = utleieobjekt
     return (
-      <>
-        {/* Transportinfo */}
-        {utstyr.shortDescription && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Transportinfo</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-stone-700 dark:text-stone-300">
-                {utstyr.shortDescription}
-              </p>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Logistics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Logistikk og transport - kombinert */}
         <Card>
           <CardHeader>
             <CardTitle>Logistikk</CardTitle>
@@ -175,83 +167,101 @@ export default function KategoriSpesifikkeSeksjoner({
                 </div>
               </div>
             )}
+            {utstyr.shortDescription && (
+              <div className="pt-2 border-t border-stone-200 dark:border-stone-700">
+                <div className="text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
+                  Transportinfo
+                </div>
+                <p className="text-sm text-stone-700 dark:text-stone-300">
+                  {utstyr.shortDescription}
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Spesifikasjoner */}
-        {utstyr.specifications && (
+        {/* Spesifikasjoner og returbetingelser - kombinert */}
+        {(utstyr.specifications || utstyr.returnDeadline || utstyr.damageLiability) && (
           <Card>
             <CardHeader>
-              <CardTitle>Spesifikasjoner</CardTitle>
+              <CardTitle>Detaljer</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-stone-700 dark:text-stone-300 whitespace-pre-line">
-                {utstyr.specifications}
-              </p>
+            <CardContent className="space-y-3">
+              {utstyr.specifications && (
+                <div>
+                  <div className="text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
+                    Spesifikasjoner
+                  </div>
+                  <p className="text-sm text-stone-700 dark:text-stone-300 whitespace-pre-line">
+                    {utstyr.specifications}
+                  </p>
+                </div>
+              )}
+              {(utstyr.returnDeadline || utstyr.damageLiability) && (
+                <div className="pt-2 border-t border-stone-200 dark:border-stone-700 space-y-2">
+                  {utstyr.returnDeadline && (
+                    <div>
+                      <div className="text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
+                        Returfrist
+                      </div>
+                      <div className="text-sm text-stone-900 dark:text-stone-100">
+                        {utstyr.returnDeadline} dager etter utleie
+                      </div>
+                    </div>
+                  )}
+                  {utstyr.damageLiability && (
+                    <div>
+                      <div className="text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
+                        Skadeansvar
+                      </div>
+                      <p className="text-sm text-stone-700 dark:text-stone-300 whitespace-pre-line">
+                        {utstyr.damageLiability}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
 
-        {/* Pricing details */}
+        {/* Pris og depositum - kompakt */}
         {(utstyr.pricing.deposit || utstyr.damageFee) && (
           <Card>
             <CardHeader>
               <CardTitle>Pris og depositum</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
-              {utstyr.pricing.deposit && (
-                <div className="text-stone-700 dark:text-stone-300">
-                  Depositum: {utstyr.pricing.deposit} kr
-                </div>
-              )}
-              {utstyr.damageFee && (
-                <div className="text-stone-700 dark:text-stone-300">
-                  Skadeavgift: {utstyr.damageFee} kr
-                </div>
-              )}
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                {utstyr.pricing.deposit && (
+                  <div>
+                    <div className="text-xs text-stone-500 dark:text-stone-400 mb-1">Depositum</div>
+                    <div className="text-lg font-semibold text-stone-900 dark:text-stone-100">
+                      {utstyr.pricing.deposit} kr
+                    </div>
+                  </div>
+                )}
+                {utstyr.damageFee && (
+                  <div>
+                    <div className="text-xs text-stone-500 dark:text-stone-400 mb-1">Skadeavgift</div>
+                    <div className="text-lg font-semibold text-stone-900 dark:text-stone-100">
+                      {utstyr.damageFee} kr
+                    </div>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         )}
-
-        {/* Returbetingelser */}
-        {(utstyr.returnDeadline || utstyr.damageLiability) && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Returbetingelser</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {utstyr.returnDeadline && (
-                <div>
-                  <div className="text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
-                    Returfrist
-                  </div>
-                  <div className="text-stone-900 dark:text-stone-100">
-                    {utstyr.returnDeadline} dager etter utleie
-                  </div>
-                </div>
-              )}
-              {utstyr.damageLiability && (
-                <div>
-                  <div className="text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
-                    Skadeansvar
-                  </div>
-                  <p className="text-stone-700 dark:text-stone-300 whitespace-pre-line">
-                    {utstyr.damageLiability}
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-      </>
+      </div>
     )
   }
 
   if (utleieobjekt.category === 'opplevelser') {
     const opplevelse = utleieobjekt
     return (
-      <>
-        {/* Event details */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Arrangementstider med varighet og gjentakelse */}
         {opplevelse.eventDates.length > 0 && (
           <Card>
             <CardHeader>
@@ -291,68 +301,41 @@ export default function KategoriSpesifikkeSeksjoner({
           </Card>
         )}
 
-        {/* Aldersgrenser */}
-        {(opplevelse.minAge || opplevelse.maxAge) && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Aldersgrenser</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-stone-700 dark:text-stone-300">
-                {opplevelse.minAge && opplevelse.maxAge
-                  ? `Alder: ${opplevelse.minAge} - ${opplevelse.maxAge} år`
-                  : opplevelse.minAge
-                    ? `Minimum alder: ${opplevelse.minAge} år`
-                    : opplevelse.maxAge
-                      ? `Maksimum alder: ${opplevelse.maxAge} år`
-                      : null}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Påmeldingsfrist */}
-        {opplevelse.registrationDeadline && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Påmeldingsfrist</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-stone-700 dark:text-stone-300">
-                {new Date(opplevelse.registrationDeadline.date).toLocaleDateString('no-NO', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}{' '}
-                kl. {opplevelse.registrationDeadline.time}
-              </div>
-              {opplevelse.waitlistAllowed && (
-                <div className="mt-2 text-sm text-stone-600 dark:text-stone-400">
-                  Venteliste er tilgjengelig
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Booking type */}
+        {/* Påmelding og frist - kombinert */}
         <Card>
           <CardHeader>
             <CardTitle>Påmelding</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-stone-700 dark:text-stone-300 mb-4">
+          <CardContent className="space-y-4">
+            <p className="text-stone-700 dark:text-stone-300">
               {opplevelse.bookingType === 'tickets'
                 ? 'Billetter kan kjøpes for dette arrangementet'
                 : 'Påmelding kreves for dette arrangementet'}
             </p>
+            {opplevelse.registrationDeadline && (
+              <div className="pt-3 border-t border-stone-200 dark:border-stone-700">
+                <div className="text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
+                  Påmeldingsfrist
+                </div>
+                <div className="text-sm text-stone-900 dark:text-stone-100">
+                  {new Date(opplevelse.registrationDeadline.date).toLocaleDateString('no-NO', {
+                    day: 'numeric',
+                    month: 'short'
+                  })}{' '}
+                  kl. {opplevelse.registrationDeadline.time}
+                </div>
+                {opplevelse.waitlistAllowed && (
+                  <div className="mt-2 text-xs text-stone-500 dark:text-stone-500">
+                    Venteliste tilgjengelig
+                  </div>
+                )}
+              </div>
+            )}
             {opplevelse.bookingType === 'tickets' && (
               <Button
                 className="w-full"
                 size="lg"
                 onClick={() => {
-                  // Start booking flow for tickets
                   console.log('Kjøp billett clicked')
                 }}
               >
@@ -362,43 +345,66 @@ export default function KategoriSpesifikkeSeksjoner({
           </CardContent>
         </Card>
 
-        {/* Deltakelsesvilkår */}
-        {opplevelse.participationTerms && (
+        {/* Aldersgrenser og avbestilling - kombinert */}
+        {((opplevelse.minAge || opplevelse.maxAge) || opplevelse.cancellationDeadline) && (
           <Card>
             <CardHeader>
-              <CardTitle>Deltakelsesvilkår</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-stone-700 dark:text-stone-300 whitespace-pre-line">
-                {opplevelse.participationTerms}
-              </p>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Avbestillingsregler */}
-        {(opplevelse.cancellationDeadline || opplevelse.refundRules) && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Avbestillingsregler</CardTitle>
+              <CardTitle>Viktig informasjon</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {opplevelse.cancellationDeadline && (
+              {(opplevelse.minAge || opplevelse.maxAge) && (
                 <div>
+                  <div className="text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
+                    Aldersgrenser
+                  </div>
+                  <div className="text-sm text-stone-900 dark:text-stone-100">
+                    {opplevelse.minAge && opplevelse.maxAge
+                      ? `${opplevelse.minAge} - ${opplevelse.maxAge} år`
+                      : opplevelse.minAge
+                        ? `Fra ${opplevelse.minAge} år`
+                        : opplevelse.maxAge
+                          ? `Til ${opplevelse.maxAge} år`
+                          : null}
+                  </div>
+                </div>
+              )}
+              {opplevelse.cancellationDeadline && (
+                <div className="pt-2 border-t border-stone-200 dark:border-stone-700">
                   <div className="text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
                     Avbestillingsfrist
                   </div>
-                  <div className="text-stone-900 dark:text-stone-100">
+                  <div className="text-sm text-stone-900 dark:text-stone-100">
                     {opplevelse.cancellationDeadline} timer før start
                   </div>
                 </div>
               )}
-              {opplevelse.refundRules && (
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Vilkår og regler - kombinert */}
+        {(opplevelse.participationTerms || opplevelse.refundRules) && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Vilkår og regler</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {opplevelse.participationTerms && (
                 <div>
+                  <div className="text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
+                    Deltakelsesvilkår
+                  </div>
+                  <p className="text-sm text-stone-700 dark:text-stone-300 whitespace-pre-line">
+                    {opplevelse.participationTerms}
+                  </p>
+                </div>
+              )}
+              {opplevelse.refundRules && (
+                <div className="pt-2 border-t border-stone-200 dark:border-stone-700">
                   <div className="text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
                     Refunderingsregler
                   </div>
-                  <p className="text-stone-700 dark:text-stone-300 whitespace-pre-line">
+                  <p className="text-sm text-stone-700 dark:text-stone-300 whitespace-pre-line">
                     {opplevelse.refundRules}
                   </p>
                 </div>
@@ -406,7 +412,7 @@ export default function KategoriSpesifikkeSeksjoner({
             </CardContent>
           </Card>
         )}
-      </>
+      </div>
     )
   }
 

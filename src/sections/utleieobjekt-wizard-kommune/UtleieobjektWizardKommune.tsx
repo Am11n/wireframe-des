@@ -32,7 +32,7 @@ import {
 } from 'lucide-react'
 import ImportUtleieobjekt from './components/ImportUtleieobjekt'
 
-type Category = 'lokaler' | 'utstyr' | 'opplevelser'
+type Category = 'lokaler' | 'sport' | 'arrangementer' | 'torg'
 type Step = 0 | 1 | 2 | 3 | 4 | 5 | 6
 
 interface UtleieobjektWizardKommuneProps {
@@ -48,9 +48,26 @@ const getInitialStepLabels = (): string[] => {
   ]
 }
 
+const getSubcategories = (category: Category): string[] => {
+  if (category === 'lokaler') {
+    return ['Selskapslokale', 'Møterom', 'Gymsal', 'Kulturarena', 'Konferanserom']
+  }
+  if (category === 'sport') {
+    return ['Padel', 'Squash', 'Tennis', 'Cageball', 'Badminton']
+  }
+  if (category === 'arrangementer') {
+    return ['Kurs', 'Foredrag', 'Konsert', 'Workshop', 'Seminar']
+  }
+  if (category === 'torg') {
+    return ['Telt', 'Lydanlegg', 'Projektor', 'Bord og stoler', 'Grill', 'Partytelt']
+  }
+  return []
+}
+
 const getTypeStepLabels = (category: Category): string[] => {
   if (category === 'lokaler') {
     return [
+      'Underkategori',
       'Lokasjon',
       'Tilgjengelighet',
       'Regler',
@@ -58,22 +75,34 @@ const getTypeStepLabels = (category: Category): string[] => {
       'Publisering'
     ]
   }
-  if (category === 'utstyr') {
+  if (category === 'sport') {
     return [
+      'Underkategori',
       'Hentested/Logistikk',
-      'Antall/Lager',
       'Tilgjengelighet',
       'Regler',
       'Pris/Depositum',
       'Publisering'
     ]
   }
-  if (category === 'opplevelser') {
+  if (category === 'arrangementer') {
     return [
-      'Tidspunkter/Forestillinger',
-      'Kapasitet/Billetter eller Påmelding',
+      'Underkategori',
+      'Tidspunkter',
+      'Kapasitet',
       'Pris',
       'Vilkår',
+      'Publisering'
+    ]
+  }
+  if (category === 'torg') {
+    return [
+      'Underkategori',
+      'Hentested/Logistikk',
+      'Antall/Lager',
+      'Tilgjengelighet',
+      'Regler',
+      'Pris/Depositum',
       'Publisering'
     ]
   }
@@ -105,8 +134,9 @@ export default function UtleieobjektWizardKommune({
   const copyObjects: CopyObject[] = [
     { id: '1', name: 'Idrettshall A', location: 'Skien', status: 'Publisert', category: 'lokaler' },
     { id: '2', name: 'Møterom 1', location: 'Skien', status: 'Publisert', category: 'lokaler' },
-    { id: '3', name: 'Fotballutstyr sett', location: 'Skien', status: 'Utkast', category: 'utstyr' },
-    { id: '4', name: 'Sommerfest 2024', location: 'Skien sentrum', status: 'Publisert', category: 'opplevelser' },
+    { id: '3', name: 'Tennisbane 1', location: 'Skien', status: 'Utkast', category: 'sport' },
+    { id: '4', name: 'Sommerfest 2024', location: 'Skien sentrum', status: 'Publisert', category: 'arrangementer' },
+    { id: '5', name: 'Festtelt', location: 'Skien', status: 'Publisert', category: 'torg' },
   ]
 
   // Filter kopier-objekter basert på søk og kategori
@@ -119,6 +149,10 @@ export default function UtleieobjektWizardKommune({
   })
   
   const [formData, setFormData] = useState({
+    subcategory: {
+      selected: null as string | null,
+      custom: '' as string
+    },
     locationAndBasis: {
       name: '',
       address: '',
@@ -147,8 +181,23 @@ export default function UtleieobjektWizardKommune({
       addOnServices: [] as Array<{ name: string; description: string; price: string; required: boolean; needsApproval: boolean }>
     },
     availability: {
+      availabilityType: null as 'timeInterval' | 'day' | 'quantity' | null,
       rentalUnit: '',
       interval: '',
+      timeInterval: {
+        interval: '',
+        openingHours: [] as Array<{ day: string; active: boolean; from: string; to: string }>
+      },
+      day: {
+        type: 'full' as 'full' | 'custom',
+        fromTime: '',
+        toTime: '',
+        openingHours: [] as Array<{ day: string; active: boolean; from: string; to: string }>
+      },
+      quantity: {
+        amount: '',
+        unit: ''
+      },
       openingHours: [] as Array<{ day: string; active: boolean; from: string; to: string }>,
       exceptions: [] as Array<{ fromDate: string; toDate: string; fromTime: string; toTime: string; reason: string; visible: boolean; repeating: boolean }>,
       presentationOnly: false
@@ -223,30 +272,47 @@ export default function UtleieobjektWizardKommune({
     if (!startChoice) validationErrors.push('Velg opprettelsesmetode')
   }
 
+  // Subcategory validation
+  if (selectedCategory && currentStep === 1 && startChoice === 'new') {
+    if (!formData.subcategory.selected && !formData.subcategory.custom.trim()) {
+      validationErrors.push('Underkategori må være valgt')
+    }
+  }
+
   // Lokaler validering
-  if (selectedCategory === 'lokaler' && currentStep === 1 && startChoice === 'new') {
+  if (selectedCategory === 'lokaler' && currentStep === 2 && startChoice === 'new') {
     if (!formData.locationAndBasis.name) validationErrors.push('Navn på utleieobjekt må være fylt')
     if (!formData.locationAndBasis.address) validationErrors.push('Adresse må være fylt')
     if (!formData.locationAndBasis.postalCode) validationErrors.push('Postnummer må være fylt')
     if (!formData.locationAndBasis.postalArea) validationErrors.push('Poststed må være fylt')
   }
 
-  if (selectedCategory === 'lokaler' && currentStep === 2) {
-    if (!formData.availability.rentalUnit) validationErrors.push('Leies ut per må være valgt')
-    if (!formData.availability.interval) validationErrors.push('Intervall må være valgt')
-    if (formData.availability.openingHours.filter(h => h.active).length === 0 && !formData.availability.presentationOnly) {
-      validationErrors.push('Minst én aktiv ukedag med gyldige tider, eller velg "kun presentasjon"')
+  if (selectedCategory === 'lokaler' && currentStep === 3) {
+    if (!formData.availability.availabilityType) validationErrors.push('Tilgjengelighetstype må være valgt')
+    if (formData.availability.availabilityType === 'timeInterval') {
+      if (!formData.availability.timeInterval.interval) validationErrors.push('Intervall må være valgt')
+      if (formData.availability.timeInterval.openingHours.filter(h => h.active).length === 0 && !formData.availability.presentationOnly) {
+        validationErrors.push('Minst én aktiv ukedag med gyldige tider, eller velg "kun presentasjon"')
+      }
+    }
+    if (formData.availability.availabilityType === 'day') {
+      if (formData.availability.day.type === 'custom' && (!formData.availability.day.fromTime || !formData.availability.day.toTime)) {
+        validationErrors.push('Fra-til tid må være satt for dagsintervall')
+      }
+      if (formData.availability.day.openingHours.filter(h => h.active).length === 0 && !formData.availability.presentationOnly) {
+        validationErrors.push('Minst én aktiv ukedag med gyldige tider, eller velg "kun presentasjon"')
+      }
     }
   }
 
-  if (selectedCategory === 'lokaler' && currentStep === 3) {
+  if (selectedCategory === 'lokaler' && currentStep === 4) {
     if (!formData.rules.approvalMode) validationErrors.push('En godkjenningsmodus må være valgt')
     if (formData.rules.umbrellaDisposal.allowed && formData.rules.umbrellaDisposal.organizations.length === 0) {
       validationErrors.push('Hvis paraply = ja: minst én org + kvote må settes')
     }
   }
 
-  if (selectedCategory === 'lokaler' && currentStep === 4) {
+  if (selectedCategory === 'lokaler' && currentStep === 5) {
     if (!formData.pricing.isFree) {
       if (!formData.pricing.priceModel) validationErrors.push('Prismodell må være valgt')
       if (formData.pricing.targetGroups.length === 0) validationErrors.push('Minst én pris må være definert')
@@ -257,41 +323,94 @@ export default function UtleieobjektWizardKommune({
     }
   }
 
-  // Utstyr validering
-  if (selectedCategory === 'utstyr' && currentStep === 1 && startChoice === 'new') {
+  // Sport validering
+  if (selectedCategory === 'sport' && currentStep === 2 && startChoice === 'new') {
     if (!formData.locationAndBasis.name) validationErrors.push('Navn på utstyr må være fylt')
     if (!formData.locationAndBasis.address) validationErrors.push('Hentested må være fylt')
     if (!formData.locationAndBasis.postalCode) validationErrors.push('Postnummer må være fylt')
     if (!formData.locationAndBasis.postalArea) validationErrors.push('Poststed må være fylt')
   }
 
-  if (selectedCategory === 'utstyr' && currentStep === 2) {
-    if (!formData.properties.size) validationErrors.push('Antall enheter må være fylt')
+  if (selectedCategory === 'sport' && currentStep === 3) {
+    if (!formData.availability.availabilityType || formData.availability.availabilityType !== 'timeInterval') {
+      validationErrors.push('Sport må bruke Tidsintervall')
+    }
+    if (formData.availability.availabilityType === 'timeInterval') {
+      if (!formData.availability.timeInterval.interval) validationErrors.push('Intervall må være valgt')
+      if (formData.availability.timeInterval.openingHours.filter(h => h.active).length === 0 && !formData.availability.presentationOnly) {
+        validationErrors.push('Minst én aktiv ukedag med gyldige tider, eller velg "kun presentasjon"')
+      }
+    }
   }
 
-  if (selectedCategory === 'utstyr' && currentStep === 4) {
+  if (selectedCategory === 'sport' && currentStep === 4) {
     if (!formData.rules.approvalMode) validationErrors.push('En godkjenningsmodus må være valgt')
   }
 
-  if (selectedCategory === 'utstyr' && currentStep === 5) {
+  if (selectedCategory === 'sport' && currentStep === 5) {
     if (!formData.pricing.isFree) {
       if (!formData.pricing.priceModel) validationErrors.push('Utleiepris må være fylt')
       if (formData.payment.methods.length === 0) validationErrors.push('Minst én betalingsmetode må være valgt')
     }
   }
 
-  // Opplevelser validering
-  if (selectedCategory === 'opplevelser' && currentStep === 1 && startChoice === 'new') {
+  // Arrangementer validering
+  if (selectedCategory === 'arrangementer' && currentStep === 2 && startChoice === 'new') {
     if (!formData.locationAndBasis.name) validationErrors.push('Navn på arrangement må være fylt')
   }
 
-  if (selectedCategory === 'opplevelser' && currentStep === 2) {
-    if (!formData.properties.maxPersons) validationErrors.push('Maks antall deltakere må være fylt')
+  if (selectedCategory === 'arrangementer' && currentStep === 3) {
+    if (!formData.availability.availabilityType || formData.availability.availabilityType !== 'quantity') {
+      validationErrors.push('Arrangementer må bruke Antall tilgjengelighet')
+    }
+    if (formData.availability.availabilityType === 'quantity') {
+      if (!formData.availability.quantity.amount) validationErrors.push('Antall må være fylt')
+      if (!formData.availability.quantity.unit) validationErrors.push('Enhet må være valgt')
+    }
   }
 
-  if (selectedCategory === 'opplevelser' && currentStep === 3) {
+  if (selectedCategory === 'arrangementer' && currentStep === 4) {
     if (!formData.pricing.isFree) {
       // Validering for pris hvis betalt
+    }
+  }
+
+  // Torg validering
+  if (selectedCategory === 'torg' && currentStep === 2 && startChoice === 'new') {
+    if (!formData.locationAndBasis.name) validationErrors.push('Navn på utstyr må være fylt')
+    if (!formData.locationAndBasis.address) validationErrors.push('Hentested må være fylt')
+    if (!formData.locationAndBasis.postalCode) validationErrors.push('Postnummer må være fylt')
+    if (!formData.locationAndBasis.postalArea) validationErrors.push('Poststed må være fylt')
+  }
+
+  if (selectedCategory === 'torg' && currentStep === 3) {
+    if (!formData.properties.size) validationErrors.push('Antall enheter må være fylt')
+  }
+
+  if (selectedCategory === 'torg' && currentStep === 4) {
+    if (!formData.availability.availabilityType) validationErrors.push('Tilgjengelighetstype må være valgt')
+    if (formData.availability.availabilityType === 'day') {
+      if (formData.availability.day.type === 'custom' && (!formData.availability.day.fromTime || !formData.availability.day.toTime)) {
+        validationErrors.push('Fra-til tid må være satt for dagsintervall')
+      }
+      if (formData.availability.day.openingHours.filter(h => h.active).length === 0 && !formData.availability.presentationOnly) {
+        validationErrors.push('Minst én aktiv ukedag med gyldige tider, eller velg "kun presentasjon"')
+      }
+    }
+    if (formData.availability.availabilityType === 'quantity') {
+      if (!formData.availability.quantity.amount) validationErrors.push('Antall må være fylt')
+      if (!formData.availability.quantity.unit) validationErrors.push('Enhet må være valgt')
+    }
+  }
+
+  if (selectedCategory === 'torg' && currentStep === 5) {
+    if (!formData.rules.approvalMode) validationErrors.push('En godkjenningsmodus må være valgt')
+  }
+
+  if (selectedCategory === 'torg' && currentStep === 6) {
+    if (!formData.pricing.isFree) {
+      if (!formData.pricing.priceModel) validationErrors.push('Utleiepris må være fylt')
+      if (formData.payment.methods.length === 0) validationErrors.push('Minst én betalingsmetode må være valgt')
     }
   }
 
@@ -299,16 +418,17 @@ export default function UtleieobjektWizardKommune({
 
   const getMaxStep = (): number => {
     if (!selectedCategory) return 1
-    if (selectedCategory === 'lokaler') return 5
-    if (selectedCategory === 'utstyr') return 6
-    if (selectedCategory === 'opplevelser') return 5
+    if (selectedCategory === 'lokaler') return 6
+    if (selectedCategory === 'sport') return 6
+    if (selectedCategory === 'arrangementer') return 6
+    if (selectedCategory === 'torg') return 7
     return 1
   }
 
   const handleNext = () => {
     // Hvis vi er på opprettelsesmetode-steg og har valgt kopier eller import, gå til første type-spesifikke steg
     if (((currentStep === 0 && selectedCategory) || (currentStep === 1 && selectedCategory && (!startChoice || startChoice === 'copy' || startChoice === 'import'))) && startChoice && startChoice !== 'import') {
-      const firstTypeStep = selectedCategory === 'lokaler' ? 1 : selectedCategory === 'utstyr' ? 1 : 1
+      const firstTypeStep = 1 // Subcategory step
       setCurrentStep(firstTypeStep as Step)
       return
     }
@@ -388,11 +508,11 @@ export default function UtleieobjektWizardKommune({
         ]
       }
     }
-    if (selectedCategory === 'utstyr') {
+    if (selectedCategory === 'sport') {
       return {
         required: [
           { label: 'Navn og hentested', checked: !!formData.locationAndBasis.name && !!formData.locationAndBasis.address },
-          { label: 'Antall enheter', checked: !!formData.properties.size },
+          { label: 'Tilgjengelighet definert eller "kun presentasjon"', checked: formData.availability.presentationOnly || (formData.availability.availabilityType === 'timeInterval' && formData.availability.timeInterval.openingHours.some(h => h.active)) },
           ...(formData.pricing.isFree ? [] : [
             { label: 'Pris definert', checked: !!formData.pricing.priceModel },
             { label: 'Betalingsmetode satt', checked: formData.payment.methods.length > 0 }
@@ -405,11 +525,11 @@ export default function UtleieobjektWizardKommune({
         ]
       }
     }
-    if (selectedCategory === 'opplevelser') {
+    if (selectedCategory === 'arrangementer') {
       return {
         required: [
           { label: 'Navn på arrangement', checked: !!formData.locationAndBasis.name },
-          { label: 'Kapasitet definert', checked: !!formData.properties.maxPersons },
+          { label: 'Kapasitet definert', checked: formData.availability.availabilityType === 'quantity' && !!formData.availability.quantity.amount },
           ...(formData.pricing.isFree ? [] : [
             { label: 'Pris definert', checked: true }
           ])
@@ -418,6 +538,24 @@ export default function UtleieobjektWizardKommune({
           { label: 'Beskrivelse', checked: !!formData.locationAndBasis.longDescription },
           { label: 'Datoer definert', checked: true },
           { label: 'Vilkår definert', checked: true }
+        ]
+      }
+    }
+    if (selectedCategory === 'torg') {
+      return {
+        required: [
+          { label: 'Navn og hentested', checked: !!formData.locationAndBasis.name && !!formData.locationAndBasis.address },
+          { label: 'Antall enheter', checked: !!formData.properties.size },
+          { label: 'Tilgjengelighet definert eller "kun presentasjon"', checked: formData.availability.presentationOnly || (formData.availability.availabilityType === 'day' && formData.availability.day.openingHours.some(h => h.active)) || (formData.availability.availabilityType === 'quantity' && !!formData.availability.quantity.amount) },
+          ...(formData.pricing.isFree ? [] : [
+            { label: 'Pris definert', checked: !!formData.pricing.priceModel },
+            { label: 'Betalingsmetode satt', checked: formData.payment.methods.length > 0 }
+          ])
+        ],
+        recommended: [
+          { label: 'Beskrivelse', checked: !!formData.locationAndBasis.longDescription },
+          { label: 'Kontaktpersoner', checked: formData.locationAndBasis.contacts.length > 0 },
+          { label: 'Vilkår PDF', checked: !!formData.payment.terms.pdf }
         ]
       }
     }
@@ -457,11 +595,13 @@ export default function UtleieobjektWizardKommune({
               // For opplevelser: steg 1 = Tidspunkter (index 0), steg 2 = Kapasitet (index 1), etc.
               let typeStepIndex = 0
               if (selectedCategory === 'lokaler') {
-                typeStepIndex = currentStep === 1 ? 0 : currentStep === 2 ? 1 : currentStep === 3 ? 2 : currentStep === 4 ? 3 : currentStep === 5 ? 4 : 0
-              } else if (selectedCategory === 'utstyr') {
                 typeStepIndex = currentStep === 1 ? 0 : currentStep === 2 ? 1 : currentStep === 3 ? 2 : currentStep === 4 ? 3 : currentStep === 5 ? 4 : currentStep === 6 ? 5 : 0
-              } else if (selectedCategory === 'opplevelser') {
-                typeStepIndex = currentStep === 1 ? 0 : currentStep === 2 ? 1 : currentStep === 3 ? 2 : currentStep === 4 ? 3 : currentStep === 5 ? 4 : 0
+              } else if (selectedCategory === 'sport') {
+                typeStepIndex = currentStep === 1 ? 0 : currentStep === 2 ? 1 : currentStep === 3 ? 2 : currentStep === 4 ? 3 : currentStep === 5 ? 4 : currentStep === 6 ? 5 : 0
+              } else if (selectedCategory === 'arrangementer') {
+                typeStepIndex = currentStep === 1 ? 0 : currentStep === 2 ? 1 : currentStep === 3 ? 2 : currentStep === 4 ? 3 : currentStep === 5 ? 4 : currentStep === 6 ? 5 : 0
+              } else if (selectedCategory === 'torg') {
+                typeStepIndex = currentStep === 1 ? 0 : currentStep === 2 ? 1 : currentStep === 3 ? 2 : currentStep === 4 ? 3 : currentStep === 5 ? 4 : currentStep === 6 ? 5 : currentStep === 7 ? 6 : 0
               }
               return labels.map((label, index) => (
                 <div key={index} className="flex items-center gap-2">
@@ -486,7 +626,7 @@ export default function UtleieobjektWizardKommune({
                   <CardDescription>Velg hvilken type utleieobjekt du vil opprette</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-3 gap-6">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                     <button
                       onClick={() => {
                         setSelectedCategory('lokaler')
@@ -495,38 +635,52 @@ export default function UtleieobjektWizardKommune({
                       className="p-6 border-2 border-stone-200 dark:border-stone-700 rounded-lg hover:border-stone-900 dark:hover:border-stone-100 transition-colors text-left"
                     >
                       <div className="font-medium text-stone-900 dark:text-stone-100 mb-1">
-                        Lokaler og baner
+                        Lokaler
                       </div>
                       <div className="text-sm text-stone-600 dark:text-stone-400">
-                        Idrettshaller, møterom, konferanserom, etc.
+                        Selskapslokale, Møterom, Gymsal, Kulturarena, Konferanserom
                       </div>
                     </button>
                     <button
                       onClick={() => {
-                        setSelectedCategory('utstyr')
+                        setSelectedCategory('sport')
                         setCurrentStep(1)
                       }}
                       className="p-6 border-2 border-stone-200 dark:border-stone-700 rounded-lg hover:border-stone-900 dark:hover:border-stone-100 transition-colors text-left"
                     >
                       <div className="font-medium text-stone-900 dark:text-stone-100 mb-1">
-                        Utstyr og inventar
+                        Sport
                       </div>
                       <div className="text-sm text-stone-600 dark:text-stone-400">
-                        Sportsutstyr, møbler, utstyr, etc.
+                        Padel, Squash, Tennis, Cageball, Badminton
                       </div>
                     </button>
                     <button
                       onClick={() => {
-                        setSelectedCategory('opplevelser')
+                        setSelectedCategory('arrangementer')
                         setCurrentStep(1)
                       }}
                       className="p-6 border-2 border-stone-200 dark:border-stone-700 rounded-lg hover:border-stone-900 dark:hover:border-stone-100 transition-colors text-left"
                     >
                       <div className="font-medium text-stone-900 dark:text-stone-100 mb-1">
-                        Opplevelser og arrangement
+                        Arrangementer
                       </div>
                       <div className="text-sm text-stone-600 dark:text-stone-400">
-                        Arrangementer, kurs, forestillinger, etc.
+                        Kurs, Foredrag, Konsert, Workshop, Seminar
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedCategory('torg')
+                        setCurrentStep(1)
+                      }}
+                      className="p-6 border-2 border-stone-200 dark:border-stone-700 rounded-lg hover:border-stone-900 dark:hover:border-stone-100 transition-colors text-left"
+                    >
+                      <div className="font-medium text-stone-900 dark:text-stone-100 mb-1">
+                        Torg
+                      </div>
+                      <div className="text-sm text-stone-600 dark:text-stone-400">
+                        Telt, Lydanlegg, Projektor, Bord og stoler, Grill, Partytelt
                       </div>
                     </button>
                   </div>
@@ -540,7 +694,7 @@ export default function UtleieobjektWizardKommune({
                 <CardHeader>
                   <CardTitle>Opprettelsesmetode</CardTitle>
                   <CardDescription>
-                    Velg hvordan du vil opprette utleieobjektet ({selectedCategory === 'lokaler' ? 'Lokaler og baner' : selectedCategory === 'utstyr' ? 'Utstyr og inventar' : 'Opplevelser og arrangement'})
+                    Velg hvordan du vil opprette utleieobjektet ({selectedCategory === 'lokaler' ? 'Lokaler' : selectedCategory === 'sport' ? 'Sport' : selectedCategory === 'arrangementer' ? 'Arrangementer' : 'Torg'})
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -548,7 +702,7 @@ export default function UtleieobjektWizardKommune({
                     <button
                       onClick={() => {
                         setStartChoice('new')
-                        setCurrentStep(selectedCategory === 'lokaler' ? 1 : selectedCategory === 'utstyr' ? 1 : 1)
+                        setCurrentStep(1) // Go to subcategory step
                       }}
                       className="p-6 border-2 border-stone-200 dark:border-stone-700 rounded-lg hover:border-stone-900 dark:hover:border-stone-100 transition-colors text-left"
                     >
@@ -618,7 +772,7 @@ export default function UtleieobjektWizardKommune({
                           }
                         })
                         // Gå til første type-spesifikke steg
-                        setCurrentStep(selectedCategory === 'lokaler' ? 1 : selectedCategory === 'utstyr' ? 1 : 1)
+                        setCurrentStep(1) // Subcategory step
                         setStartChoice('new') // Sett til 'new' etter import slik at resten av wizarden fungerer normalt
                       }}
                       onCancel={() => {
@@ -684,7 +838,7 @@ export default function UtleieobjektWizardKommune({
                               <span className="text-sm">{item}</span>
                             </label>
                           ))}
-                          {selectedCategory === 'utstyr' && ['Hentested/Logistikk', 'Antall/Lager', 'Tilgjengelighet', 'Regler', 'Pris/Depositum'].map((item) => (
+                          {selectedCategory === 'sport' && ['Hentested/Logistikk', 'Tilgjengelighet', 'Regler', 'Pris/Depositum'].map((item) => (
                             <label key={item} className="flex items-center gap-2">
                               <input 
                                 type="checkbox" 
@@ -701,7 +855,7 @@ export default function UtleieobjektWizardKommune({
                               <span className="text-sm">{item}</span>
                             </label>
                           ))}
-                          {selectedCategory === 'opplevelser' && ['Tidspunkter/Forestillinger', 'Kapasitet/Billetter eller Påmelding', 'Pris', 'Vilkår'].map((item) => (
+                          {selectedCategory === 'arrangementer' && ['Tidspunkter', 'Kapasitet', 'Pris', 'Vilkår'].map((item) => (
                             <label key={item} className="flex items-center gap-2">
                               <input 
                                 type="checkbox" 
@@ -723,7 +877,7 @@ export default function UtleieobjektWizardKommune({
                       <Button 
                         onClick={() => {
                           // Her kan du legge til logikk for å faktisk kopiere data
-                          setCurrentStep(selectedCategory === 'lokaler' ? 1 : selectedCategory === 'utstyr' ? 1 : 1)
+                          setCurrentStep(1) // Subcategory step
                         }} 
                         className="w-full"
                         disabled={!selectedCopyObject || copySettings.length === 0}
@@ -736,8 +890,76 @@ export default function UtleieobjektWizardKommune({
               </Card>
             )}
 
-            {/* Lokaler: Step 1 - Lokasjon */}
-            {selectedCategory === 'lokaler' && currentStep === 1 && startChoice === 'new' && (
+            {/* Subcategory selection step - appears after "new" is selected */}
+            {selectedCategory && currentStep === 1 && startChoice === 'new' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Velg underkategori</CardTitle>
+                  <CardDescription>
+                    Velg underkategori for {selectedCategory === 'lokaler' ? 'Lokaler' : selectedCategory === 'sport' ? 'Sport' : selectedCategory === 'arrangementer' ? 'Arrangementer' : 'Torg'}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <Label htmlFor="subcategory-select">Underkategori {!formData.subcategory.selected && !formData.subcategory.custom && <span className="text-red-600">*</span>}</Label>
+                    <select
+                      id="subcategory-select"
+                      value={formData.subcategory.selected || ''}
+                      onChange={(e) => setFormData({ 
+                        ...formData, 
+                        subcategory: { ...formData.subcategory, selected: e.target.value || null, custom: '' } 
+                      })}
+                      className="w-full mt-2 p-2 border border-stone-300 dark:border-stone-600 rounded-md bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100"
+                    >
+                      <option value="">Velg underkategori...</option>
+                      {getSubcategories(selectedCategory).map((subcat) => (
+                        <option key={subcat} value={subcat}>{subcat}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 border-t border-stone-300 dark:border-stone-600"></div>
+                    <span className="text-sm text-stone-500 dark:text-stone-400">eller</span>
+                    <div className="flex-1 border-t border-stone-300 dark:border-stone-600"></div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="subcategory-custom">Legg til egen underkategori</Label>
+                    <div className="flex gap-2 mt-2">
+                      <Input
+                        id="subcategory-custom"
+                        value={formData.subcategory.custom}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          subcategory: { ...formData.subcategory, custom: e.target.value, selected: null } 
+                        })}
+                        placeholder="Skriv inn egen underkategori"
+                        className="flex-1"
+                      />
+                      <Button
+                        onClick={() => {
+                          if (formData.subcategory.custom.trim()) {
+                            // Add custom subcategory to the list (in a real app, this would be saved)
+                            setFormData({ 
+                              ...formData, 
+                              subcategory: { ...formData.subcategory, selected: formData.subcategory.custom, custom: '' } 
+                            })
+                          }
+                        }}
+                        variant="outline"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Legg til
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Lokaler: Step 2 - Lokasjon (was Step 1) */}
+            {selectedCategory === 'lokaler' && currentStep === 2 && startChoice === 'new' && (
               <Card>
                 <CardHeader>
                   <CardTitle>Lokasjon</CardTitle>
@@ -1070,8 +1292,8 @@ export default function UtleieobjektWizardKommune({
               </Card>
             )}
 
-            {/* Lokaler: Step 2 - Tilgjengelighet */}
-            {selectedCategory === 'lokaler' && currentStep === 2 && (
+            {/* Lokaler: Step 3 - Tilgjengelighet */}
+            {selectedCategory === 'lokaler' && currentStep === 3 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Tilgjengelighet</CardTitle>
@@ -1079,82 +1301,285 @@ export default function UtleieobjektWizardKommune({
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div>
-                    <Label>Leies ut per {!formData.availability.rentalUnit && <span className="text-red-600">*</span>}</Label>
+                    <Label>Tilgjengelighetstype {!formData.availability.availabilityType && <span className="text-red-600">*</span>}</Label>
                     <div className="mt-2 flex gap-4">
                       <label className="flex items-center gap-2">
-                        <input type="radio" name="rentalUnit" value="hour" checked={formData.availability.rentalUnit === 'hour'} onChange={(e) => setFormData({ ...formData, availability: { ...formData.availability, rentalUnit: e.target.value } })} />
-                        <span>Time</span>
+                        <input 
+                          type="radio" 
+                          name="availabilityType-lokaler" 
+                          value="timeInterval" 
+                          checked={formData.availability.availabilityType === 'timeInterval'} 
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            availability: { 
+                              ...formData.availability, 
+                              availabilityType: 'timeInterval' as const,
+                              timeInterval: {
+                                interval: formData.availability.timeInterval.interval || '',
+                                openingHours: formData.availability.timeInterval.openingHours.length > 0 
+                                  ? formData.availability.timeInterval.openingHours 
+                                  : formData.availability.openingHours
+                              }
+                            } 
+                          })} 
+                        />
+                        <span>Tidsintervall</span>
                       </label>
                       <label className="flex items-center gap-2">
-                        <input type="radio" name="rentalUnit" value="day" checked={formData.availability.rentalUnit === 'day'} onChange={(e) => setFormData({ ...formData, availability: { ...formData.availability, rentalUnit: e.target.value } })} />
+                        <input 
+                          type="radio" 
+                          name="availabilityType-lokaler" 
+                          value="day" 
+                          checked={formData.availability.availabilityType === 'day'} 
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            availability: { 
+                              ...formData.availability, 
+                              availabilityType: 'day' as const,
+                              day: {
+                                type: formData.availability.day.type || 'full',
+                                fromTime: formData.availability.day.fromTime || '',
+                                toTime: formData.availability.day.toTime || '',
+                                openingHours: formData.availability.day.openingHours.length > 0 
+                                  ? formData.availability.day.openingHours 
+                                  : formData.availability.openingHours
+                              }
+                            } 
+                          })} 
+                        />
                         <span>Dag</span>
                       </label>
                     </div>
                   </div>
-                  <div>
-                    <Label>Intervall {!formData.availability.interval && <span className="text-red-600">*</span>}</Label>
-                    {formData.availability.rentalUnit === 'hour' ? (
-                      <select value={formData.availability.interval} onChange={(e) => setFormData({ ...formData, availability: { ...formData.availability, interval: e.target.value } })} className="mt-2 w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm">
+                  
+                  {formData.availability.availabilityType === 'timeInterval' && (
+                    <div>
+                      <Label>Intervall {!formData.availability.timeInterval.interval && <span className="text-red-600">*</span>}</Label>
+                      <select 
+                        value={formData.availability.timeInterval.interval} 
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          availability: { 
+                            ...formData.availability, 
+                            timeInterval: { 
+                              ...formData.availability.timeInterval, 
+                              interval: e.target.value 
+                            } 
+                          } 
+                        })} 
+                        className="mt-2 w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                      >
                         <option value="">Velg intervall</option>
                         <option value="15">15 minutter</option>
                         <option value="30">30 minutter</option>
                         <option value="60">60 minutter</option>
                         <option value="custom">Tilpasset</option>
                       </select>
-                    ) : (
+                    </div>
+                  )}
+                  
+                  {formData.availability.availabilityType === 'day' && (
+                    <div>
+                      <Label>Dagstype</Label>
                       <div className="mt-2 space-y-2">
                         <label className="flex items-center gap-2">
-                          <input type="radio" name="dayInterval" value="full" />
-                          <span className="text-sm">Heldag</span>
+                          <input 
+                            type="radio" 
+                            name="dayType-lokaler" 
+                            value="full" 
+                            checked={formData.availability.day.type === 'full'} 
+                            onChange={(e) => setFormData({ 
+                              ...formData, 
+                              availability: { 
+                                ...formData.availability, 
+                                day: { ...formData.availability.day, type: 'full' as const } 
+                              } 
+                            })} 
+                          />
+                          <span className="text-sm">Hel dag</span>
                         </label>
                         <div className="flex items-center gap-2">
                           <label className="flex items-center gap-2">
-                            <input type="radio" name="dayInterval" value="custom" />
+                            <input 
+                              type="radio" 
+                              name="dayType-lokaler" 
+                              value="custom" 
+                              checked={formData.availability.day.type === 'custom'} 
+                              onChange={(e) => setFormData({ 
+                                ...formData, 
+                                availability: { 
+                                  ...formData.availability, 
+                                  day: { ...formData.availability.day, type: 'custom' as const } 
+                                } 
+                              })} 
+                            />
                             <span className="text-sm">Dagsintervall:</span>
                           </label>
-                          <Input type="time" className="w-32" />
+                          <Input 
+                            type="time" 
+                            value={formData.availability.day.fromTime} 
+                            onChange={(e) => setFormData({ 
+                              ...formData, 
+                              availability: { 
+                                ...formData.availability, 
+                                day: { ...formData.availability.day, fromTime: e.target.value } 
+                              } 
+                            })} 
+                            className="w-32" 
+                            disabled={formData.availability.day.type !== 'custom'}
+                          />
                           <span className="text-stone-500">til</span>
-                          <Input type="time" className="w-32" />
+                          <Input 
+                            type="time" 
+                            value={formData.availability.day.toTime} 
+                            onChange={(e) => setFormData({ 
+                              ...formData, 
+                              availability: { 
+                                ...formData.availability, 
+                                day: { ...formData.availability.day, toTime: e.target.value } 
+                              } 
+                            })} 
+                            className="w-32" 
+                            disabled={formData.availability.day.type !== 'custom'}
+                          />
                         </div>
                       </div>
-                    )}
-                  </div>
-                  <Separator />
-                  <div>
-                    <Label>Åpningstider {(formData.availability.openingHours.filter(h => h.active).length === 0 && !formData.availability.presentationOnly) && <span className="text-red-600">*</span>}</Label>
-                    <div className="mt-2 space-y-2">
-                      {['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag'].map((day) => {
-                        const openingHour = formData.availability.openingHours.find(h => h.day === day) || { day, active: false, from: '08:00', to: '22:00' }
-                        return (
-                          <div key={day} className="flex items-center gap-4 p-3 border rounded-lg">
-                            <label className="flex items-center gap-2 min-w-[100px]">
-                              <input type="checkbox" checked={openingHour.active} onChange={(e) => {
-                                if (e.target.checked) {
-                                  setFormData({ ...formData, availability: { ...formData.availability, openingHours: [...formData.availability.openingHours.filter(h => h.day !== day), { day, active: true, from: '08:00', to: '22:00' }] } })
-                                } else {
-                                  setFormData({ ...formData, availability: { ...formData.availability, openingHours: formData.availability.openingHours.filter(h => h.day !== day) } })
-                                }
-                              }} className="rounded" />
-                              <span className="text-sm">{day}</span>
-                            </label>
-                            {openingHour.active && (
-                              <div className="flex items-center gap-2 flex-1">
-                                <Input type="time" value={openingHour.from} onChange={(e) => {
-                                  const updated = formData.availability.openingHours.map(h => h.day === day ? { ...h, from: e.target.value } : h)
-                                  setFormData({ ...formData, availability: { ...formData.availability, openingHours: updated } })
-                                }} className="w-32" />
-                                <span className="text-stone-500">til</span>
-                                <Input type="time" value={openingHour.to} onChange={(e) => {
-                                  const updated = formData.availability.openingHours.map(h => h.day === day ? { ...h, to: e.target.value } : h)
-                                  setFormData({ ...formData, availability: { ...formData.availability, openingHours: updated } })
-                                }} className="w-32" />
-                              </div>
-                            )}
-                          </div>
-                        )
-                      })}
                     </div>
-                  </div>
+                  )}
+                  <Separator />
+                  {(formData.availability.availabilityType === 'timeInterval' || formData.availability.availabilityType === 'day') && (
+                    <div>
+                      <Label>Åpningstider {((formData.availability.availabilityType === 'timeInterval' 
+                        ? formData.availability.timeInterval.openingHours.filter(h => h.active).length === 0
+                        : formData.availability.day.openingHours.filter(h => h.active).length === 0) 
+                        && !formData.availability.presentationOnly) && <span className="text-red-600">*</span>}</Label>
+                      <div className="mt-2 space-y-2">
+                        {['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag'].map((day) => {
+                          const openingHours = formData.availability.availabilityType === 'timeInterval' 
+                            ? formData.availability.timeInterval.openingHours 
+                            : formData.availability.day.openingHours
+                          const openingHour = openingHours.find(h => h.day === day) || { day, active: false, from: '08:00', to: '22:00' }
+                          return (
+                            <div key={day} className="flex items-center gap-4 p-3 border rounded-lg">
+                              <label className="flex items-center gap-2 min-w-[100px]">
+                                <input 
+                                  type="checkbox" 
+                                  checked={openingHour.active} 
+                                  onChange={(e) => {
+                                    const currentHours = formData.availability.availabilityType === 'timeInterval'
+                                      ? formData.availability.timeInterval.openingHours
+                                      : formData.availability.day.openingHours
+                                    if (e.target.checked) {
+                                      const updated = [...currentHours.filter(h => h.day !== day), { day, active: true, from: '08:00', to: '22:00' }]
+                                      if (formData.availability.availabilityType === 'timeInterval') {
+                                        setFormData({ 
+                                          ...formData, 
+                                          availability: { 
+                                            ...formData.availability, 
+                                            timeInterval: { ...formData.availability.timeInterval, openingHours: updated } 
+                                          } 
+                                        })
+                                      } else {
+                                        setFormData({ 
+                                          ...formData, 
+                                          availability: { 
+                                            ...formData.availability, 
+                                            day: { ...formData.availability.day, openingHours: updated } 
+                                          } 
+                                        })
+                                      }
+                                    } else {
+                                      const updated = currentHours.filter(h => h.day !== day)
+                                      if (formData.availability.availabilityType === 'timeInterval') {
+                                        setFormData({ 
+                                          ...formData, 
+                                          availability: { 
+                                            ...formData.availability, 
+                                            timeInterval: { ...formData.availability.timeInterval, openingHours: updated } 
+                                          } 
+                                        })
+                                      } else {
+                                        setFormData({ 
+                                          ...formData, 
+                                          availability: { 
+                                            ...formData.availability, 
+                                            day: { ...formData.availability.day, openingHours: updated } 
+                                          } 
+                                        })
+                                      }
+                                    }
+                                  }} 
+                                  className="rounded" 
+                                />
+                                <span className="text-sm">{day}</span>
+                              </label>
+                              {openingHour.active && (
+                                <div className="flex items-center gap-2 flex-1">
+                                  <Input 
+                                    type="time" 
+                                    value={openingHour.from} 
+                                    onChange={(e) => {
+                                      const currentHours = formData.availability.availabilityType === 'timeInterval'
+                                        ? formData.availability.timeInterval.openingHours
+                                        : formData.availability.day.openingHours
+                                      const updated = currentHours.map(h => h.day === day ? { ...h, from: e.target.value } : h)
+                                      if (formData.availability.availabilityType === 'timeInterval') {
+                                        setFormData({ 
+                                          ...formData, 
+                                          availability: { 
+                                            ...formData.availability, 
+                                            timeInterval: { ...formData.availability.timeInterval, openingHours: updated } 
+                                          } 
+                                        })
+                                      } else {
+                                        setFormData({ 
+                                          ...formData, 
+                                          availability: { 
+                                            ...formData.availability, 
+                                            day: { ...formData.availability.day, openingHours: updated } 
+                                          } 
+                                        })
+                                      }
+                                    }} 
+                                    className="w-32" 
+                                  />
+                                  <span className="text-stone-500">til</span>
+                                  <Input 
+                                    type="time" 
+                                    value={openingHour.to} 
+                                    onChange={(e) => {
+                                      const currentHours = formData.availability.availabilityType === 'timeInterval'
+                                        ? formData.availability.timeInterval.openingHours
+                                        : formData.availability.day.openingHours
+                                      const updated = currentHours.map(h => h.day === day ? { ...h, to: e.target.value } : h)
+                                      if (formData.availability.availabilityType === 'timeInterval') {
+                                        setFormData({ 
+                                          ...formData, 
+                                          availability: { 
+                                            ...formData.availability, 
+                                            timeInterval: { ...formData.availability.timeInterval, openingHours: updated } 
+                                          } 
+                                        })
+                                      } else {
+                                        setFormData({ 
+                                          ...formData, 
+                                          availability: { 
+                                            ...formData.availability, 
+                                            day: { ...formData.availability.day, openingHours: updated } 
+                                          } 
+                                        })
+                                      }
+                                    }} 
+                                    className="w-32" 
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
                   <div>
                     <label className="flex items-center gap-2">
                       <input type="checkbox" checked={formData.availability.presentationOnly} onChange={(e) => setFormData({ ...formData, availability: { ...formData.availability, presentationOnly: e.target.checked } })} className="rounded" />
@@ -1324,8 +1749,8 @@ export default function UtleieobjektWizardKommune({
               </Card>
             )}
 
-            {/* Lokaler: Step 3 - Regler */}
-            {selectedCategory === 'lokaler' && currentStep === 3 && (
+            {/* Lokaler: Step 4 - Regler */}
+            {selectedCategory === 'lokaler' && currentStep === 4 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Regler og godkjenning</CardTitle>
@@ -1486,8 +1911,8 @@ export default function UtleieobjektWizardKommune({
               </Card>
             )}
 
-            {/* Lokaler: Step 4 - Pris og betaling */}
-            {selectedCategory === 'lokaler' && currentStep === 4 && (
+            {/* Lokaler: Step 5 - Pris og betaling */}
+            {selectedCategory === 'lokaler' && currentStep === 5 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Pris og betaling</CardTitle>
@@ -1721,8 +2146,8 @@ export default function UtleieobjektWizardKommune({
               </Card>
             )}
 
-            {/* Lokaler: Step 5 - Publisering */}
-            {selectedCategory === 'lokaler' && currentStep === 5 && (
+            {/* Lokaler: Step 6 - Publisering */}
+            {selectedCategory === 'lokaler' && currentStep === 6 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Publisering</CardTitle>
@@ -1758,7 +2183,7 @@ export default function UtleieobjektWizardKommune({
                     <Label>Oppsummering før publisering</Label>
                     <div className="mt-2 p-4 bg-stone-100 dark:bg-stone-800 rounded-lg space-y-2 text-sm">
                       <div><span className="text-stone-500">Navn og adresse:</span> <span className="font-medium">{formData.locationAndBasis.name || 'Ikke satt'}, {formData.locationAndBasis.address || 'Ikke satt'}</span></div>
-                      <div><span className="text-stone-500">Kategori:</span> <span className="font-medium">{selectedCategory === 'lokaler' ? 'Lokaler og baner' : selectedCategory === 'utstyr' ? 'Utstyr og inventar' : 'Opplevelser og arrangement'}</span></div>
+                      <div><span className="text-stone-500">Kategori:</span> <span className="font-medium">{selectedCategory === 'lokaler' ? 'Lokaler' : selectedCategory === 'sport' ? 'Sport' : selectedCategory === 'arrangementer' ? 'Arrangementer' : 'Torg'}</span></div>
                       <div><span className="text-stone-500">Leies ut per og intervall:</span> <span className="font-medium">{formData.availability.rentalUnit || 'Ikke satt'} / {formData.availability.interval || 'Ikke satt'}</span></div>
                       <div><span className="text-stone-500">Godkjenning:</span> <span className="font-medium">{formData.rules.approvalMode || 'Ikke satt'}</span></div>
                       <div><span className="text-stone-500">Pris og målgrupper:</span> <span className="font-medium">{formData.pricing.isFree ? 'Gratis' : formData.pricing.targetGroups.length > 0 ? `${formData.pricing.targetGroups.length} målgrupper` : 'Ikke satt'}</span></div>
@@ -1820,7 +2245,8 @@ export default function UtleieobjektWizardKommune({
             )}
 
             {/* Utstyr: Step 1 - Hentested/Logistikk */}
-            {selectedCategory === 'utstyr' && currentStep === 1 && startChoice === 'new' && (
+            {/* Sport: Step 2 - Hentested/Logistikk */}
+            {selectedCategory === 'sport' && currentStep === 2 && startChoice === 'new' && (
               <Card>
                 <CardHeader>
                   <CardTitle>Hentested/Logistikk</CardTitle>
@@ -1984,34 +2410,132 @@ export default function UtleieobjektWizardKommune({
             )}
 
             {/* Utstyr: Step 2 - Antall/Lager */}
-            {selectedCategory === 'utstyr' && currentStep === 2 && (
+            {/* Sport: Step 3 - Tilgjengelighet */}
+            {selectedCategory === 'sport' && currentStep === 3 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Antall/Lager</CardTitle>
-                  <CardDescription>Lagerstatus og tilgjengelighet per enhet</CardDescription>
+                  <CardTitle>Tilgjengelighet</CardTitle>
+                  <CardDescription>Definer når objektet er tilgjengelig for booking (kun Tidsintervall)</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div>
-                    <Label htmlFor="utstyr-quantity">Antall enheter *</Label>
-                    <Input
-                      id="utstyr-quantity"
-                      type="number"
-                      value={formData.properties.size}
-                      onChange={(e) => setFormData({ ...formData, properties: { ...formData.properties, size: e.target.value } })}
-                      className="mt-2"
-                      placeholder="F.eks. 10"
-                    />
+                    <Label>Intervall {!formData.availability.timeInterval.interval && <span className="text-red-600">*</span>}</Label>
+                    <select 
+                      value={formData.availability.timeInterval.interval} 
+                      onChange={(e) => {
+                        setFormData({ 
+                          ...formData, 
+                          availability: { 
+                            ...formData.availability, 
+                            availabilityType: 'timeInterval' as const,
+                            timeInterval: { 
+                              ...formData.availability.timeInterval, 
+                              interval: e.target.value 
+                            } 
+                          } 
+                        })
+                      }} 
+                      className="mt-2 w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                    >
+                      <option value="">Velg intervall</option>
+                      <option value="15">15 minutter</option>
+                      <option value="30">30 minutter</option>
+                      <option value="60">60 minutter</option>
+                      <option value="custom">Tilpasset</option>
+                    </select>
+                  </div>
+                  <Separator />
+                  <div>
+                    <Label>Åpningstider {formData.availability.timeInterval.openingHours.filter(h => h.active).length === 0 && !formData.availability.presentationOnly && <span className="text-red-600">*</span>}</Label>
+                    <div className="mt-2 space-y-2">
+                      {['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag'].map((day) => {
+                        const openingHours = formData.availability.timeInterval.openingHours
+                        const openingHour = openingHours.find(h => h.day === day) || { day, active: false, from: '08:00', to: '22:00' }
+                        return (
+                          <div key={day} className="flex items-center gap-4 p-3 border rounded-lg">
+                            <label className="flex items-center gap-2 min-w-[100px]">
+                              <input 
+                                type="checkbox" 
+                                checked={openingHour.active} 
+                                onChange={(e) => {
+                                  const currentHours = formData.availability.timeInterval.openingHours
+                                  if (e.target.checked) {
+                                    const updated = [...currentHours.filter(h => h.day !== day), { day, active: true, from: '08:00', to: '22:00' }]
+                                    setFormData({ 
+                                      ...formData, 
+                                      availability: { 
+                                        ...formData.availability, 
+                                        availabilityType: 'timeInterval' as const,
+                                        timeInterval: { ...formData.availability.timeInterval, openingHours: updated } 
+                                      } 
+                                    })
+                                  } else {
+                                    const updated = currentHours.filter(h => h.day !== day)
+                                    setFormData({ 
+                                      ...formData, 
+                                      availability: { 
+                                        ...formData.availability, 
+                                        timeInterval: { ...formData.availability.timeInterval, openingHours: updated } 
+                                      } 
+                                    })
+                                  }
+                                }} 
+                                className="rounded" 
+                              />
+                              <span className="text-sm">{day}</span>
+                            </label>
+                            {openingHour.active && (
+                              <div className="flex items-center gap-2 flex-1">
+                                <Input 
+                                  type="time" 
+                                  value={openingHour.from} 
+                                  onChange={(e) => {
+                                    const currentHours = formData.availability.timeInterval.openingHours
+                                    const updated = currentHours.map(h => h.day === day ? { ...h, from: e.target.value } : h)
+                                    setFormData({ 
+                                      ...formData, 
+                                      availability: { 
+                                        ...formData.availability, 
+                                        timeInterval: { ...formData.availability.timeInterval, openingHours: updated } 
+                                      } 
+                                    })
+                                  }} 
+                                  className="w-32" 
+                                />
+                                <span className="text-stone-500">til</span>
+                                <Input 
+                                  type="time" 
+                                  value={openingHour.to} 
+                                  onChange={(e) => {
+                                    const currentHours = formData.availability.timeInterval.openingHours
+                                    const updated = currentHours.map(h => h.day === day ? { ...h, to: e.target.value } : h)
+                                    setFormData({ 
+                                      ...formData, 
+                                      availability: { 
+                                        ...formData.availability, 
+                                        timeInterval: { ...formData.availability.timeInterval, openingHours: updated } 
+                                      } 
+                                    })
+                                  }} 
+                                  className="w-32" 
+                                />
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
                   <div>
-                    <Label htmlFor="utstyr-available">Tilgjengelige enheter</Label>
-                    <Input
-                      id="utstyr-available"
-                      type="number"
-                      value={formData.properties.maxPersons}
-                      onChange={(e) => setFormData({ ...formData, properties: { ...formData.properties, maxPersons: e.target.value } })}
-                      className="mt-2"
-                      placeholder="Antall enheter som kan leies ut samtidig"
-                    />
+                    <label className="flex items-center gap-2">
+                      <input 
+                        type="checkbox" 
+                        checked={formData.availability.presentationOnly} 
+                        onChange={(e) => setFormData({ ...formData, availability: { ...formData.availability, presentationOnly: e.target.checked } })} 
+                        className="rounded" 
+                      />
+                      <span className="text-sm">Ingen aktiv kalender, kun presentasjon</span>
+                    </label>
                   </div>
                   <div>
                     <Label>Lagerstatus</Label>
@@ -2050,98 +2574,40 @@ export default function UtleieobjektWizardKommune({
               </Card>
             )}
 
-            {/* Utstyr: Step 3 - Tilgjengelighet (valgfri) */}
-            {selectedCategory === 'utstyr' && currentStep === 3 && (
+            {/* Sport: Step 4 - Regler */}
+            {selectedCategory === 'sport' && currentStep === 4 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Tilgjengelighet (valgfri)</CardTitle>
-                  <CardDescription>Når utstyret er tilgjengelig for utleie</CardDescription>
+                  <CardTitle>Regler og godkjenning</CardTitle>
+                  <CardDescription>Definer godkjenning og begrensninger</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div>
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={!formData.availability.presentationOnly}
-                        onChange={(e) => setFormData({ ...formData, availability: { ...formData.availability, presentationOnly: !e.target.checked } })}
-                        className="rounded"
-                      />
-                      <span className="text-sm">Aktiver bookingintervall</span>
-                    </label>
-                  </div>
-                  {!formData.availability.presentationOnly && (
-                    <>
-                      <div>
-                        <Label>Bookingintervall</Label>
-                        <select
-                          value={formData.availability.interval}
-                          onChange={(e) => setFormData({ ...formData, availability: { ...formData.availability, interval: e.target.value } })}
-                          className="mt-2 w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
-                        >
-                          <option value="">Velg intervall</option>
-                          <option value="day">Per dag</option>
-                          <option value="week">Per uke</option>
-                          <option value="month">Per måned</option>
-                        </select>
-                      </div>
-                      <div>
-                        <Label>Åpningstider for utleie</Label>
-                        <div className="mt-2 space-y-2">
-                          {['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag'].map((day) => {
-                            const openingHour = formData.availability.openingHours.find(h => h.day === day) || { day, active: false, from: '08:00', to: '22:00' }
-                            return (
-                              <div key={day} className="flex items-center gap-4 p-3 border rounded-lg">
-                                <label className="flex items-center gap-2 min-w-[100px]">
-                                  <input
-                                    type="checkbox"
-                                    checked={openingHour.active}
-                                    onChange={(e) => {
-                                      if (e.target.checked) {
-                                        setFormData({ ...formData, availability: { ...formData.availability, openingHours: [...formData.availability.openingHours.filter(h => h.day !== day), { day, active: true, from: '08:00', to: '22:00' }] } })
-                                      } else {
-                                        setFormData({ ...formData, availability: { ...formData.availability, openingHours: formData.availability.openingHours.filter(h => h.day !== day) } })
-                                      }
-                                    }}
-                                    className="rounded"
-                                  />
-                                  <span className="text-sm">{day}</span>
-                                </label>
-                                {openingHour.active && (
-                                  <div className="flex items-center gap-2 flex-1">
-                                    <Input
-                                      type="time"
-                                      value={openingHour.from}
-                                      onChange={(e) => {
-                                        const updated = formData.availability.openingHours.map(h => h.day === day ? { ...h, from: e.target.value } : h)
-                                        setFormData({ ...formData, availability: { ...formData.availability, openingHours: updated } })
-                                      }}
-                                      className="w-32"
-                                    />
-                                    <span className="text-stone-500">til</span>
-                                    <Input
-                                      type="time"
-                                      value={openingHour.to}
-                                      onChange={(e) => {
-                                        const updated = formData.availability.openingHours.map(h => h.day === day ? { ...h, to: e.target.value } : h)
-                                        setFormData({ ...formData, availability: { ...formData.availability, openingHours: updated } })
-                                      }}
-                                      className="w-32"
-                                    />
-                                  </div>
-                                )}
-                              </div>
-                            )
-                          })}
+                    <Label>Godkjenning {!formData.rules.approvalMode && <span className="text-red-600">*</span>}</Label>
+                    <div className="mt-2 space-y-2">
+                      <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
+                        <input type="radio" name="approvalMode-sport" value="automatic" checked={formData.rules.approvalMode === 'automatic'} onChange={(e) => setFormData({ ...formData, rules: { ...formData.rules, approvalMode: e.target.value } })} />
+                        <div>
+                          <div className="font-medium">Automatisk bekreftelse</div>
+                          <div className="text-xs text-stone-500">Bookinger godkjennes automatisk</div>
                         </div>
-                      </div>
-                    </>
-                  )}
+                      </label>
+                      <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
+                        <input type="radio" name="approvalMode-sport" value="manual" checked={formData.rules.approvalMode === 'manual'} onChange={(e) => setFormData({ ...formData, rules: { ...formData.rules, approvalMode: e.target.value } })} />
+                        <div>
+                          <div className="font-medium">Krever saksbehandlergodkjenning</div>
+                          <div className="text-xs text-stone-500">Alle bookinger må godkjennes manuelt</div>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             )}
 
             {/* Utstyr: Step 4 - Regler */}
-            {selectedCategory === 'utstyr' && currentStep === 4 && (
+            {/* Sport: Step 5 - Pris/Depositum */}
+            {selectedCategory === 'sport' && currentStep === 5 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Regler</CardTitle>
@@ -2214,7 +2680,8 @@ export default function UtleieobjektWizardKommune({
             )}
 
             {/* Utstyr: Step 5 - Pris/Depositum */}
-            {selectedCategory === 'utstyr' && currentStep === 5 && (
+            {/* Sport: Step 6 - Publisering */}
+            {selectedCategory === 'sport' && currentStep === 6 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Pris/Depositum</CardTitle>
@@ -2302,8 +2769,8 @@ export default function UtleieobjektWizardKommune({
               </Card>
             )}
 
-            {/* Utstyr: Step 6 - Publisering */}
-            {selectedCategory === 'utstyr' && currentStep === 6 && (
+            {/* Sport: Step 6 - Publisering */}
+            {selectedCategory === 'sport' && currentStep === 6 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Publisering</CardTitle>
@@ -2314,11 +2781,11 @@ export default function UtleieobjektWizardKommune({
                     <Label>Publiseringsvalg</Label>
                     <div className="mt-2 space-y-2">
                       <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
-                        <input type="radio" name="utstyr-publish" value="draft" checked={formData.publishing.choice === 'draft'} onChange={(e) => setFormData({ ...formData, publishing: { ...formData.publishing, choice: e.target.value } })} />
+                        <input type="radio" name="sport-publish" value="draft" checked={formData.publishing.choice === 'draft'} onChange={(e) => setFormData({ ...formData, publishing: { ...formData.publishing, choice: e.target.value } })} />
                         <div className="font-medium">Lagre som utkast</div>
                       </label>
                       <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
-                        <input type="radio" name="utstyr-publish" value="publish" checked={formData.publishing.choice === 'publish'} onChange={(e) => setFormData({ ...formData, publishing: { ...formData.publishing, choice: e.target.value } })} />
+                        <input type="radio" name="sport-publish" value="publish" checked={formData.publishing.choice === 'publish'} onChange={(e) => setFormData({ ...formData, publishing: { ...formData.publishing, choice: e.target.value } })} />
                         <div className="font-medium">Publiser og gjør tilgjengelig for utleie</div>
                       </label>
                     </div>
@@ -2363,7 +2830,8 @@ export default function UtleieobjektWizardKommune({
             )}
 
             {/* Opplevelser: Step 1 - Tidspunkter/Forestillinger */}
-            {selectedCategory === 'opplevelser' && currentStep === 1 && startChoice === 'new' && (
+            {/* Arrangementer: Step 2 - Tidspunkter */}
+            {selectedCategory === 'arrangementer' && currentStep === 2 && startChoice === 'new' && (
               <Card>
                 <CardHeader>
                   <CardTitle>Tidspunkter/Forestillinger</CardTitle>
@@ -2470,78 +2938,68 @@ export default function UtleieobjektWizardKommune({
               </Card>
             )}
 
-            {/* Opplevelser: Step 2 - Kapasitet/Billetter eller Påmelding */}
-            {selectedCategory === 'opplevelser' && currentStep === 2 && (
+            {/* Arrangementer: Step 3 - Kapasitet */}
+            {selectedCategory === 'arrangementer' && currentStep === 3 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Kapasitet/Billetter eller Påmelding</CardTitle>
-                  <CardDescription>Maks antall deltakere, billetttyper eller påmeldingsfrist</CardDescription>
+                  <CardTitle>Kapasitet</CardTitle>
+                  <CardDescription>Antall tilgjengelighet (billetter eller plasser)</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div>
-                    <Label>Bookingtype</Label>
-                    <div className="mt-2 space-y-2">
-                      <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
-                        <input type="radio" name="opplevelser-booking" value="tickets" />
-                        <div>
-                          <div className="font-medium">Billetter</div>
-                          <div className="text-xs text-stone-500">Brukeren kjøper billetter</div>
-                        </div>
-                      </label>
-                      <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
-                        <input type="radio" name="opplevelser-booking" value="registration" />
-                        <div>
-                          <div className="font-medium">Påmelding</div>
-                          <div className="text-xs text-stone-500">Brukeren melder seg på</div>
-                        </div>
-                      </label>
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="opplevelser-capacity">Maks antall deltakere *</Label>
+                    <Label htmlFor="arrangementer-quantity">Antall {!formData.availability.quantity.amount && <span className="text-red-600">*</span>}</Label>
                     <Input
-                      id="opplevelser-capacity"
+                      id="arrangementer-quantity"
                       type="number"
-                      value={formData.properties.maxPersons}
-                      onChange={(e) => setFormData({ ...formData, properties: { ...formData.properties, maxPersons: e.target.value } })}
+                      value={formData.availability.quantity.amount}
+                      onChange={(e) => {
+                        setFormData({ 
+                          ...formData, 
+                          availability: { 
+                            ...formData.availability, 
+                            availabilityType: 'quantity' as const,
+                            quantity: { 
+                              ...formData.availability.quantity, 
+                              amount: e.target.value 
+                            } 
+                          } 
+                        })
+                      }}
                       className="mt-2"
                       placeholder="F.eks. 100"
                     />
                   </div>
                   <div>
-                    <Label>Billetttyper (hvis billetter)</Label>
-                    <div className="mt-2 space-y-2">
-                      <Button variant="outline" size="sm">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Legg til billetttype
-                      </Button>
-                    </div>
-                  </div>
-                  <div>
-                    <Label>Påmeldingsfrist (hvis påmelding)</Label>
-                    <div className="mt-2 grid grid-cols-2 gap-4">
-                      <div>
-                        <Label className="text-xs">Frist dato</Label>
-                        <Input type="date" className="mt-1" />
-                      </div>
-                      <div>
-                        <Label className="text-xs">Frist klokkeslett</Label>
-                        <Input type="time" className="mt-1" />
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="flex items-center gap-2">
-                      <input type="checkbox" className="rounded" />
-                      <span className="text-sm">Tillat venteliste</span>
-                    </label>
+                    <Label htmlFor="arrangementer-unit">Enhet {!formData.availability.quantity.unit && <span className="text-red-600">*</span>}</Label>
+                    <select
+                      id="arrangementer-unit"
+                      value={formData.availability.quantity.unit}
+                      onChange={(e) => {
+                        setFormData({ 
+                          ...formData, 
+                          availability: { 
+                            ...formData.availability, 
+                            quantity: { 
+                              ...formData.availability.quantity, 
+                              unit: e.target.value 
+                            } 
+                          } 
+                        })
+                      }}
+                      className="mt-2 w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                    >
+                      <option value="">Velg enhet</option>
+                      <option value="billetter">Billetter</option>
+                      <option value="plasser">Plasser</option>
+                    </select>
                   </div>
                 </CardContent>
               </Card>
             )}
 
             {/* Opplevelser: Step 3 - Pris */}
-            {selectedCategory === 'opplevelser' && currentStep === 3 && (
+            {/* Arrangementer: Step 4 - Pris */}
+            {selectedCategory === 'arrangementer' && currentStep === 4 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Pris</CardTitle>
@@ -2606,7 +3064,8 @@ export default function UtleieobjektWizardKommune({
             )}
 
             {/* Opplevelser: Step 4 - Vilkår */}
-            {selectedCategory === 'opplevelser' && currentStep === 4 && (
+            {/* Arrangementer: Step 5 - Vilkår */}
+            {selectedCategory === 'arrangementer' && currentStep === 5 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Vilkår</CardTitle>
@@ -2667,7 +3126,8 @@ export default function UtleieobjektWizardKommune({
             )}
 
             {/* Opplevelser: Step 5 - Publisering */}
-            {selectedCategory === 'opplevelser' && currentStep === 5 && (
+            {/* Arrangementer: Step 6 - Publisering */}
+            {selectedCategory === 'arrangementer' && currentStep === 6 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Publisering</CardTitle>
@@ -2705,6 +3165,496 @@ export default function UtleieobjektWizardKommune({
                           <span className="text-sm">Pris definert</span>
                         </div>
                       )}
+                    </div>
+                  </div>
+                  <div className="flex gap-4">
+                    <Button onClick={handlePublish} className="flex-1" disabled={!formData.locationAndBasis.name}>
+                      Publiser nå
+                    </Button>
+                    <Button variant="outline">
+                      <Eye className="w-4 h-4 mr-2" />
+                      Vis offentlig side
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Torg: Step 2 - Hentested/Logistikk */}
+            {selectedCategory === 'torg' && currentStep === 2 && startChoice === 'new' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Hentested/Logistikk</CardTitle>
+                  <CardDescription>Grunnleggende informasjon om utstyret</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <Label htmlFor="torg-name">Navn på utstyr {!formData.locationAndBasis.name && <span className="text-red-600">*</span>}</Label>
+                    <Input
+                      id="torg-name"
+                      value={formData.locationAndBasis.name}
+                      onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, name: e.target.value } })}
+                      className="mt-2"
+                      placeholder="F.eks. Festtelt"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="torg-address">Hentested {!formData.locationAndBasis.address && <span className="text-red-600">*</span>}</Label>
+                    <Input
+                      id="torg-address"
+                      value={formData.locationAndBasis.address}
+                      onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, address: e.target.value } })}
+                      className="mt-2"
+                      placeholder="Gateadresse"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="torg-postal-code">Postnummer {!formData.locationAndBasis.postalCode && <span className="text-red-600">*</span>}</Label>
+                      <Input
+                        id="torg-postal-code"
+                        value={formData.locationAndBasis.postalCode}
+                        onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, postalCode: e.target.value } })}
+                        className="mt-2"
+                        placeholder="0000"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="torg-postal-area">Poststed {!formData.locationAndBasis.postalArea && <span className="text-red-600">*</span>}</Label>
+                      <Input
+                        id="torg-postal-area"
+                        value={formData.locationAndBasis.postalArea}
+                        onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, postalArea: e.target.value } })}
+                        className="mt-2"
+                        placeholder="By"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Torg: Step 3 - Antall/Lager */}
+            {selectedCategory === 'torg' && currentStep === 3 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Antall/Lager</CardTitle>
+                  <CardDescription>Lagerstatus og tilgjengelighet per enhet</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <Label htmlFor="torg-quantity">Antall enheter *</Label>
+                    <Input
+                      id="torg-quantity"
+                      type="number"
+                      value={formData.properties.size}
+                      onChange={(e) => setFormData({ ...formData, properties: { ...formData.properties, size: e.target.value } })}
+                      className="mt-2"
+                      placeholder="F.eks. 10"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Torg: Step 4 - Tilgjengelighet */}
+            {selectedCategory === 'torg' && currentStep === 4 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Tilgjengelighet</CardTitle>
+                  <CardDescription>Definer når objektet er tilgjengelig for booking (Dag ELLER Antall tilgjengelighet)</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <Label>Tilgjengelighetstype {!formData.availability.availabilityType && <span className="text-red-600">*</span>}</Label>
+                    <div className="mt-2 flex gap-4">
+                      <label className="flex items-center gap-2">
+                        <input 
+                          type="radio" 
+                          name="availabilityType-torg" 
+                          value="day" 
+                          checked={formData.availability.availabilityType === 'day'} 
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            availability: { 
+                              ...formData.availability, 
+                              availabilityType: 'day' as const,
+                              day: {
+                                type: formData.availability.day.type || 'full',
+                                fromTime: formData.availability.day.fromTime || '',
+                                toTime: formData.availability.day.toTime || '',
+                                openingHours: formData.availability.day.openingHours.length > 0 
+                                  ? formData.availability.day.openingHours 
+                                  : formData.availability.openingHours
+                              }
+                            } 
+                          })} 
+                        />
+                        <span>Dag</span>
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input 
+                          type="radio" 
+                          name="availabilityType-torg" 
+                          value="quantity" 
+                          checked={formData.availability.availabilityType === 'quantity'} 
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            availability: { 
+                              ...formData.availability, 
+                              availabilityType: 'quantity' as const
+                            } 
+                          })} 
+                        />
+                        <span>Antall tilgjengelighet</span>
+                      </label>
+                    </div>
+                  </div>
+                  
+                  {formData.availability.availabilityType === 'day' && (
+                    <>
+                      <div>
+                        <Label>Dagstype</Label>
+                        <div className="mt-2 space-y-2">
+                          <label className="flex items-center gap-2">
+                            <input 
+                              type="radio" 
+                              name="dayType-torg" 
+                              value="full" 
+                              checked={formData.availability.day.type === 'full'} 
+                              onChange={(e) => setFormData({ 
+                                ...formData, 
+                                availability: { 
+                                  ...formData.availability, 
+                                  day: { ...formData.availability.day, type: 'full' as const } 
+                                } 
+                              })} 
+                            />
+                            <span className="text-sm">Hel dag</span>
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <label className="flex items-center gap-2">
+                              <input 
+                                type="radio" 
+                                name="dayType-torg" 
+                                value="custom" 
+                                checked={formData.availability.day.type === 'custom'} 
+                                onChange={(e) => setFormData({ 
+                                  ...formData, 
+                                  availability: { 
+                                    ...formData.availability, 
+                                    day: { ...formData.availability.day, type: 'custom' as const } 
+                                  } 
+                                })} 
+                              />
+                              <span className="text-sm">Dagsintervall:</span>
+                            </label>
+                            <Input 
+                              type="time" 
+                              value={formData.availability.day.fromTime} 
+                              onChange={(e) => setFormData({ 
+                                ...formData, 
+                                availability: { 
+                                  ...formData.availability, 
+                                  day: { ...formData.availability.day, fromTime: e.target.value } 
+                                } 
+                              })} 
+                              className="w-32" 
+                              disabled={formData.availability.day.type !== 'custom'}
+                            />
+                            <span className="text-stone-500">til</span>
+                            <Input 
+                              type="time" 
+                              value={formData.availability.day.toTime} 
+                              onChange={(e) => setFormData({ 
+                                ...formData, 
+                                availability: { 
+                                  ...formData.availability, 
+                                  day: { ...formData.availability.day, toTime: e.target.value } 
+                                } 
+                              })} 
+                              className="w-32" 
+                              disabled={formData.availability.day.type !== 'custom'}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <Separator />
+                      <div>
+                        <Label>Åpningstider {formData.availability.day.openingHours.filter(h => h.active).length === 0 && !formData.availability.presentationOnly && <span className="text-red-600">*</span>}</Label>
+                        <div className="mt-2 space-y-2">
+                          {['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag'].map((day) => {
+                            const openingHours = formData.availability.day.openingHours
+                            const openingHour = openingHours.find(h => h.day === day) || { day, active: false, from: '08:00', to: '22:00' }
+                            return (
+                              <div key={day} className="flex items-center gap-4 p-3 border rounded-lg">
+                                <label className="flex items-center gap-2 min-w-[100px]">
+                                  <input 
+                                    type="checkbox" 
+                                    checked={openingHour.active} 
+                                    onChange={(e) => {
+                                      const currentHours = formData.availability.day.openingHours
+                                      if (e.target.checked) {
+                                        const updated = [...currentHours.filter(h => h.day !== day), { day, active: true, from: '08:00', to: '22:00' }]
+                                        setFormData({ 
+                                          ...formData, 
+                                          availability: { 
+                                            ...formData.availability, 
+                                            day: { ...formData.availability.day, openingHours: updated } 
+                                          } 
+                                        })
+                                      } else {
+                                        const updated = currentHours.filter(h => h.day !== day)
+                                        setFormData({ 
+                                          ...formData, 
+                                          availability: { 
+                                            ...formData.availability, 
+                                            day: { ...formData.availability.day, openingHours: updated } 
+                                          } 
+                                        })
+                                      }
+                                    }} 
+                                    className="rounded" 
+                                  />
+                                  <span className="text-sm">{day}</span>
+                                </label>
+                                {openingHour.active && (
+                                  <div className="flex items-center gap-2 flex-1">
+                                    <Input 
+                                      type="time" 
+                                      value={openingHour.from} 
+                                      onChange={(e) => {
+                                        const currentHours = formData.availability.day.openingHours
+                                        const updated = currentHours.map(h => h.day === day ? { ...h, from: e.target.value } : h)
+                                        setFormData({ 
+                                          ...formData, 
+                                          availability: { 
+                                            ...formData.availability, 
+                                            day: { ...formData.availability.day, openingHours: updated } 
+                                          } 
+                                        })
+                                      }} 
+                                      className="w-32" 
+                                    />
+                                    <span className="text-stone-500">til</span>
+                                    <Input 
+                                      type="time" 
+                                      value={openingHour.to} 
+                                      onChange={(e) => {
+                                        const currentHours = formData.availability.day.openingHours
+                                        const updated = currentHours.map(h => h.day === day ? { ...h, to: e.target.value } : h)
+                                        setFormData({ 
+                                          ...formData, 
+                                          availability: { 
+                                            ...formData.availability, 
+                                            day: { ...formData.availability.day, openingHours: updated } 
+                                          } 
+                                        })
+                                      }} 
+                                      className="w-32" 
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  
+                  {formData.availability.availabilityType === 'quantity' && (
+                    <>
+                      <div>
+                        <Label htmlFor="torg-quantity-amount">Antall {!formData.availability.quantity.amount && <span className="text-red-600">*</span>}</Label>
+                        <Input
+                          id="torg-quantity-amount"
+                          type="number"
+                          value={formData.availability.quantity.amount}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            availability: { 
+                              ...formData.availability, 
+                              quantity: { 
+                                ...formData.availability.quantity, 
+                                amount: e.target.value 
+                              } 
+                            } 
+                          })}
+                          className="mt-2"
+                          placeholder="F.eks. 50"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="torg-quantity-unit">Enhet {!formData.availability.quantity.unit && <span className="text-red-600">*</span>}</Label>
+                        <select
+                          id="torg-quantity-unit"
+                          value={formData.availability.quantity.unit}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            availability: { 
+                              ...formData.availability, 
+                              quantity: { 
+                                ...formData.availability.quantity, 
+                                unit: e.target.value 
+                              } 
+                            } 
+                          })}
+                          className="mt-2 w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                        >
+                          <option value="">Velg enhet</option>
+                          <option value="stoler">Stoler</option>
+                          <option value="bord">Bord</option>
+                          <option value="telt">Telt</option>
+                          <option value="enheter">Enheter</option>
+                        </select>
+                      </div>
+                    </>
+                  )}
+                  
+                  <div>
+                    <label className="flex items-center gap-2">
+                      <input 
+                        type="checkbox" 
+                        checked={formData.availability.presentationOnly} 
+                        onChange={(e) => setFormData({ ...formData, availability: { ...formData.availability, presentationOnly: e.target.checked } })} 
+                        className="rounded" 
+                      />
+                      <span className="text-sm">Ingen aktiv kalender, kun presentasjon</span>
+                    </label>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Torg: Step 5 - Regler */}
+            {selectedCategory === 'torg' && currentStep === 5 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Regler og godkjenning</CardTitle>
+                  <CardDescription>Definer godkjenning og begrensninger</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <Label>Godkjenning {!formData.rules.approvalMode && <span className="text-red-600">*</span>}</Label>
+                    <div className="mt-2 space-y-2">
+                      <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
+                        <input type="radio" name="approvalMode-torg" value="automatic" checked={formData.rules.approvalMode === 'automatic'} onChange={(e) => setFormData({ ...formData, rules: { ...formData.rules, approvalMode: e.target.value } })} />
+                        <div>
+                          <div className="font-medium">Automatisk bekreftelse</div>
+                          <div className="text-xs text-stone-500">Bookinger godkjennes automatisk</div>
+                        </div>
+                      </label>
+                      <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
+                        <input type="radio" name="approvalMode-torg" value="manual" checked={formData.rules.approvalMode === 'manual'} onChange={(e) => setFormData({ ...formData, rules: { ...formData.rules, approvalMode: e.target.value } })} />
+                        <div>
+                          <div className="font-medium">Krever saksbehandlergodkjenning</div>
+                          <div className="text-xs text-stone-500">Alle bookinger må godkjennes manuelt</div>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Torg: Step 6 - Pris/Depositum */}
+            {selectedCategory === 'torg' && currentStep === 6 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Pris/Depositum</CardTitle>
+                  <CardDescription>Definer priser og depositum</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.pricing.isFree}
+                        onChange={(e) => setFormData({ ...formData, pricing: { ...formData.pricing, isFree: e.target.checked } })}
+                        className="rounded"
+                      />
+                      <span className="text-sm">Gratis utleie</span>
+                    </label>
+                  </div>
+                  {!formData.pricing.isFree && (
+                    <>
+                      <div>
+                        <Label htmlFor="torg-price">Utleiepris {!formData.pricing.priceModel && <span className="text-red-600">*</span>}</Label>
+                        <Input
+                          id="torg-price"
+                          type="number"
+                          value={formData.pricing.priceModel}
+                          onChange={(e) => setFormData({ ...formData, pricing: { ...formData.pricing, priceModel: e.target.value } })}
+                          className="mt-2"
+                          placeholder="F.eks. 500"
+                        />
+                      </div>
+                      <div>
+                        <Label>Betalingsmetoder {formData.payment.methods.length === 0 && <span className="text-red-600">*</span>}</Label>
+                        <div className="mt-2 space-y-2">
+                          {['Faktura (EHF)', 'Kort', 'Vipps'].map((method) => (
+                            <label key={method} className="flex items-center gap-2 p-2 border rounded-lg cursor-pointer hover:bg-stone-50 dark:hover:bg-stone-800">
+                              <input
+                                type="checkbox"
+                                checked={formData.payment.methods.includes(method)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setFormData({ ...formData, payment: { ...formData.payment, methods: [...formData.payment.methods, method] } })
+                                  } else {
+                                    setFormData({ ...formData, payment: { ...formData.payment, methods: formData.payment.methods.filter(m => m !== method) } })
+                                  }
+                                }}
+                                className="rounded"
+                              />
+                              <span className="text-sm">{method}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Torg: Step 7 - Publisering */}
+            {selectedCategory === 'torg' && currentStep === 7 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Publisering</CardTitle>
+                  <CardDescription>Kontrollert aktivering med tydelig status og sjekkliste</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <Label>Publiseringsvalg</Label>
+                    <div className="mt-2 space-y-2">
+                      <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
+                        <input type="radio" name="torg-publish" value="draft" checked={formData.publishing.choice === 'draft'} onChange={(e) => setFormData({ ...formData, publishing: { ...formData.publishing, choice: e.target.value } })} />
+                        <div className="font-medium">Lagre som utkast</div>
+                      </label>
+                      <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
+                        <input type="radio" name="torg-publish" value="publish" checked={formData.publishing.choice === 'publish'} onChange={(e) => setFormData({ ...formData, publishing: { ...formData.publishing, choice: e.target.value } })} />
+                        <div className="font-medium">Publiser og gjør tilgjengelig for booking</div>
+                      </label>
+                    </div>
+                  </div>
+                  <Separator />
+                  <div>
+                    <Label>Sjekkliste før publisering</Label>
+                    <div className="mt-2 space-y-2">
+                      {publishingChecklist.required.map((item, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          {item.checked ? (
+                            <Check className="w-4 h-4 text-green-600" />
+                          ) : (
+                            <AlertCircle className="w-4 h-4 text-red-600" />
+                          )}
+                          <span className={`text-sm ${item.checked ? 'text-stone-700 dark:text-stone-300' : 'text-red-600'}`}>
+                            {item.label}
+                          </span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                   <div className="flex gap-4">
@@ -2820,7 +3770,7 @@ export default function UtleieobjektWizardKommune({
                     </div>
                     <div>
                       <span className="text-stone-500">Kategori:</span>
-                      <div className="font-medium">{selectedCategory === 'lokaler' ? 'Lokaler og baner' : selectedCategory === 'utstyr' ? 'Utstyr og inventar' : selectedCategory === 'opplevelser' ? 'Opplevelser og arrangement' : 'Ikke satt'}</div>
+                      <div className="font-medium">{selectedCategory === 'lokaler' ? 'Lokaler' : selectedCategory === 'sport' ? 'Sport' : selectedCategory === 'arrangementer' ? 'Arrangementer' : selectedCategory === 'torg' ? 'Torg' : 'Ikke satt'}</div>
                     </div>
                     <div>
                       <span className="text-stone-500">Leies ut per:</span>

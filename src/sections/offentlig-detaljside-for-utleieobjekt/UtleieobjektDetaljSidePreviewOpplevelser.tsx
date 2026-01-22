@@ -34,8 +34,8 @@ export default function UtleieobjektDetaljSidePreviewOpplevelser() {
     ],
     duration: '8 timer',
     isRecurring: false,
-    minAge: 0,
-    maxAge: 99,
+    minAge: 18,
+    maxAge: undefined,
     registrationDeadline: {
       date: '2026-06-10',
       time: '23:59'
