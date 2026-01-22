@@ -1,0 +1,377 @@
+{
+  "_meta": {
+    "description": "Sample data for offentlig detaljside for utleieobjekter. Inneholder eksempler for alle tre kategorier: lokaler, utstyr, og opplevelser."
+  },
+  "lokaler": {
+    "id": "lokale-001",
+    "category": "lokaler",
+    "name": "Møterom Y - Kragerø",
+    "address": "Møterom Yveien 51",
+    "postalCode": "3770",
+    "postalArea": "Kragerø",
+    "map": {
+      "lat": 58.8683,
+      "lng": 9.4103
+    },
+    "shortDescription": "Moderne møterom y i Kragerø. Perfekt for trening, events og arrangementer.",
+    "longDescription": "Moderne møterom y i Kragerø. Perfekt for trening, events og arrangementer. Godt vedlikeholdt med moderne fasiliteter. Rommet er egnet for møter, presentasjoner, kurs og små arrangementer.",
+    "images": [
+      "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200",
+      "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=1200",
+      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200"
+    ],
+    "maxPersons": 30,
+    "size": "120 m²",
+    "facilities": [
+      "WiFi",
+      "Projektor",
+      "Whiteboard",
+      "Kaffe/te",
+      "Aircondition"
+    ],
+    "universalDesign": {
+      "stepFreeAccess": true,
+      "wcAccessible": true,
+      "elevator": false,
+      "hearingLoop": false,
+      "accessibleParking": true,
+      "otherAccommodation": ""
+    },
+    "addOnServices": [
+      {
+        "id": "extra-time",
+        "name": "Ekstra tid",
+        "description": "Forleng bookingen med 30 minutter",
+        "price": 200,
+        "required": false,
+        "needsApproval": false
+      },
+      {
+        "id": "equipment",
+        "name": "Utstyr",
+        "description": "Inkluderer ballnett, musikanlegg og annet utstyr",
+        "price": 150,
+        "required": false,
+        "needsApproval": false
+      },
+      {
+        "id": "caretaker",
+        "name": "Vaktmesterhjelp",
+        "description": "Hjelp med oppsett og nedrigg av utstyr",
+        "price": 300,
+        "required": false,
+        "needsApproval": true
+      },
+      {
+        "id": "security",
+        "name": "Sikkerhet",
+        "description": "Vaktmester til stede under hele arrangementet",
+        "price": 500,
+        "required": false,
+        "needsApproval": true
+      }
+    ],
+    "contacts": [
+      {
+        "name": "Kragerø Kommune",
+        "role": "Drift",
+        "email": "møteromy@kragerø.kommune.no",
+        "phone": "+47 35 58 50 00"
+      }
+    ],
+    "openingHours": [
+      {
+        "day": "Mandag",
+        "from": "07:00",
+        "to": "23:00",
+        "active": true
+      },
+      {
+        "day": "Tirsdag",
+        "from": "07:00",
+        "to": "23:00",
+        "active": true
+      },
+      {
+        "day": "Onsdag",
+        "from": "07:00",
+        "to": "23:00",
+        "active": true
+      },
+      {
+        "day": "Torsdag",
+        "from": "07:00",
+        "to": "23:00",
+        "active": true
+      },
+      {
+        "day": "Fredag",
+        "from": "07:00",
+        "to": "22:00",
+        "active": true
+      },
+      {
+        "day": "Lørdag",
+        "from": "09:00",
+        "to": "20:00",
+        "active": true
+      },
+      {
+        "day": "Søndag",
+        "from": "09:00",
+        "to": "20:00",
+        "active": true
+      }
+    ],
+    "rentalUnit": "hour",
+    "interval": "60",
+    "pricing": {
+      "isFree": false,
+      "basePrice": 500,
+      "priceModel": "per time",
+      "targetGroups": [
+        {
+          "group": "Standard",
+          "price": 500,
+          "free": false
+        },
+        {
+          "group": "Organisasjoner",
+          "price": 400,
+          "free": false
+        }
+      ]
+    },
+    "guidelines": "Leietaker er ansvarlig for å rydde opp etter seg. Røyking er ikke tillatt. Dyr er ikke tillatt.",
+    "faq": [
+      {
+        "question": "Hvor lang tid i forveien kan jeg booke?",
+        "answer": "Du kan booke opptil 3 måneder i forveien."
+      },
+      {
+        "question": "Kan jeg avlyse bookingen?",
+        "answer": "Ja, du kan avlyse opptil 24 timer før bookingen starter."
+      },
+      {
+        "question": "Er parkering tilgjengelig?",
+        "answer": "Ja, det er gratis parkering rett ved bygningen."
+      }
+    ],
+    "calendarData": {
+      "weekStart": "2026-01-19",
+      "slots": [
+        {
+          "date": "2026-01-19",
+          "time": "08:00",
+          "status": "stengt"
+        },
+        {
+          "date": "2026-01-19",
+          "time": "09:00",
+          "status": "stengt"
+        },
+        {
+          "date": "2026-01-19",
+          "time": "10:00",
+          "status": "ledig"
+        },
+        {
+          "date": "2026-01-19",
+          "time": "11:00",
+          "status": "ledig"
+        },
+        {
+          "date": "2026-01-19",
+          "time": "12:00",
+          "status": "reservert"
+        },
+        {
+          "date": "2026-01-19",
+          "time": "13:00",
+          "status": "booket"
+        },
+        {
+          "date": "2026-01-19",
+          "time": "14:00",
+          "status": "ledig"
+        },
+        {
+          "date": "2026-01-19",
+          "time": "15:00",
+          "status": "ledig"
+        },
+        {
+          "date": "2026-01-19",
+          "time": "16:00",
+          "status": "ledig"
+        },
+        {
+          "date": "2026-01-19",
+          "time": "17:00",
+          "status": "blokkert"
+        }
+      ]
+    }
+  },
+  "utstyr": {
+    "id": "utstyr-001",
+    "category": "utstyr",
+    "name": "Fotballutstyr sett",
+    "pickupLocation": "Idrettshall A, Skien",
+    "address": "Idrettsveien 10",
+    "postalCode": "3720",
+    "postalArea": "Skien",
+    "map": {
+      "lat": 59.2086,
+      "lng": 9.6090
+    },
+    "shortDescription": "Komplett fotballutstyr sett for lag og arrangementer",
+    "longDescription": "Komplett fotballutstyr sett inkluderer baller, kjegler, markeringer, og annet nødvendig utstyr for fotballtrening og -arrangementer. Utstyret er godt vedlikeholdt og egnet for alle aldersgrupper.",
+    "images": [
+      "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200",
+      "https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=1200"
+    ],
+    "quantity": 5,
+    "availableQuantity": 3,
+    "facilities": [
+      "Fotballer",
+      "Kjegler",
+      "Markeringer",
+      "Nett"
+    ],
+    "pricing": {
+      "isFree": false,
+      "rentalPrice": 200,
+      "deposit": 500,
+      "priceModel": "per dag"
+    },
+    "logistics": {
+      "pickupRequired": true,
+      "deliveryAvailable": false,
+      "pickupHours": "08:00-16:00"
+    },
+    "contacts": [
+      {
+        "name": "Skien Idrett",
+        "role": "Utstyr",
+        "email": "utstyr@skienidrett.no",
+        "phone": "+47 35 90 00 00"
+      }
+    ],
+    "guidelines": "Utstyr må returneres i samme stand som ved utleie. Skader må rapporteres umiddelbart.",
+    "faq": [
+      {
+        "question": "Hvor lenge kan jeg leie utstyret?",
+        "answer": "Standard utleieperiode er 1-7 dager. Lengre perioder kan avtales."
+      },
+      {
+        "question": "Hva skjer hvis utstyret blir skadet?",
+        "answer": "Skader dekkes av depositumet. Eventuelle ekstra kostnader faktureres."
+      }
+    ],
+    "calendarData": {
+      "weekStart": "2026-01-19",
+      "slots": [
+        {
+          "date": "2026-01-19",
+          "status": "ledig"
+        },
+        {
+          "date": "2026-01-20",
+          "status": "booket"
+        },
+        {
+          "date": "2026-01-21",
+          "status": "ledig"
+        },
+        {
+          "date": "2026-01-22",
+          "status": "reservert"
+        },
+        {
+          "date": "2026-01-23",
+          "status": "ledig"
+        }
+      ]
+    }
+  },
+  "opplevelser": {
+    "id": "opplevelse-001",
+    "category": "opplevelser",
+    "name": "Sommerfest 2024",
+    "address": "Skien sentrum",
+    "postalCode": "3720",
+    "postalArea": "Skien",
+    "map": {
+      "lat": 59.2086,
+      "lng": 9.6090
+    },
+    "shortDescription": "Årlig sommerfest i Skien sentrum med musikk, mat og aktiviteter",
+    "longDescription": "Velkommen til vår årlige sommerfest i Skien sentrum! Arrangementet inkluderer live musikk, matstasjoner, aktiviteter for hele familien, og mye mer. Perfekt for alle aldersgrupper.",
+    "images": [
+      "https://images.unsplash.com/photo-1511578314322-379afb476865?w=1200",
+      "https://images.unsplash.com/photo-1478146897154-1976b1f16c7a?w=1200"
+    ],
+    "maxParticipants": 500,
+    "eventDates": [
+      {
+        "date": "2026-06-15",
+        "time": "14:00",
+        "endTime": "22:00",
+        "availableTickets": 350
+      },
+      {
+        "date": "2026-06-16",
+        "time": "12:00",
+        "endTime": "20:00",
+        "availableTickets": 400
+      }
+    ],
+    "pricing": {
+      "isFree": false,
+      "ticketPrice": 150,
+      "priceModel": "per billett",
+      "targetGroups": [
+        {
+          "group": "Voksne",
+          "price": 150,
+          "free": false
+        },
+        {
+          "group": "Barn (under 12)",
+          "price": 75,
+          "free": false
+        },
+        {
+          "group": "Senior",
+          "price": 100,
+          "free": false
+        }
+      ]
+    },
+    "bookingType": "tickets",
+    "contacts": [
+      {
+        "name": "Skien Kultur",
+        "role": "Arrangement",
+        "email": "kultur@skien.kommune.no",
+        "phone": "+47 35 90 00 00"
+      }
+    ],
+    "guidelines": "Arrangementet er utendørs. Ta med passende klær. Dyr er ikke tillatt.",
+    "faq": [
+      {
+        "question": "Er arrangementet utendørs?",
+        "answer": "Ja, arrangementet er utendørs i Skien sentrum."
+      },
+      {
+        "question": "Kan jeg kjøpe billetter på døren?",
+        "answer": "Ja, hvis det er ledige billetter. Vi anbefaler forhåndsbestilling."
+      },
+      {
+        "question": "Er det mat og drikke tilgjengelig?",
+        "answer": "Ja, det er flere matstasjoner og drikkestasjoner på arrangementet."
+      }
+    ]
+  }
+}
