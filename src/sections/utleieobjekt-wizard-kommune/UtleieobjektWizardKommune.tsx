@@ -67,7 +67,6 @@ const getSubcategories = (category: Category): string[] => {
 const getTypeStepLabels = (category: Category): string[] => {
   if (category === 'lokaler') {
     return [
-      'Underkategori',
       'Lokasjon',
       'Tilgjengelighet',
       'Regler',
@@ -77,8 +76,7 @@ const getTypeStepLabels = (category: Category): string[] => {
   }
   if (category === 'sport') {
     return [
-      'Underkategori',
-      'Hentested/Logistikk',
+      'Lokasjon',
       'Tilgjengelighet',
       'Regler',
       'Pris/Depositum',
@@ -87,7 +85,6 @@ const getTypeStepLabels = (category: Category): string[] => {
   }
   if (category === 'arrangementer') {
     return [
-      'Underkategori',
       'Tidspunkter',
       'Kapasitet',
       'Pris',
@@ -97,7 +94,6 @@ const getTypeStepLabels = (category: Category): string[] => {
   }
   if (category === 'torg') {
     return [
-      'Underkategori',
       'Hentested/Logistikk',
       'Antall/Lager',
       'Tilgjengelighet',
@@ -272,22 +268,25 @@ export default function UtleieobjektWizardKommune({
     if (!startChoice) validationErrors.push('Velg opprettelsesmetode')
   }
 
-  // Subcategory validation
-  if (selectedCategory && currentStep === 1 && startChoice === 'new') {
-    if (!formData.subcategory.selected && !formData.subcategory.custom.trim()) {
+  // Lokaler validering
+  if (selectedCategory === 'lokaler' && currentStep === 1 && startChoice === 'new') {
+    if (!formData.subcategory.selected) {
       validationErrors.push('Underkategori må være valgt')
     }
-  }
-
-  // Lokaler validering
-  if (selectedCategory === 'lokaler' && currentStep === 2 && startChoice === 'new') {
     if (!formData.locationAndBasis.name) validationErrors.push('Navn på utleieobjekt må være fylt')
     if (!formData.locationAndBasis.address) validationErrors.push('Adresse må være fylt')
     if (!formData.locationAndBasis.postalCode) validationErrors.push('Postnummer må være fylt')
     if (!formData.locationAndBasis.postalArea) validationErrors.push('Poststed må være fylt')
   }
 
-  if (selectedCategory === 'lokaler' && currentStep === 3) {
+  if (selectedCategory === 'lokaler' && currentStep === 2) {
+    if (!formData.locationAndBasis.name) validationErrors.push('Navn på utleieobjekt må være fylt')
+    if (!formData.locationAndBasis.address) validationErrors.push('Adresse må være fylt')
+    if (!formData.locationAndBasis.postalCode) validationErrors.push('Postnummer må være fylt')
+    if (!formData.locationAndBasis.postalArea) validationErrors.push('Poststed må være fylt')
+  }
+
+  if (selectedCategory === 'lokaler' && currentStep === 2) {
     if (!formData.availability.availabilityType) validationErrors.push('Tilgjengelighetstype må være valgt')
     if (formData.availability.availabilityType === 'timeInterval') {
       if (!formData.availability.timeInterval.interval) validationErrors.push('Intervall må være valgt')
@@ -305,14 +304,14 @@ export default function UtleieobjektWizardKommune({
     }
   }
 
-  if (selectedCategory === 'lokaler' && currentStep === 4) {
+  if (selectedCategory === 'lokaler' && currentStep === 3) {
     if (!formData.rules.approvalMode) validationErrors.push('En godkjenningsmodus må være valgt')
     if (formData.rules.umbrellaDisposal.allowed && formData.rules.umbrellaDisposal.organizations.length === 0) {
       validationErrors.push('Hvis paraply = ja: minst én org + kvote må settes')
     }
   }
 
-  if (selectedCategory === 'lokaler' && currentStep === 5) {
+  if (selectedCategory === 'lokaler' && currentStep === 4) {
     if (!formData.pricing.isFree) {
       if (!formData.pricing.priceModel) validationErrors.push('Prismodell må være valgt')
       if (formData.pricing.targetGroups.length === 0) validationErrors.push('Minst én pris må være definert')
@@ -324,14 +323,17 @@ export default function UtleieobjektWizardKommune({
   }
 
   // Sport validering
-  if (selectedCategory === 'sport' && currentStep === 2 && startChoice === 'new') {
-    if (!formData.locationAndBasis.name) validationErrors.push('Navn på utstyr må være fylt')
-    if (!formData.locationAndBasis.address) validationErrors.push('Hentested må være fylt')
+  if (selectedCategory === 'sport' && currentStep === 1 && startChoice === 'new') {
+    if (!formData.subcategory.selected) {
+      validationErrors.push('Underkategori må være valgt')
+    }
+    if (!formData.locationAndBasis.name) validationErrors.push('Navn på utleieobjekt må være fylt')
+    if (!formData.locationAndBasis.address) validationErrors.push('Adresse må være fylt')
     if (!formData.locationAndBasis.postalCode) validationErrors.push('Postnummer må være fylt')
     if (!formData.locationAndBasis.postalArea) validationErrors.push('Poststed må være fylt')
   }
 
-  if (selectedCategory === 'sport' && currentStep === 3) {
+  if (selectedCategory === 'sport' && currentStep === 2) {
     if (!formData.availability.availabilityType || formData.availability.availabilityType !== 'timeInterval') {
       validationErrors.push('Sport må bruke Tidsintervall')
     }
@@ -343,11 +345,11 @@ export default function UtleieobjektWizardKommune({
     }
   }
 
-  if (selectedCategory === 'sport' && currentStep === 4) {
+  if (selectedCategory === 'sport' && currentStep === 3) {
     if (!formData.rules.approvalMode) validationErrors.push('En godkjenningsmodus må være valgt')
   }
 
-  if (selectedCategory === 'sport' && currentStep === 5) {
+  if (selectedCategory === 'sport' && currentStep === 4) {
     if (!formData.pricing.isFree) {
       if (!formData.pricing.priceModel) validationErrors.push('Utleiepris må være fylt')
       if (formData.payment.methods.length === 0) validationErrors.push('Minst én betalingsmetode må være valgt')
@@ -355,11 +357,14 @@ export default function UtleieobjektWizardKommune({
   }
 
   // Arrangementer validering
-  if (selectedCategory === 'arrangementer' && currentStep === 2 && startChoice === 'new') {
+  if (selectedCategory === 'arrangementer' && currentStep === 1 && startChoice === 'new') {
+    if (!formData.subcategory.selected) {
+      validationErrors.push('Underkategori må være valgt')
+    }
     if (!formData.locationAndBasis.name) validationErrors.push('Navn på arrangement må være fylt')
   }
 
-  if (selectedCategory === 'arrangementer' && currentStep === 3) {
+  if (selectedCategory === 'arrangementer' && currentStep === 2) {
     if (!formData.availability.availabilityType || formData.availability.availabilityType !== 'quantity') {
       validationErrors.push('Arrangementer må bruke Antall tilgjengelighet')
     }
@@ -369,25 +374,28 @@ export default function UtleieobjektWizardKommune({
     }
   }
 
-  if (selectedCategory === 'arrangementer' && currentStep === 4) {
+  if (selectedCategory === 'arrangementer' && currentStep === 3) {
     if (!formData.pricing.isFree) {
       // Validering for pris hvis betalt
     }
   }
 
   // Torg validering
-  if (selectedCategory === 'torg' && currentStep === 2 && startChoice === 'new') {
+  if (selectedCategory === 'torg' && currentStep === 1 && startChoice === 'new') {
+    if (!formData.subcategory.selected) {
+      validationErrors.push('Underkategori må være valgt')
+    }
     if (!formData.locationAndBasis.name) validationErrors.push('Navn på utstyr må være fylt')
     if (!formData.locationAndBasis.address) validationErrors.push('Hentested må være fylt')
     if (!formData.locationAndBasis.postalCode) validationErrors.push('Postnummer må være fylt')
     if (!formData.locationAndBasis.postalArea) validationErrors.push('Poststed må være fylt')
   }
 
-  if (selectedCategory === 'torg' && currentStep === 3) {
+  if (selectedCategory === 'torg' && currentStep === 2) {
     if (!formData.properties.size) validationErrors.push('Antall enheter må være fylt')
   }
 
-  if (selectedCategory === 'torg' && currentStep === 4) {
+  if (selectedCategory === 'torg' && currentStep === 3) {
     if (!formData.availability.availabilityType) validationErrors.push('Tilgjengelighetstype må være valgt')
     if (formData.availability.availabilityType === 'day') {
       if (formData.availability.day.type === 'custom' && (!formData.availability.day.fromTime || !formData.availability.day.toTime)) {
@@ -403,11 +411,11 @@ export default function UtleieobjektWizardKommune({
     }
   }
 
-  if (selectedCategory === 'torg' && currentStep === 5) {
+  if (selectedCategory === 'torg' && currentStep === 4) {
     if (!formData.rules.approvalMode) validationErrors.push('En godkjenningsmodus må være valgt')
   }
 
-  if (selectedCategory === 'torg' && currentStep === 6) {
+  if (selectedCategory === 'torg' && currentStep === 5) {
     if (!formData.pricing.isFree) {
       if (!formData.pricing.priceModel) validationErrors.push('Utleiepris må være fylt')
       if (formData.payment.methods.length === 0) validationErrors.push('Minst én betalingsmetode må være valgt')
@@ -418,17 +426,17 @@ export default function UtleieobjektWizardKommune({
 
   const getMaxStep = (): number => {
     if (!selectedCategory) return 1
-    if (selectedCategory === 'lokaler') return 6
-    if (selectedCategory === 'sport') return 6
-    if (selectedCategory === 'arrangementer') return 6
-    if (selectedCategory === 'torg') return 7
+    if (selectedCategory === 'lokaler') return 5
+    if (selectedCategory === 'sport') return 5
+    if (selectedCategory === 'arrangementer') return 5
+    if (selectedCategory === 'torg') return 6
     return 1
   }
 
   const handleNext = () => {
     // Hvis vi er på opprettelsesmetode-steg og har valgt kopier eller import, gå til første type-spesifikke steg
     if (((currentStep === 0 && selectedCategory) || (currentStep === 1 && selectedCategory && (!startChoice || startChoice === 'copy' || startChoice === 'import'))) && startChoice && startChoice !== 'import') {
-      const firstTypeStep = 1 // Subcategory step
+      const firstTypeStep = 1 // First type-specific step (includes subcategory)
       setCurrentStep(firstTypeStep as Step)
       return
     }
@@ -443,7 +451,7 @@ export default function UtleieobjektWizardKommune({
     if (currentStep > 0) {
       // Hvis vi er på første type-spesifikke steg og har startChoice, gå tilbake til opprettelsesmetode
       if (selectedCategory && startChoice) {
-        const firstTypeStep = selectedCategory === 'lokaler' ? 1 : selectedCategory === 'utstyr' ? 1 : 1
+        const firstTypeStep = 1 // First type-specific step for all categories
         if (currentStep === firstTypeStep) {
           setStartChoice(null)
           // Gå til opprettelsesmetode-steg (0 hvis kategori er gitt som prop, ellers 1)
@@ -591,17 +599,18 @@ export default function UtleieobjektWizardKommune({
               const labels = getTypeStepLabels(selectedCategory)
               // Beregn hvilket steg vi er på i type-spesifikke steg
               // For lokaler: steg 1 = Lokasjon (index 0), steg 2 = Tilgjengelighet (index 1), etc.
-              // For utstyr: steg 1 = Hentested (index 0), steg 2 = Antall/Lager (index 1), etc.
-              // For opplevelser: steg 1 = Tidspunkter (index 0), steg 2 = Kapasitet (index 1), etc.
+              // For sport: steg 1 = Lokasjon (index 0), steg 2 = Tilgjengelighet (index 1), etc.
+              // For arrangementer: steg 1 = Tidspunkter (index 0), steg 2 = Kapasitet (index 1), etc.
+              // For torg: steg 1 = Hentested/Logistikk (index 0), steg 2 = Antall/Lager (index 1), etc.
               let typeStepIndex = 0
               if (selectedCategory === 'lokaler') {
-                typeStepIndex = currentStep === 1 ? 0 : currentStep === 2 ? 1 : currentStep === 3 ? 2 : currentStep === 4 ? 3 : currentStep === 5 ? 4 : currentStep === 6 ? 5 : 0
+                typeStepIndex = currentStep === 1 ? 0 : currentStep === 2 ? 1 : currentStep === 3 ? 2 : currentStep === 4 ? 3 : currentStep === 5 ? 4 : 0
               } else if (selectedCategory === 'sport') {
-                typeStepIndex = currentStep === 1 ? 0 : currentStep === 2 ? 1 : currentStep === 3 ? 2 : currentStep === 4 ? 3 : currentStep === 5 ? 4 : currentStep === 6 ? 5 : 0
+                typeStepIndex = currentStep === 1 ? 0 : currentStep === 2 ? 1 : currentStep === 3 ? 2 : currentStep === 4 ? 3 : currentStep === 5 ? 4 : 0
               } else if (selectedCategory === 'arrangementer') {
-                typeStepIndex = currentStep === 1 ? 0 : currentStep === 2 ? 1 : currentStep === 3 ? 2 : currentStep === 4 ? 3 : currentStep === 5 ? 4 : currentStep === 6 ? 5 : 0
+                typeStepIndex = currentStep === 1 ? 0 : currentStep === 2 ? 1 : currentStep === 3 ? 2 : currentStep === 4 ? 3 : currentStep === 5 ? 4 : 0
               } else if (selectedCategory === 'torg') {
-                typeStepIndex = currentStep === 1 ? 0 : currentStep === 2 ? 1 : currentStep === 3 ? 2 : currentStep === 4 ? 3 : currentStep === 5 ? 4 : currentStep === 6 ? 5 : currentStep === 7 ? 6 : 0
+                typeStepIndex = currentStep === 1 ? 0 : currentStep === 2 ? 1 : currentStep === 3 ? 2 : currentStep === 4 ? 3 : currentStep === 5 ? 4 : currentStep === 6 ? 5 : 0
               }
               return labels.map((label, index) => (
                 <div key={index} className="flex items-center gap-2">
@@ -838,7 +847,7 @@ export default function UtleieobjektWizardKommune({
                               <span className="text-sm">{item}</span>
                             </label>
                           ))}
-                          {selectedCategory === 'sport' && ['Hentested/Logistikk', 'Tilgjengelighet', 'Regler', 'Pris/Depositum'].map((item) => (
+                          {selectedCategory === 'sport' && ['Lokasjon', 'Tilgjengelighet', 'Regler', 'Pris/Depositum'].map((item) => (
                             <label key={item} className="flex items-center gap-2">
                               <input 
                                 type="checkbox" 
@@ -877,7 +886,7 @@ export default function UtleieobjektWizardKommune({
                       <Button 
                         onClick={() => {
                           // Her kan du legge til logikk for å faktisk kopiere data
-                          setCurrentStep(1) // Subcategory step
+                          setCurrentStep(1) // First type-specific step
                         }} 
                         className="w-full"
                         disabled={!selectedCopyObject || copySettings.length === 0}
@@ -890,20 +899,18 @@ export default function UtleieobjektWizardKommune({
               </Card>
             )}
 
-            {/* Subcategory selection step - appears after "new" is selected */}
-            {selectedCategory && currentStep === 1 && startChoice === 'new' && (
+            {/* Lokaler: Step 1 - Lokasjon */}
+            {selectedCategory === 'lokaler' && currentStep === 1 && startChoice === 'new' && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Velg underkategori</CardTitle>
-                  <CardDescription>
-                    Velg underkategori for {selectedCategory === 'lokaler' ? 'Lokaler' : selectedCategory === 'sport' ? 'Sport' : selectedCategory === 'arrangementer' ? 'Arrangementer' : 'Torg'}
-                  </CardDescription>
+                  <CardTitle>Lokasjon</CardTitle>
+                  <CardDescription>Grunnleggende informasjon om lokale/banen</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div>
-                    <Label htmlFor="subcategory-select">Underkategori {!formData.subcategory.selected && !formData.subcategory.custom && <span className="text-red-600">*</span>}</Label>
+                    <Label htmlFor="subcategory-select-lokaler">Underkategori {!formData.subcategory.selected && <span className="text-red-600">*</span>}</Label>
                     <select
-                      id="subcategory-select"
+                      id="subcategory-select-lokaler"
                       value={formData.subcategory.selected || ''}
                       onChange={(e) => setFormData({ 
                         ...formData, 
@@ -912,60 +919,14 @@ export default function UtleieobjektWizardKommune({
                       className="w-full mt-2 p-2 border border-stone-300 dark:border-stone-600 rounded-md bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100"
                     >
                       <option value="">Velg underkategori...</option>
-                      {getSubcategories(selectedCategory).map((subcat) => (
+                      {getSubcategories('lokaler').map((subcat) => (
                         <option key={subcat} value={subcat}>{subcat}</option>
                       ))}
                     </select>
                   </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 border-t border-stone-300 dark:border-stone-600"></div>
-                    <span className="text-sm text-stone-500 dark:text-stone-400">eller</span>
-                    <div className="flex-1 border-t border-stone-300 dark:border-stone-600"></div>
-                  </div>
 
-                  <div>
-                    <Label htmlFor="subcategory-custom">Legg til egen underkategori</Label>
-                    <div className="flex gap-2 mt-2">
-                      <Input
-                        id="subcategory-custom"
-                        value={formData.subcategory.custom}
-                        onChange={(e) => setFormData({ 
-                          ...formData, 
-                          subcategory: { ...formData.subcategory, custom: e.target.value, selected: null } 
-                        })}
-                        placeholder="Skriv inn egen underkategori"
-                        className="flex-1"
-                      />
-                      <Button
-                        onClick={() => {
-                          if (formData.subcategory.custom.trim()) {
-                            // Add custom subcategory to the list (in a real app, this would be saved)
-                            setFormData({ 
-                              ...formData, 
-                              subcategory: { ...formData.subcategory, selected: formData.subcategory.custom, custom: '' } 
-                            })
-                          }
-                        }}
-                        variant="outline"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Legg til
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                  <Separator />
 
-            {/* Lokaler: Step 2 - Lokasjon (was Step 1) */}
-            {selectedCategory === 'lokaler' && currentStep === 2 && startChoice === 'new' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Lokasjon</CardTitle>
-                  <CardDescription>Grunnleggende informasjon om lokale/banen</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
                   <div>
                     <Label htmlFor="name">Navn på utleieobjekt {!formData.locationAndBasis.name && <span className="text-red-600">*</span>}</Label>
                     <Input
@@ -1292,8 +1253,8 @@ export default function UtleieobjektWizardKommune({
               </Card>
             )}
 
-            {/* Lokaler: Step 3 - Tilgjengelighet */}
-            {selectedCategory === 'lokaler' && currentStep === 3 && (
+            {/* Lokaler: Step 2 - Tilgjengelighet */}
+            {selectedCategory === 'lokaler' && currentStep === 2 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Tilgjengelighet</CardTitle>
@@ -1749,8 +1710,8 @@ export default function UtleieobjektWizardKommune({
               </Card>
             )}
 
-            {/* Lokaler: Step 4 - Regler */}
-            {selectedCategory === 'lokaler' && currentStep === 4 && (
+            {/* Lokaler: Step 3 - Regler */}
+            {selectedCategory === 'lokaler' && currentStep === 3 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Regler og godkjenning</CardTitle>
@@ -1911,8 +1872,8 @@ export default function UtleieobjektWizardKommune({
               </Card>
             )}
 
-            {/* Lokaler: Step 5 - Pris og betaling */}
-            {selectedCategory === 'lokaler' && currentStep === 5 && (
+            {/* Lokaler: Step 4 - Pris og betaling */}
+            {selectedCategory === 'lokaler' && currentStep === 4 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Pris og betaling</CardTitle>
@@ -2146,8 +2107,8 @@ export default function UtleieobjektWizardKommune({
               </Card>
             )}
 
-            {/* Lokaler: Step 6 - Publisering */}
-            {selectedCategory === 'lokaler' && currentStep === 6 && (
+            {/* Lokaler: Step 5 - Publisering */}
+            {selectedCategory === 'lokaler' && currentStep === 5 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Publisering</CardTitle>
@@ -2244,63 +2205,84 @@ export default function UtleieobjektWizardKommune({
               </Card>
             )}
 
-            {/* Utstyr: Step 1 - Hentested/Logistikk */}
-            {/* Sport: Step 2 - Hentested/Logistikk */}
-            {selectedCategory === 'sport' && currentStep === 2 && startChoice === 'new' && (
+            {/* Sport: Step 1 - Lokasjon */}
+            {selectedCategory === 'sport' && currentStep === 1 && startChoice === 'new' && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Hentested/Logistikk</CardTitle>
-                  <CardDescription>Hvor utstyret hentes/leveres og kontaktinformasjon</CardDescription>
+                  <CardTitle>Lokasjon</CardTitle>
+                  <CardDescription>Grunnleggende informasjon om banen/fasiliteten</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div>
-                    <Label htmlFor="utstyr-name">Navn på utstyr {!formData.locationAndBasis.name && <span className="text-red-600">*</span>}</Label>
+                    <Label htmlFor="subcategory-select-sport">Underkategori {!formData.subcategory.selected && <span className="text-red-600">*</span>}</Label>
+                    <select
+                      id="subcategory-select-sport"
+                      value={formData.subcategory.selected || ''}
+                      onChange={(e) => setFormData({ 
+                        ...formData, 
+                        subcategory: { ...formData.subcategory, selected: e.target.value || null, custom: '' } 
+                      })}
+                      className="w-full mt-2 p-2 border border-stone-300 dark:border-stone-600 rounded-md bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100"
+                    >
+                      <option value="">Velg underkategori...</option>
+                      {getSubcategories('sport').map((subcat) => (
+                        <option key={subcat} value={subcat}>{subcat}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label htmlFor="sport-name">Navn på utleieobjekt {!formData.locationAndBasis.name && <span className="text-red-600">*</span>}</Label>
                     <Input
-                      id="utstyr-name"
+                      id="sport-name"
                       value={formData.locationAndBasis.name}
                       onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, name: e.target.value } })}
                       className="mt-2"
-                      placeholder="F.eks. Fotballutstyr sett"
+                      placeholder="F.eks. Padelbane 1"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="utstyr-pickup-location">Hentested *</Label>
-                    <Input
-                      id="utstyr-pickup-location"
-                      value={formData.locationAndBasis.address}
-                      onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, address: e.target.value } })}
-                      className="mt-2"
-                      placeholder="F.eks. Idrettshall A, Lager 2"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="utstyr-postal-code">Postnummer *</Label>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="col-span-2">
+                      <Label htmlFor="sport-address">Adresse {!formData.locationAndBasis.address && <span className="text-red-600">*</span>}</Label>
                       <Input
-                        id="utstyr-postal-code"
+                        id="sport-address"
+                        value={formData.locationAndBasis.address}
+                        onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, address: e.target.value } })}
+                        className="mt-2"
+                        placeholder="Gateadresse"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="sport-postal-code">Postnummer {!formData.locationAndBasis.postalCode && <span className="text-red-600">*</span>}</Label>
+                      <Input
+                        id="sport-postal-code"
                         value={formData.locationAndBasis.postalCode}
                         onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, postalCode: e.target.value } })}
                         className="mt-2"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="utstyr-postal-area">Poststed *</Label>
-                      <Input
-                        id="utstyr-postal-area"
-                        value={formData.locationAndBasis.postalArea}
-                        onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, postalArea: e.target.value } })}
-                        className="mt-2"
+                        placeholder="0000"
                       />
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="utstyr-description">Beskrivelse</Label>
+                    <Label htmlFor="sport-postal-area">Poststed {!formData.locationAndBasis.postalArea && <span className="text-red-600">*</span>}</Label>
+                    <Input
+                      id="sport-postal-area"
+                      value={formData.locationAndBasis.postalArea}
+                      onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, postalArea: e.target.value } })}
+                      className="mt-2"
+                      placeholder="By"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="sport-description">Beskrivelse</Label>
                     <textarea
-                      id="utstyr-description"
+                      id="sport-description"
                       value={formData.locationAndBasis.longDescription}
                       onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, longDescription: e.target.value } })}
                       className="mt-2 w-full min-h-[120px] rounded-md border border-input bg-transparent px-3 py-2 text-sm"
-                      placeholder="Beskriv utstyret, inkludert spesifikasjoner og tilstand"
+                      placeholder="Beskriv banen/fasiliteten"
                     />
                   </div>
                   <div>
@@ -2362,14 +2344,28 @@ export default function UtleieobjektWizardKommune({
                       ))}
                     </div>
                   </div>
+                  <Separator />
                   <div>
-                    <Label>Transportinfo</Label>
-                    <textarea
-                      value={formData.locationAndBasis.shortDescription}
-                      onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, shortDescription: e.target.value } })}
-                      className="mt-2 w-full min-h-[80px] rounded-md border border-input bg-transparent px-3 py-2 text-sm"
-                      placeholder="Informasjon om transport, størrelse, vekt, etc."
-                    />
+                    <Label>Fasiliteter (valgfri, men sterk anbefaling)</Label>
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      {['Kjøkken', 'Garderobe', 'Dusj', 'Parkering', 'WiFi', 'Projektor/TV', 'Lydanlegg', 'Scene', 'Kiosk', 'Catering', 'Teleslynge', 'Toalett', 'Vertskap/betjening', 'Annet'].map((facility) => (
+                        <label key={facility} className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={formData.properties.facilities.includes(facility)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFormData({ ...formData, properties: { ...formData.properties, facilities: [...formData.properties.facilities, facility] } })
+                              } else {
+                                setFormData({ ...formData, properties: { ...formData.properties, facilities: formData.properties.facilities.filter(f => f !== facility) } })
+                              }
+                            }}
+                            className="rounded"
+                          />
+                          <span className="text-sm">{facility}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
                   <Separator />
                   <div>
@@ -2409,9 +2405,8 @@ export default function UtleieobjektWizardKommune({
               </Card>
             )}
 
-            {/* Utstyr: Step 2 - Antall/Lager */}
-            {/* Sport: Step 3 - Tilgjengelighet */}
-            {selectedCategory === 'sport' && currentStep === 3 && (
+            {/* Sport: Step 2 - Tilgjengelighet */}
+            {selectedCategory === 'sport' && currentStep === 2 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Tilgjengelighet</CardTitle>
@@ -2574,8 +2569,8 @@ export default function UtleieobjektWizardKommune({
               </Card>
             )}
 
-            {/* Sport: Step 4 - Regler */}
-            {selectedCategory === 'sport' && currentStep === 4 && (
+            {/* Sport: Step 3 - Regler */}
+            {selectedCategory === 'sport' && currentStep === 3 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Regler og godkjenning</CardTitle>
@@ -2605,27 +2600,26 @@ export default function UtleieobjektWizardKommune({
               </Card>
             )}
 
-            {/* Utstyr: Step 4 - Regler */}
-            {/* Sport: Step 5 - Pris/Depositum */}
-            {selectedCategory === 'sport' && currentStep === 5 && (
+            {/* Sport: Step 3 - Regler */}
+            {selectedCategory === 'sport' && currentStep === 3 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Regler</CardTitle>
-                  <CardDescription>Godkjenning, begrensninger og returbetingelser</CardDescription>
+                  <CardTitle>Regler og godkjenning</CardTitle>
+                  <CardDescription>Definer godkjenning og begrensninger</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div>
                     <Label>Godkjenning {!formData.rules.approvalMode && <span className="text-red-600">*</span>}</Label>
                     <div className="mt-2 space-y-2">
                       <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
-                        <input type="radio" name="utstyr-approval" value="automatic" checked={formData.rules.approvalMode === 'automatic'} onChange={(e) => setFormData({ ...formData, rules: { ...formData.rules, approvalMode: e.target.value } })} />
+                        <input type="radio" name="sport-approval" value="automatic" checked={formData.rules.approvalMode === 'automatic'} onChange={(e) => setFormData({ ...formData, rules: { ...formData.rules, approvalMode: e.target.value } })} />
                         <div>
                           <div className="font-medium">Automatisk bekreftelse</div>
                           <div className="text-xs text-stone-500">Bookinger godkjennes automatisk</div>
                         </div>
                       </label>
                       <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
-                        <input type="radio" name="utstyr-approval" value="manual" checked={formData.rules.approvalMode === 'manual'} onChange={(e) => setFormData({ ...formData, rules: { ...formData.rules, approvalMode: e.target.value } })} />
+                        <input type="radio" name="sport-approval" value="manual" checked={formData.rules.approvalMode === 'manual'} onChange={(e) => setFormData({ ...formData, rules: { ...formData.rules, approvalMode: e.target.value } })} />
                         <div>
                           <div className="font-medium">Krever saksbehandlergodkjenning</div>
                           <div className="text-xs text-stone-500">Alle bookinger må godkjennes manuelt</div>
@@ -2680,8 +2674,8 @@ export default function UtleieobjektWizardKommune({
             )}
 
             {/* Utstyr: Step 5 - Pris/Depositum */}
-            {/* Sport: Step 6 - Publisering */}
-            {selectedCategory === 'sport' && currentStep === 6 && (
+            {/* Sport: Step 4 - Pris/Depositum */}
+            {selectedCategory === 'sport' && currentStep === 4 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Pris/Depositum</CardTitle>
@@ -2692,11 +2686,11 @@ export default function UtleieobjektWizardKommune({
                     <Label>Gratis eller betalt</Label>
                     <div className="mt-2 flex gap-4">
                       <label className="flex items-center gap-2">
-                        <input type="radio" name="utstyr-isFree" checked={formData.pricing.isFree} onChange={() => setFormData({ ...formData, pricing: { ...formData.pricing, isFree: true } })} />
+                        <input type="radio" name="sport-isFree" checked={formData.pricing.isFree} onChange={() => setFormData({ ...formData, pricing: { ...formData.pricing, isFree: true } })} />
                         <span>Gratis</span>
                       </label>
                       <label className="flex items-center gap-2">
-                        <input type="radio" name="utstyr-isFree" checked={!formData.pricing.isFree} onChange={() => setFormData({ ...formData, pricing: { ...formData.pricing, isFree: false } })} />
+                        <input type="radio" name="sport-isFree" checked={!formData.pricing.isFree} onChange={() => setFormData({ ...formData, pricing: { ...formData.pricing, isFree: false } })} />
                         <span>Betalt</span>
                       </label>
                     </div>
@@ -2704,9 +2698,9 @@ export default function UtleieobjektWizardKommune({
                   {!formData.pricing.isFree && (
                     <>
                       <div>
-                        <Label htmlFor="utstyr-price">Utleiepris *</Label>
+                        <Label htmlFor="sport-price">Utleiepris *</Label>
                         <Input
-                          id="utstyr-price"
+                          id="sport-price"
                           type="number"
                           value={formData.pricing.priceModel}
                           onChange={(e) => setFormData({ ...formData, pricing: { ...formData.pricing, priceModel: e.target.value } })}
@@ -2716,12 +2710,12 @@ export default function UtleieobjektWizardKommune({
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label htmlFor="utstyr-deposit">Depositum</Label>
-                          <Input id="utstyr-deposit" type="number" className="mt-2" placeholder="F.eks. 1000" />
+                          <Label htmlFor="sport-deposit">Depositum</Label>
+                          <Input id="sport-deposit" type="number" className="mt-2" placeholder="F.eks. 1000" />
                         </div>
                         <div>
-                          <Label htmlFor="utstyr-damage-fee">Skadeavgift</Label>
-                          <Input id="utstyr-damage-fee" type="number" className="mt-2" placeholder="F.eks. 500" />
+                          <Label htmlFor="sport-damage-fee">Skadeavgift</Label>
+                          <Input id="sport-damage-fee" type="number" className="mt-2" placeholder="F.eks. 500" />
                         </div>
                       </div>
                       <div>
@@ -2769,8 +2763,8 @@ export default function UtleieobjektWizardKommune({
               </Card>
             )}
 
-            {/* Sport: Step 6 - Publisering */}
-            {selectedCategory === 'sport' && currentStep === 6 && (
+            {/* Sport: Step 5 - Publisering */}
+            {selectedCategory === 'sport' && currentStep === 5 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Publisering</CardTitle>
@@ -2829,19 +2823,38 @@ export default function UtleieobjektWizardKommune({
               </Card>
             )}
 
-            {/* Opplevelser: Step 1 - Tidspunkter/Forestillinger */}
-            {/* Arrangementer: Step 2 - Tidspunkter */}
-            {selectedCategory === 'arrangementer' && currentStep === 2 && startChoice === 'new' && (
+            {/* Arrangementer: Step 1 - Tidspunkter */}
+            {selectedCategory === 'arrangementer' && currentStep === 1 && startChoice === 'new' && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Tidspunkter/Forestillinger</CardTitle>
+                  <CardTitle>Tidspunkter</CardTitle>
                   <CardDescription>Datoer, klokkeslett og varighet for arrangementet</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div>
-                    <Label htmlFor="opplevelser-name">Navn på arrangement {!formData.locationAndBasis.name && <span className="text-red-600">*</span>}</Label>
+                    <Label htmlFor="subcategory-select-arrangementer">Underkategori {!formData.subcategory.selected && <span className="text-red-600">*</span>}</Label>
+                    <select
+                      id="subcategory-select-arrangementer"
+                      value={formData.subcategory.selected || ''}
+                      onChange={(e) => setFormData({ 
+                        ...formData, 
+                        subcategory: { ...formData.subcategory, selected: e.target.value || null, custom: '' } 
+                      })}
+                      className="w-full mt-2 p-2 border border-stone-300 dark:border-stone-600 rounded-md bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100"
+                    >
+                      <option value="">Velg underkategori...</option>
+                      {getSubcategories('arrangementer').map((subcat) => (
+                        <option key={subcat} value={subcat}>{subcat}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label htmlFor="arrangementer-name">Navn på arrangement {!formData.locationAndBasis.name && <span className="text-red-600">*</span>}</Label>
                     <Input
-                      id="opplevelser-name"
+                      id="arrangementer-name"
                       value={formData.locationAndBasis.name}
                       onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, name: e.target.value } })}
                       className="mt-2"
@@ -2849,9 +2862,9 @@ export default function UtleieobjektWizardKommune({
                     />
                   </div>
                   <div>
-                    <Label htmlFor="opplevelser-description">Beskrivelse</Label>
+                    <Label htmlFor="arrangementer-description">Beskrivelse</Label>
                     <textarea
-                      id="opplevelser-description"
+                      id="arrangementer-description"
                       value={formData.locationAndBasis.longDescription}
                       onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, longDescription: e.target.value } })}
                       className="mt-2 w-full min-h-[120px] rounded-md border border-input bg-transparent px-3 py-2 text-sm"
@@ -2938,8 +2951,8 @@ export default function UtleieobjektWizardKommune({
               </Card>
             )}
 
-            {/* Arrangementer: Step 3 - Kapasitet */}
-            {selectedCategory === 'arrangementer' && currentStep === 3 && (
+            {/* Arrangementer: Step 2 - Kapasitet */}
+            {selectedCategory === 'arrangementer' && currentStep === 2 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Kapasitet</CardTitle>
@@ -2998,8 +3011,8 @@ export default function UtleieobjektWizardKommune({
             )}
 
             {/* Opplevelser: Step 3 - Pris */}
-            {/* Arrangementer: Step 4 - Pris */}
-            {selectedCategory === 'arrangementer' && currentStep === 4 && (
+            {/* Arrangementer: Step 3 - Pris */}
+            {selectedCategory === 'arrangementer' && currentStep === 3 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Pris</CardTitle>
@@ -3064,8 +3077,8 @@ export default function UtleieobjektWizardKommune({
             )}
 
             {/* Opplevelser: Step 4 - Vilkår */}
-            {/* Arrangementer: Step 5 - Vilkår */}
-            {selectedCategory === 'arrangementer' && currentStep === 5 && (
+            {/* Arrangementer: Step 4 - Vilkår */}
+            {selectedCategory === 'arrangementer' && currentStep === 4 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Vilkår</CardTitle>
@@ -3126,8 +3139,8 @@ export default function UtleieobjektWizardKommune({
             )}
 
             {/* Opplevelser: Step 5 - Publisering */}
-            {/* Arrangementer: Step 6 - Publisering */}
-            {selectedCategory === 'arrangementer' && currentStep === 6 && (
+            {/* Arrangementer: Step 5 - Publisering */}
+            {selectedCategory === 'arrangementer' && currentStep === 5 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Publisering</CardTitle>
@@ -3180,14 +3193,34 @@ export default function UtleieobjektWizardKommune({
               </Card>
             )}
 
-            {/* Torg: Step 2 - Hentested/Logistikk */}
-            {selectedCategory === 'torg' && currentStep === 2 && startChoice === 'new' && (
+            {/* Torg: Step 1 - Hentested/Logistikk */}
+            {selectedCategory === 'torg' && currentStep === 1 && startChoice === 'new' && (
               <Card>
                 <CardHeader>
                   <CardTitle>Hentested/Logistikk</CardTitle>
                   <CardDescription>Grunnleggende informasjon om utstyret</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  <div>
+                    <Label htmlFor="subcategory-select-torg">Underkategori {!formData.subcategory.selected && <span className="text-red-600">*</span>}</Label>
+                    <select
+                      id="subcategory-select-torg"
+                      value={formData.subcategory.selected || ''}
+                      onChange={(e) => setFormData({ 
+                        ...formData, 
+                        subcategory: { ...formData.subcategory, selected: e.target.value || null, custom: '' } 
+                      })}
+                      className="w-full mt-2 p-2 border border-stone-300 dark:border-stone-600 rounded-md bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100"
+                    >
+                      <option value="">Velg underkategori...</option>
+                      {getSubcategories('torg').map((subcat) => (
+                        <option key={subcat} value={subcat}>{subcat}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <Separator />
+
                   <div>
                     <Label htmlFor="torg-name">Navn på utstyr {!formData.locationAndBasis.name && <span className="text-red-600">*</span>}</Label>
                     <Input
@@ -3205,7 +3238,7 @@ export default function UtleieobjektWizardKommune({
                       value={formData.locationAndBasis.address}
                       onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, address: e.target.value } })}
                       className="mt-2"
-                      placeholder="Gateadresse"
+                      placeholder="F.eks. Idrettshall A, Lager 2"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -3230,12 +3263,148 @@ export default function UtleieobjektWizardKommune({
                       />
                     </div>
                   </div>
+                  <div>
+                    <Label htmlFor="torg-description">Beskrivelse</Label>
+                    <textarea
+                      id="torg-description"
+                      value={formData.locationAndBasis.longDescription}
+                      onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, longDescription: e.target.value } })}
+                      className="mt-2 w-full min-h-[120px] rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+                      placeholder="Beskriv utstyret, inkludert spesifikasjoner og tilstand"
+                    />
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label>Kontaktpersoner</Label>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setFormData({
+                          ...formData,
+                          locationAndBasis: {
+                            ...formData.locationAndBasis,
+                            contacts: [...formData.locationAndBasis.contacts, { name: '', role: '', email: '', phone: '' }]
+                          }
+                        })}
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Legg til kontakt
+                      </Button>
+                    </div>
+                    <div className="space-y-3 mt-2">
+                      {formData.locationAndBasis.contacts.map((contact, index) => (
+                        <div key={index} className="p-4 border rounded-lg space-y-2">
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Label className="text-xs">Navn</Label>
+                              <Input value={contact.name} className="mt-1" />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Rolle</Label>
+                              <select className="mt-1 w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm">
+                                <option value="">Velg rolle</option>
+                                <option value="drift">Drift</option>
+                                <option value="nokkel">Nøkkel</option>
+                                <option value="fagansvarlig">Fagansvarlig</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Label className="text-xs">E-post</Label>
+                              <Input type="email" value={contact.email} className="mt-1" />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Telefon</Label>
+                              <Input type="tel" value={contact.phone} className="mt-1" />
+                            </div>
+                          </div>
+                          <div className="flex justify-end">
+                            <Button variant="ghost" size="sm" onClick={() => {
+                              const updated = formData.locationAndBasis.contacts.filter((_, i) => i !== index)
+                              setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, contacts: updated } })
+                            }}>
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Slett
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Transportinfo</Label>
+                    <textarea
+                      value={formData.locationAndBasis.shortDescription}
+                      onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, shortDescription: e.target.value } })}
+                      className="mt-2 w-full min-h-[80px] rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+                      placeholder="Informasjon om transport, størrelse, vekt, etc."
+                    />
+                  </div>
+                  <Separator />
+                  <div>
+                    <Label>Logistikk</Label>
+                    <div className="mt-2 space-y-3">
+                      <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
+                        <input type="checkbox" className="rounded" />
+                        <div>
+                          <div className="font-medium text-sm">Henting påkrevd</div>
+                          <div className="text-xs text-stone-500">Utstyret må hentes på angitt sted</div>
+                        </div>
+                      </label>
+                      <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
+                        <input type="checkbox" className="rounded" />
+                        <div>
+                          <div className="font-medium text-sm">Levering tilgjengelig</div>
+                          <div className="text-xs text-stone-500">Utstyret kan leveres til deg</div>
+                        </div>
+                      </label>
+                      <div>
+                        <Label className="text-xs">Hentetider</Label>
+                        <Input type="text" className="mt-1" placeholder="F.eks. 08:00-16:00" />
+                      </div>
+                    </div>
+                  </div>
+                  <Separator />
+                  <div>
+                    <Label>Media</Label>
+                    <div className="mt-2 space-y-3">
+                      <div className="border-2 border-dashed border-stone-300 dark:border-stone-700 rounded-lg p-6 text-center">
+                        <Upload className="w-8 h-8 mx-auto mb-2 text-stone-400" />
+                        <p className="text-sm text-stone-600 dark:text-stone-400 mb-2">Last opp bilder</p>
+                        <Button variant="outline" size="sm">
+                          <Upload className="w-4 h-4 mr-2" />
+                          Velg filer
+                        </Button>
+                      </div>
+                      {formData.locationAndBasis.images.length > 0 && (
+                        <div className="grid grid-cols-4 gap-2">
+                          {formData.locationAndBasis.images.map((img, index) => (
+                            <div key={index} className="relative aspect-square border rounded-lg overflow-hidden">
+                              <img src={img} alt={`Bilde ${index + 1}`} className="w-full h-full object-cover" />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="absolute top-1 right-1"
+                                onClick={() => {
+                                  const updated = formData.locationAndBasis.images.filter((_, i) => i !== index)
+                                  setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, images: updated } })
+                                }}
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             )}
 
-            {/* Torg: Step 3 - Antall/Lager */}
-            {selectedCategory === 'torg' && currentStep === 3 && (
+            {/* Torg: Step 2 - Antall/Lager */}
+            {selectedCategory === 'torg' && currentStep === 2 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Antall/Lager</CardTitle>
@@ -3257,8 +3426,8 @@ export default function UtleieobjektWizardKommune({
               </Card>
             )}
 
-            {/* Torg: Step 4 - Tilgjengelighet */}
-            {selectedCategory === 'torg' && currentStep === 4 && (
+            {/* Torg: Step 3 - Tilgjengelighet */}
+            {selectedCategory === 'torg' && currentStep === 3 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Tilgjengelighet</CardTitle>
@@ -3527,8 +3696,8 @@ export default function UtleieobjektWizardKommune({
               </Card>
             )}
 
-            {/* Torg: Step 5 - Regler */}
-            {selectedCategory === 'torg' && currentStep === 5 && (
+            {/* Torg: Step 4 - Regler */}
+            {selectedCategory === 'torg' && currentStep === 4 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Regler og godkjenning</CardTitle>
@@ -3558,8 +3727,8 @@ export default function UtleieobjektWizardKommune({
               </Card>
             )}
 
-            {/* Torg: Step 6 - Pris/Depositum */}
-            {selectedCategory === 'torg' && currentStep === 6 && (
+            {/* Torg: Step 5 - Pris/Depositum */}
+            {selectedCategory === 'torg' && currentStep === 5 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Pris/Depositum</CardTitle>
@@ -3618,8 +3787,8 @@ export default function UtleieobjektWizardKommune({
               </Card>
             )}
 
-            {/* Torg: Step 7 - Publisering */}
-            {selectedCategory === 'torg' && currentStep === 7 && (
+            {/* Torg: Step 6 - Publisering */}
+            {selectedCategory === 'torg' && currentStep === 6 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Publisering</CardTitle>
