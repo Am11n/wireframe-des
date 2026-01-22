@@ -32,6 +32,18 @@ export default function UtleieobjektDetaljSidePreviewOpplevelser() {
         availableTickets: 400
       }
     ],
+    duration: '8 timer',
+    isRecurring: false,
+    minAge: 0,
+    maxAge: 99,
+    registrationDeadline: {
+      date: '2026-06-10',
+      time: '23:59'
+    },
+    waitlistAllowed: true,
+    cancellationDeadline: 48,
+    refundRules: 'Billetter kan refunderes opptil 48 timer før arrangementet starter. Etter dette er refusjon ikke mulig, men billetter kan overføres til andre personer.',
+    participationTerms: 'Arrangementet er utendørs og avholdes uansett vær. Ta med passende klær. Dyr er ikke tillatt. Alkoholservering kun for personer over 18 år.',
     pricing: {
       isFree: false,
       ticketPrice: 150,

@@ -12,8 +12,12 @@ export default function UtleieobjektDetaljSidePreviewUtstyr() {
     postalCode: '3720',
     postalArea: 'Skien',
     map: { lat: 59.2086, lng: 9.6090 },
-    shortDescription: 'Komplett fotballutstyr sett for lag og arrangementer',
+    shortDescription: 'Informasjon om transport: Utstyret veier ca. 15 kg og må hentes med bil. Passer i en standard bilbagasjerom.',
     longDescription: 'Komplett fotballutstyr sett inkluderer baller, kjegler, markeringer, og annet nødvendig utstyr for fotballtrening og -arrangementer. Utstyret er godt vedlikeholdt og egnet for alle aldersgrupper.',
+    specifications: 'Inneholder:\n• 10 fotballer (størrelse 5)\n• 20 kjegler\n• 4 markeringer\n• 1 ballnett\n• 1 ballpumpe\n\nAlle deler er i god stand og egnet for aktiv bruk.',
+    damageFee: 500,
+    returnDeadline: 7,
+    damageLiability: 'Leietaker er ansvarlig for skader på utstyret. Skader som overstiger depositumet vil bli fakturert separat. Alle skader må rapporteres umiddelbart ved retur.',
     images: [
       'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200',
       'https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=1200'

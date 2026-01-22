@@ -64,15 +64,20 @@ export default function UtleieobjektDetaljSidePreviewLokaler() {
     ],
     rentalUnit: 'hour',
     interval: '60',
-    pricing: {
-      isFree: false,
-      basePrice: 500,
-      priceModel: 'per time',
-      targetGroups: [
-        { group: 'Standard', price: 500, free: false },
-        { group: 'Organisasjoner', price: 400, free: false }
-      ]
-    },
+      pricing: {
+        isFree: false,
+        basePrice: 500,
+        priceModel: 'per time',
+        targetGroups: [
+          { group: 'Standard', price: 500, free: false },
+          { group: 'Organisasjoner', price: 400, free: false }
+        ],
+        timeBasedPricing: {
+          weekdays: 500,
+          weekend: 600
+        },
+        paymentMethods: ['Kort', 'Vipps', 'Faktura (EHF)']
+      },
     guidelines: 'Leietaker er ansvarlig for å rydde opp etter seg. Røyking er ikke tillatt. Dyr er ikke tillatt.',
     faq: [
       { question: 'Hvor lang tid i forveien kan jeg booke?', answer: 'Du kan booke opptil 3 måneder i forveien.' },

@@ -60,6 +60,8 @@ export interface Pricing {
   ticketPrice?: number
   priceModel: string
   targetGroups?: TargetGroup[]
+  timeBasedPricing?: { weekdays?: number; weekend?: number } // Tidsbasert prising
+  paymentMethods?: string[] // Betalingsmetoder
 }
 
 // Calendar slot
@@ -138,6 +140,10 @@ export interface UtstyrDetalj extends BaseUtleieobjektDetalj {
   availableQuantity: number
   facilities: string[]
   logistics: Logistics
+  specifications?: string // Spesifikasjoner fra wizarden
+  damageFee?: number // Skadeavgift
+  returnDeadline?: number // Returfrist (dager)
+  damageLiability?: string // Skadeansvar
   calendarData: CalendarData
 }
 
@@ -150,6 +156,15 @@ export interface OpplevelseDetalj extends BaseUtleieobjektDetalj {
   maxParticipants: number
   eventDates: EventDate[]
   bookingType: 'tickets' | 'registration'
+  duration?: string // Varighet (f.eks. "2 timer")
+  isRecurring?: boolean // Gjentakende arrangement
+  registrationDeadline?: { date: string; time: string } // Påmeldingsfrist
+  waitlistAllowed?: boolean // Tillat venteliste
+  minAge?: number // Minimum alder
+  maxAge?: number // Maksimum alder
+  cancellationDeadline?: number // Avbestillingsfrist (timer før start)
+  refundRules?: string // Refunderingsregler
+  participationTerms?: string // Deltakelsesvilkår
 }
 
 // Union type for all categories
