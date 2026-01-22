@@ -27,15 +27,17 @@ import {
   Building,
   CreditCard,
   Shield,
-  Globe
+  Globe,
+  Download
 } from 'lucide-react'
+import ImportUtleieobjekt from './components/ImportUtleieobjekt'
 
 type Category = 'lokaler' | 'utstyr' | 'opplevelser'
 type Step = 0 | 1 | 2 | 3 | 4 | 5 | 6
 
 interface UtleieobjektWizardKommuneProps {
   category?: Category | null
-  mode?: 'new' | 'copy' | null
+  mode?: 'new' | 'copy' | 'import' | null
   copyFromId?: string | null
 }
 
@@ -94,7 +96,7 @@ export default function UtleieobjektWizardKommune({
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(categoryProp || null)
   const [currentStep, setCurrentStep] = useState<Step>(0)
   const [status, setStatus] = useState<'draft' | 'ready' | 'published'>('draft')
-  const [startChoice, setStartChoice] = useState<'new' | 'copy' | null>(modeProp || null)
+  const [startChoice, setStartChoice] = useState<'new' | 'copy' | 'import' | null>(modeProp || null)
   const [copySearchQuery, setCopySearchQuery] = useState('')
   const [selectedCopyObject, setSelectedCopyObject] = useState<string | null>(copyFromId || null)
   const [copySettings, setCopySettings] = useState<string[]>([])
@@ -304,8 +306,8 @@ export default function UtleieobjektWizardKommune({
   }
 
   const handleNext = () => {
-    // Hvis vi er på opprettelsesmetode-steg og har valgt kopier, gå til første type-spesifikke steg
-    if (((currentStep === 0 && selectedCategory) || (currentStep === 1 && selectedCategory && (!startChoice || startChoice === 'copy'))) && startChoice) {
+    // Hvis vi er på opprettelsesmetode-steg og har valgt kopier eller import, gå til første type-spesifikke steg
+    if (((currentStep === 0 && selectedCategory) || (currentStep === 1 && selectedCategory && (!startChoice || startChoice === 'copy' || startChoice === 'import'))) && startChoice && startChoice !== 'import') {
       const firstTypeStep = selectedCategory === 'lokaler' ? 1 : selectedCategory === 'utstyr' ? 1 : 1
       setCurrentStep(firstTypeStep as Step)
       return
@@ -331,13 +333,16 @@ export default function UtleieobjektWizardKommune({
       }
       
       // Hvis vi er på opprettelsesmetode-steg og har kategori, gå tilbake til kategori-valg
-      if (selectedCategory && ((currentStep === 0 && selectedCategory) || (currentStep === 1 && (!startChoice || startChoice === 'copy')))) {
+      if (selectedCategory && ((currentStep === 0 && selectedCategory) || (currentStep === 1 && (!startChoice || startChoice === 'copy' || startChoice === 'import')))) {
         if (startChoice === 'copy') {
           // Hvis vi er i kopier-modus, bare nullstill kopier-valg
           setStartChoice(null)
           setSelectedCopyObject(null)
           setCopySearchQuery('')
           setCopySettings([])
+        } else if (startChoice === 'import') {
+          // Hvis vi er i import-modus, bare nullstill import-valg
+          setStartChoice(null)
         } else {
           // Hvis vi ikke har valgt noe, gå tilbake til kategori-valg
           setSelectedCategory(null)
@@ -530,7 +535,7 @@ export default function UtleieobjektWizardKommune({
             )}
 
             {/* Step 0/1: Opprettelsesmetode (hvis kategori er valgt) */}
-            {((currentStep === 0 && selectedCategory) || (currentStep === 1 && selectedCategory && (!startChoice || startChoice === 'copy'))) && (
+            {((currentStep === 0 && selectedCategory) || (currentStep === 1 && selectedCategory && (!startChoice || startChoice === 'copy' || startChoice === 'import'))) && (
               <Card>
                 <CardHeader>
                   <CardTitle>Opprettelsesmetode</CardTitle>
@@ -539,7 +544,7 @@ export default function UtleieobjektWizardKommune({
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <button
                       onClick={() => {
                         setStartChoice('new')
@@ -548,7 +553,7 @@ export default function UtleieobjektWizardKommune({
                       className="p-6 border-2 border-stone-200 dark:border-stone-700 rounded-lg hover:border-stone-900 dark:hover:border-stone-100 transition-colors text-left"
                     >
                       <div className="font-medium text-stone-900 dark:text-stone-100 mb-1">
-                        Opprette nytt utleieobjekt ({selectedCategory === 'lokaler' ? 'Lokaler og baner' : selectedCategory === 'utstyr' ? 'Utstyr og inventar' : 'Opplevelser og arrangement'})
+                        Opprette nytt utleieobjekt
                       </div>
                       <div className="text-sm text-stone-600 dark:text-stone-400">
                         Start fra scratch med et tomt objekt
@@ -559,13 +564,68 @@ export default function UtleieobjektWizardKommune({
                       className="p-6 border-2 border-stone-200 dark:border-stone-700 rounded-lg hover:border-stone-900 dark:hover:border-stone-100 transition-colors text-left"
                     >
                       <div className="font-medium text-stone-900 dark:text-stone-100 mb-1">
-                        Kopier eksisterende ({selectedCategory === 'lokaler' ? 'Lokaler og baner' : selectedCategory === 'utstyr' ? 'Utstyr og inventar' : 'Opplevelser og arrangement'})
+                        Kopier eksisterende
                       </div>
                       <div className="text-sm text-stone-600 dark:text-stone-400">
                         Bruk et eksisterende objekt som mal
                       </div>
                     </button>
+                    <button
+                      onClick={() => setStartChoice('import')}
+                      className="p-6 border-2 border-stone-200 dark:border-stone-700 rounded-lg hover:border-stone-900 dark:hover:border-stone-100 transition-colors text-left"
+                    >
+                      <div className="font-medium text-stone-900 dark:text-stone-100 mb-1 flex items-center gap-2">
+                        <Download className="w-4 h-4" />
+                        Importer fra ekstern kilde
+                      </div>
+                      <div className="text-sm text-stone-600 dark:text-stone-400">
+                        Importer fra finn.no, bookup.no eller lignende
+                      </div>
+                    </button>
                   </div>
+                  {startChoice === 'import' && (
+                    <ImportUtleieobjekt
+                      onImport={(importedData) => {
+                        // Map importert data til formData
+                        setFormData({
+                          ...formData,
+                          locationAndBasis: {
+                            ...formData.locationAndBasis,
+                            name: importedData.name || formData.locationAndBasis.name,
+                            address: importedData.address || formData.locationAndBasis.address,
+                            postalCode: importedData.postalCode || formData.locationAndBasis.postalCode,
+                            postalArea: importedData.postalArea || formData.locationAndBasis.postalArea,
+                            shortDescription: importedData.shortDescription || formData.locationAndBasis.shortDescription,
+                            longDescription: importedData.description || formData.locationAndBasis.longDescription,
+                            images: importedData.images || formData.locationAndBasis.images,
+                            contacts: importedData.contact ? [{
+                              name: importedData.contact.name,
+                              role: '',
+                              email: importedData.contact.email,
+                              phone: importedData.contact.phone
+                            }] : formData.locationAndBasis.contacts
+                          },
+                          properties: {
+                            ...formData.properties,
+                            size: importedData.size || formData.properties.size,
+                            maxPersons: importedData.maxPersons || formData.properties.maxPersons,
+                            facilities: importedData.facilities || formData.properties.facilities
+                          },
+                          pricing: {
+                            ...formData.pricing,
+                            isFree: !importedData.price,
+                            priceModel: importedData.price ? importedData.price.toString() : formData.pricing.priceModel
+                          }
+                        })
+                        // Gå til første type-spesifikke steg
+                        setCurrentStep(selectedCategory === 'lokaler' ? 1 : selectedCategory === 'utstyr' ? 1 : 1)
+                        setStartChoice('new') // Sett til 'new' etter import slik at resten av wizarden fungerer normalt
+                      }}
+                      onCancel={() => {
+                        setStartChoice(null)
+                      }}
+                    />
+                  )}
                   {startChoice === 'copy' && (
                     <div className="mt-4 p-4 bg-stone-100 dark:bg-stone-800 rounded-lg space-y-4">
                       <div>
@@ -2694,14 +2754,16 @@ export default function UtleieobjektWizardKommune({
                     Neste
                     <ChevronRight className="w-4 h-4 ml-2" />
                   </Button>
-                ) : ((currentStep === 0 && selectedCategory) || (currentStep === 1 && selectedCategory && (!startChoice || startChoice === 'copy'))) ? (
-                  <Button 
-                    onClick={handleNext} 
-                    disabled={startChoice === 'copy' ? (!selectedCopyObject || copySettings.length === 0) : !startChoice}
-                  >
-                    Neste
-                    <ChevronRight className="w-4 h-4 ml-2" />
-                  </Button>
+                ) : ((currentStep === 0 && selectedCategory) || (currentStep === 1 && selectedCategory && (!startChoice || startChoice === 'copy' || startChoice === 'import'))) ? (
+                  startChoice === 'import' ? null : (
+                    <Button 
+                      onClick={handleNext} 
+                      disabled={startChoice === 'copy' ? (!selectedCopyObject || copySettings.length === 0) : !startChoice}
+                    >
+                      Neste
+                      <ChevronRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  )
                 ) : currentStep < getMaxStep() ? (
                   <Button onClick={handleNext} disabled={!canProceed}>
                     Neste
