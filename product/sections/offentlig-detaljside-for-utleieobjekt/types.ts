@@ -1,7 +1,8 @@
 // Base types
-export type Category = 'lokaler' | 'utstyr' | 'opplevelser'
+export type Category = 'lokaler' | 'sport' | 'arrangementer' | 'torg' | 'utstyr' | 'opplevelser'
 export type KalenderSlotStatus = 'ledig' | 'reservert' | 'booket' | 'blokkert' | 'utilgjengelig' | 'stengt'
 export type BookingSteg = 'velg-tid' | 'detaljer' | 'logg-inn' | 'bekreft' | 'ferdig'
+export type AvailabilityType = 'timeInterval' | 'day' | 'quantity'
 
 // Contact information
 export interface Contact {
@@ -69,11 +70,17 @@ export interface KalenderSlot {
   date: string
   time?: string
   status: KalenderSlotStatus
+  fromTime?: string // For day interval
+  toTime?: string // For day interval
+  availableQuantity?: number // For quantity availability
+  totalQuantity?: number // For quantity availability
 }
 
 export interface CalendarData {
   weekStart: string
   slots: KalenderSlot[]
+  availabilityType?: AvailabilityType // Type of availability
+  interval?: string // Interval in minutes (for timeInterval)
 }
 
 // Event date (for opplevelser)
@@ -167,14 +174,74 @@ export interface OpplevelseDetalj extends BaseUtleieobjektDetalj {
   participationTerms?: string // Deltakelsesvilkår
 }
 
+// Sport (sports facilities)
+export interface SportDetalj extends BaseUtleieobjektDetalj {
+  category: 'sport'
+  address: string
+  postalCode: string
+  postalArea: string
+  maxPersons: number
+  size?: string
+  facilities: string[]
+  universalDesign: UniversalDesign
+  addOnServices: AddOnService[]
+  openingHours: OpeningHour[]
+  rentalUnit: 'hour' | 'day'
+  interval: string
+  calendarData: CalendarData
+}
+
+// Arrangementer (events/arrangements)
+export interface ArrangementerDetalj extends BaseUtleieobjektDetalj {
+  category: 'arrangementer'
+  address: string
+  postalCode: string
+  postalArea: string
+  maxParticipants: number
+  eventDates?: EventDate[]
+  bookingType: 'tickets' | 'registration'
+  duration?: string
+  isRecurring?: boolean
+  registrationDeadline?: { date: string; time: string }
+  waitlistAllowed?: boolean
+  minAge?: number
+  maxAge?: number
+  cancellationDeadline?: number
+  refundRules?: string
+  participationTerms?: string
+  calendarData: CalendarData
+  quantityUnit?: string // e.g., 'billetter'
+}
+
+// Torg (marketplace/equipment rental)
+export interface TorgDetalj extends BaseUtleieobjektDetalj {
+  category: 'torg'
+  pickupLocation: string
+  address: string
+  postalCode: string
+  postalArea: string
+  quantity: number
+  availableQuantity: number
+  facilities: string[]
+  logistics: Logistics
+  specifications?: string
+  damageFee?: number
+  returnDeadline?: number
+  damageLiability?: string
+  calendarData: CalendarData
+  quantityUnit?: string // e.g., 'stoler', 'bord'
+}
+
 // Union type for all categories
-export type UtleieobjektDetalj = LokaleDetalj | UtstyrDetalj | OpplevelseDetalj
+export type UtleieobjektDetalj = LokaleDetalj | UtstyrDetalj | OpplevelseDetalj | SportDetalj | ArrangementerDetalj | TorgDetalj
 
 // Booking state
 export interface BookingState {
   currentStep: BookingSteg
   selectedSlots: KalenderSlot[]
   selectedAddOnServices: string[]
+  selectedQuantity?: number // For quantity-based bookings
+  selectedDay?: string // For quantity-based bookings
   bookingDetails: {
     name: string
     email: string
@@ -221,6 +288,9 @@ export interface BookingKalenderProps {
   onSlotDeselect: (slot: KalenderSlot) => void
   rentalUnit?: 'hour' | 'day'
   category: Category
+  availabilityType?: AvailabilityType
+  interval?: string // Interval in minutes
+  quantityUnit?: string // Unit for quantity-based (e.g., 'billetter', 'stoler')
 }
 
 export interface BookingStegIndikatorProps {

@@ -21,6 +21,10 @@ import type {
 import Bildegalleri from './components/Bildegalleri'
 import KontaktSidebar from './components/KontaktSidebar'
 import BookingKalender from './components/BookingKalender'
+import TimeIntervalCalendar from './components/TimeIntervalCalendar'
+import DayCalendar from './components/DayCalendar'
+import DayIntervalCalendar from './components/DayIntervalCalendar'
+import QuantityCalendar from './components/QuantityCalendar'
 import BookingStegIndikator from './components/BookingStegIndikator'
 import OversiktTab from './components/tabs/OversiktTab'
 import AktivitetskalenderTab from './components/tabs/AktivitetskalenderTab'
@@ -79,10 +83,19 @@ export default function UtleieobjektDetaljSide({
   }
 
   const getCalendarData = () => {
-    if (utleieobjekt.category === 'lokaler') {
+    if (utleieobjekt.category === 'lokaler' && 'calendarData' in utleieobjekt) {
       return utleieobjekt.calendarData
     }
-    if (utleieobjekt.category === 'utstyr') {
+    if (utleieobjekt.category === 'utstyr' && 'calendarData' in utleieobjekt) {
+      return utleieobjekt.calendarData
+    }
+    if (utleieobjekt.category === 'sport' && 'calendarData' in utleieobjekt) {
+      return utleieobjekt.calendarData
+    }
+    if (utleieobjekt.category === 'arrangementer' && 'calendarData' in utleieobjekt) {
+      return utleieobjekt.calendarData
+    }
+    if (utleieobjekt.category === 'torg' && 'calendarData' in utleieobjekt) {
       return utleieobjekt.calendarData
     }
     return null
@@ -198,10 +211,10 @@ export default function UtleieobjektDetaljSide({
                 <OversiktTab utleieobjekt={utleieobjekt} />
               </TabsContent>
 
-              {utleieobjekt.category !== 'utstyr' && (
+              {utleieobjekt.category !== 'utstyr' && getCalendarData() && (
                 <TabsContent value="aktivitetskalender" className="mt-6">
                   <AktivitetskalenderTab
-                    calendarData={getCalendarData()}
+                    calendarData={getCalendarData()!}
                     category={utleieobjekt.category}
                   />
                 </TabsContent>
@@ -237,26 +250,132 @@ export default function UtleieobjektDetaljSide({
                   ]}
                 />
 
-                {bookingState.currentStep === 'velg-tid' && (
-                  <div className="mt-6">
-                    <BookingKalender
-                      calendarData={getCalendarData()!}
-                      selectedSlots={bookingState.selectedSlots}
-                      onSlotSelect={(slot) => {
-                        bookingState.setSelectedSlots([...bookingState.selectedSlots, slot])
-                      }}
-                      onSlotDeselect={(slot) => {
-                        bookingState.setSelectedSlots(
-                          bookingState.selectedSlots.filter(
-                            s => !(s.date === slot.date && s.time === slot.time)
-                          )
+                {bookingState.currentStep === 'velg-tid' && (() => {
+                  const calendarData = getCalendarData()
+                  if (!calendarData) return null
+                  
+                  return (
+                    <div className="mt-6">
+                      {(() => {
+                      const availabilityType = calendarData.availabilityType || 
+                        (utleieobjekt.category === 'lokaler' && 'timeInterval' in utleieobjekt ? 'timeInterval' : 
+                         utleieobjekt.category === 'sport' ? 'timeInterval' :
+                         utleieobjekt.category === 'arrangementer' ? 'quantity' :
+                         utleieobjekt.category === 'torg' && 'calendarData' in utleieobjekt ? 
+                           (calendarData.slots.some(s => s.fromTime && s.toTime) ? 'day' : 'quantity') :
+                         'timeInterval')
+                      
+                      // Determine interval
+                      const interval = calendarData.interval || 
+                        (utleieobjekt.category === 'sport' ? '30' :
+                         utleieobjekt.category === 'lokaler' && 'interval' in utleieobjekt ? utleieobjekt.interval :
+                         '60')
+                      
+                      // Determine quantity unit
+                      const quantityUnit = 
+                        utleieobjekt.category === 'arrangementer' && 'quantityUnit' in utleieobjekt ? utleieobjekt.quantityUnit :
+                        utleieobjekt.category === 'torg' && 'quantityUnit' in utleieobjekt ? utleieobjekt.quantityUnit :
+                        undefined
+
+                      if (availabilityType === 'timeInterval') {
+                        return (
+                          <TimeIntervalCalendar
+                            calendarData={calendarData}
+                            selectedSlots={bookingState.selectedSlots}
+                            onSlotSelect={(slot) => {
+                              bookingState.setSelectedSlots([...bookingState.selectedSlots, slot])
+                            }}
+                            onSlotDeselect={(slot) => {
+                              bookingState.setSelectedSlots(
+                                bookingState.selectedSlots.filter(
+                                  s => !(s.date === slot.date && s.time === slot.time)
+                                )
+                              )
+                            }}
+                            interval={interval}
+                          />
                         )
-                      }}
-                      rentalUnit={utleieobjekt.category === 'lokaler' ? utleieobjekt.rentalUnit : undefined}
-                      category={utleieobjekt.category}
-                    />
-                  </div>
-                )}
+                      } else if (availabilityType === 'day') {
+                        // Check if it's day interval (has fromTime/toTime) or full day
+                        const hasIntervals = calendarData.slots.some(s => s.fromTime && s.toTime)
+                        if (hasIntervals) {
+                          return (
+                            <DayIntervalCalendar
+                              calendarData={calendarData}
+                              selectedSlots={bookingState.selectedSlots}
+                              onSlotSelect={(slot) => {
+                                bookingState.setSelectedSlots([...bookingState.selectedSlots, slot])
+                              }}
+                              onSlotDeselect={(slot) => {
+                                bookingState.setSelectedSlots(
+                                  bookingState.selectedSlots.filter(
+                                    s => !(s.date === slot.date && !s.time)
+                                  )
+                                )
+                              }}
+                            />
+                          )
+                        } else {
+                          return (
+                            <DayCalendar
+                              calendarData={calendarData}
+                              selectedSlots={bookingState.selectedSlots}
+                              onSlotSelect={(slot) => {
+                                bookingState.setSelectedSlots([...bookingState.selectedSlots, slot])
+                              }}
+                              onSlotDeselect={(slot) => {
+                                bookingState.setSelectedSlots(
+                                  bookingState.selectedSlots.filter(
+                                    s => !(s.date === slot.date && !s.time)
+                                  )
+                                )
+                              }}
+                            />
+                          )
+                        }
+                      } else if (availabilityType === 'quantity') {
+                        return (
+                          <QuantityCalendar
+                            calendarData={calendarData}
+                            selectedSlots={bookingState.selectedSlots}
+                            onSlotSelect={(slot) => {
+                              bookingState.setSelectedSlots([...bookingState.selectedSlots, slot])
+                            }}
+                            onSlotDeselect={(slot) => {
+                              bookingState.setSelectedSlots(
+                                bookingState.selectedSlots.filter(
+                                  s => !(s.date === slot.date && !s.time)
+                                )
+                              )
+                            }}
+                            quantityUnit={quantityUnit}
+                          />
+                        )
+                      } else {
+                        // Fallback to original BookingKalender
+                        return (
+                          <BookingKalender
+                            calendarData={calendarData}
+                            selectedSlots={bookingState.selectedSlots}
+                            onSlotSelect={(slot) => {
+                              bookingState.setSelectedSlots([...bookingState.selectedSlots, slot])
+                            }}
+                            onSlotDeselect={(slot) => {
+                              bookingState.setSelectedSlots(
+                                bookingState.selectedSlots.filter(
+                                  s => !(s.date === slot.date && s.time === slot.time)
+                                )
+                              )
+                            }}
+                            rentalUnit={utleieobjekt.category === 'lokaler' ? utleieobjekt.rentalUnit : undefined}
+                            category={utleieobjekt.category}
+                          />
+                        )
+                      }
+                    })()}
+                    </div>
+                  )
+                })()}
 
                 {bookingState.currentStep === 'detaljer' && (
                   <div className="mt-6">

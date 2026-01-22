@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "description": "Sample data for offentlig detaljside for utleieobjekter. Inneholder eksempler for alle tre kategorier: lokaler, utstyr, og opplevelser."
+    "description": "Sample data for offentlig detaljside for utleieobjekter. Inneholder eksempler for alle kategorier: lokaler, sport, arrangementer, torg, utstyr, og opplevelser."
   },
   "lokaler": {
     "id": "lokale-001",
@@ -373,5 +373,346 @@
         "answer": "Ja, det er flere matstasjoner og drikkestasjoner på arrangementet."
       }
     ]
+  },
+  "sport": {
+    "id": "sport-001",
+    "category": "sport",
+    "name": "Padelbane - Kragerø",
+    "address": "Idrettsveien 5",
+    "postalCode": "3770",
+    "postalArea": "Kragerø",
+    "map": {
+      "lat": 58.8683,
+      "lng": 9.4103
+    },
+    "shortDescription": "Moderne padelbane med 30-minutters booking. Perfekt for padel-enthusiaster.",
+    "longDescription": "Moderne padelbane i Kragerø. Perfekt for padel-enthusiaster. Banen er godt vedlikeholdt med moderne fasiliteter. Booking basert på 30-minutters intervaller.",
+    "images": [
+      "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1200",
+      "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=1200"
+    ],
+    "maxPersons": 4,
+    "size": "200 m²",
+    "facilities": ["Parkering", "Garderobe", "Dusj", "Kiosk"],
+    "universalDesign": {
+      "stepFreeAccess": true,
+      "wcAccessible": true,
+      "elevator": false,
+      "hearingLoop": false,
+      "accessibleParking": true,
+      "otherAccommodation": ""
+    },
+    "addOnServices": [
+      {
+        "id": "equipment",
+        "name": "Padelutstyr",
+        "description": "Leie av padel-racket og baller",
+        "price": 100,
+        "required": false,
+        "needsApproval": false
+      }
+    ],
+    "contacts": [
+      {
+        "name": "Kragerø Kommune",
+        "role": "Drift",
+        "email": "padel@kragerø.kommune.no",
+        "phone": "+47 35 58 50 00"
+      }
+    ],
+    "openingHours": [
+      {
+        "day": "Mandag",
+        "from": "07:00",
+        "to": "22:00",
+        "active": true
+      },
+      {
+        "day": "Tirsdag",
+        "from": "07:00",
+        "to": "22:00",
+        "active": true
+      },
+      {
+        "day": "Onsdag",
+        "from": "07:00",
+        "to": "22:00",
+        "active": true
+      },
+      {
+        "day": "Torsdag",
+        "from": "07:00",
+        "to": "22:00",
+        "active": true
+      },
+      {
+        "day": "Fredag",
+        "from": "07:00",
+        "to": "22:00",
+        "active": true
+      },
+      {
+        "day": "Lørdag",
+        "from": "08:00",
+        "to": "20:00",
+        "active": true
+      },
+      {
+        "day": "Søndag",
+        "from": "08:00",
+        "to": "20:00",
+        "active": true
+      }
+    ],
+    "rentalUnit": "hour",
+    "interval": "30",
+    "pricing": {
+      "isFree": false,
+      "basePrice": 300,
+      "priceModel": "per 30 min",
+      "targetGroups": [
+        {
+          "group": "Standard",
+          "price": 300,
+          "free": false
+        },
+        {
+          "group": "Organisasjoner",
+          "price": 250,
+          "free": false
+        }
+      ],
+      "paymentMethods": ["Kort", "Vipps"]
+    },
+    "guidelines": "Leietaker er ansvarlig for å rydde opp etter seg. Røyking er ikke tillatt.",
+    "faq": [
+      {
+        "question": "Hvor lang tid i forveien kan jeg booke?",
+        "answer": "Du kan booke opptil 2 måneder i forveien."
+      },
+      {
+        "question": "Kan jeg avlyse bookingen?",
+        "answer": "Ja, du kan avlyse opptil 2 timer før bookingen starter."
+      }
+    ],
+    "calendarData": {
+      "weekStart": "2026-01-19",
+      "availabilityType": "timeInterval",
+      "interval": "30",
+      "slots": [
+        {
+          "date": "2026-01-19",
+          "time": "08:00",
+          "status": "ledig"
+        },
+        {
+          "date": "2026-01-19",
+          "time": "08:30",
+          "status": "ledig"
+        },
+        {
+          "date": "2026-01-19",
+          "time": "09:00",
+          "status": "reservert"
+        },
+        {
+          "date": "2026-01-19",
+          "time": "09:30",
+          "status": "booket"
+        },
+        {
+          "date": "2026-01-19",
+          "time": "10:00",
+          "status": "ledig"
+        }
+      ]
+    }
+  },
+  "arrangementer": {
+    "id": "arrangementer-001",
+    "category": "arrangementer",
+    "name": "Konsert i Kulturarena",
+    "address": "Kulturveien 15",
+    "postalCode": "3770",
+    "postalArea": "Kragerø",
+    "map": {
+      "lat": 58.8683,
+      "lng": 9.4103
+    },
+    "shortDescription": "Konsert med begrenset antall billetter. Book din billett nå!",
+    "longDescription": "Konsert i Kulturarena med begrenset antall billetter. Arrangementet er åpent for alle og billetter kan bookes per dag.",
+    "images": [
+      "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=1200",
+      "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1200"
+    ],
+    "maxParticipants": 200,
+    "bookingType": "tickets",
+    "duration": "2 timer",
+    "isRecurring": false,
+    "registrationDeadline": {
+      "date": "2026-01-18",
+      "time": "12:00"
+    },
+    "waitlistAllowed": true,
+    "minAge": 18,
+    "cancellationDeadline": 24,
+    "refundRules": "Full refusjon ved avbestilling mer enn 24 timer før arrangementet.",
+    "participationTerms": "Alle deltakere må være minst 18 år.",
+    "pricing": {
+      "isFree": false,
+      "ticketPrice": 250,
+      "priceModel": "per billett",
+      "targetGroups": [
+        {
+          "group": "Standard",
+          "price": 250,
+          "free": false
+        },
+        {
+          "group": "Student",
+          "price": 200,
+          "free": false
+        }
+      ],
+      "paymentMethods": ["Kort", "Vipps"]
+    },
+    "guidelines": "Arrangementet starter klokken 19:00. Dørene åpner klokken 18:30.",
+    "faq": [
+      {
+        "question": "Hvor mange billetter kan jeg kjøpe?",
+        "answer": "Du kan kjøpe opptil 10 billetter per bestilling."
+      },
+      {
+        "question": "Kan jeg avbestille billettene?",
+        "answer": "Ja, du kan avbestille opptil 24 timer før arrangementet starter."
+      }
+    ],
+    "contacts": [
+      {
+        "name": "Kragerø Kommune",
+        "role": "Kultur",
+        "email": "kultur@kragerø.kommune.no",
+        "phone": "+47 35 58 50 00"
+      }
+    ],
+    "calendarData": {
+      "weekStart": "2026-01-19",
+      "availabilityType": "quantity",
+      "slots": [
+        {
+          "date": "2026-01-19",
+          "status": "ledig",
+          "availableQuantity": 100,
+          "totalQuantity": 200
+        },
+        {
+          "date": "2026-01-20",
+          "status": "ledig",
+          "availableQuantity": 150,
+          "totalQuantity": 200
+        },
+        {
+          "date": "2026-01-21",
+          "status": "booket",
+          "availableQuantity": 0,
+          "totalQuantity": 200
+        }
+      ]
+    },
+    "quantityUnit": "billetter"
+  },
+  "torg": {
+    "id": "torg-001",
+    "category": "torg",
+    "name": "Bord og stoler - Kragerø",
+    "pickupLocation": "Lagerhuset, Industriveien 20",
+    "address": "Industriveien 20",
+    "postalCode": "3770",
+    "postalArea": "Kragerø",
+    "map": {
+      "lat": 58.8683,
+      "lng": 9.4103
+    },
+    "shortDescription": "Bord og stoler tilgjengelig for utleie. Book antall du trenger per dag.",
+    "longDescription": "Bord og stoler tilgjengelig for utleie. Du kan leie så mange du trenger per dag. Når alle er utleid, vil dagen vises som utsolgt i kalenderen.",
+    "images": [
+      "https://images.unsplash.com/photo-1511578314322-379afb476865?w=1200",
+      "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200"
+    ],
+    "quantity": 200,
+    "availableQuantity": 150,
+    "facilities": ["Oppsett", "Nedrigg", "Transport"],
+    "logistics": {
+      "pickupRequired": true,
+      "deliveryAvailable": true,
+      "pickupHours": "08:00-16:00"
+    },
+    "specifications": "Hvert sett består av 1 bord og 4 stoler. Totalt 200 sett tilgjengelig.",
+    "damageFee": 500,
+    "returnDeadline": 1,
+    "damageLiability": "Leietaker er ansvarlig for skader på utstyret.",
+    "pricing": {
+      "isFree": false,
+      "basePrice": 50,
+      "deposit": 2000,
+      "priceModel": "per sett",
+      "targetGroups": [
+        {
+          "group": "Standard",
+          "price": 50,
+          "free": false
+        },
+        {
+          "group": "Organisasjoner",
+          "price": 40,
+          "free": false
+        }
+      ],
+      "paymentMethods": ["Kort", "Vipps", "Faktura (EHF)"]
+    },
+    "guidelines": "Utstyret må returneres i samme stand som ved utleie. Leietaker er ansvarlig for transport.",
+    "faq": [
+      {
+        "question": "Hvor mange sett kan jeg leie?",
+        "answer": "Du kan leie så mange sett som er tilgjengelig på den valgte dagen."
+      },
+      {
+        "question": "Kan jeg avlyse bookingen?",
+        "answer": "Ja, du kan avlyse opptil 24 timer før bookingen starter."
+      }
+    ],
+    "contacts": [
+      {
+        "name": "Kragerø Kommune",
+        "role": "Drift",
+        "email": "torg@kragerø.kommune.no",
+        "phone": "+47 35 58 50 00"
+      }
+    ],
+    "calendarData": {
+      "weekStart": "2026-01-19",
+      "availabilityType": "quantity",
+      "slots": [
+        {
+          "date": "2026-01-19",
+          "status": "ledig",
+          "availableQuantity": 100,
+          "totalQuantity": 200
+        },
+        {
+          "date": "2026-01-20",
+          "status": "ledig",
+          "availableQuantity": 150,
+          "totalQuantity": 200
+        },
+        {
+          "date": "2026-01-21",
+          "status": "booket",
+          "availableQuantity": 0,
+          "totalQuantity": 200
+        }
+      ]
+    },
+    "quantityUnit": "stoler"
   }
 }
