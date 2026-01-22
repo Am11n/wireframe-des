@@ -6,6 +6,7 @@ export default function UtleieobjektDetaljSidePreviewLokalerTimeInterval() {
   const data: UtleieobjektDetalj = {
     id: 'lokale-timeinterval-001',
     category: 'lokaler',
+    subcategory: 'Møterom',
     name: 'Møterom Y - Kragerø (Tidsintervall)',
     address: 'Møterom Yveien 51',
     postalCode: '3770',
@@ -20,7 +21,7 @@ export default function UtleieobjektDetaljSidePreviewLokalerTimeInterval() {
     ],
     maxPersons: 30,
     size: '120 m²',
-    facilities: ['WiFi', 'Projektor', 'Whiteboard', 'Kaffe/te', 'Aircondition'],
+    facilities: ['WiFi', 'Projektor/TV', 'Whiteboard', 'Kaffe/te', 'Aircondition'],
     universalDesign: {
       stepFreeAccess: true,
       wcAccessible: true,
@@ -35,6 +36,14 @@ export default function UtleieobjektDetaljSidePreviewLokalerTimeInterval() {
         name: 'Ekstra tid',
         description: 'Forleng bookingen med 30 minutter',
         price: 200,
+        required: false,
+        needsApproval: false
+      },
+      {
+        id: 'equipment',
+        name: 'Utstyr',
+        description: 'Inkluderer ballnett, musikanlegg og annet utstyr',
+        price: 150,
         required: false,
         needsApproval: false
       }
@@ -73,7 +82,8 @@ export default function UtleieobjektDetaljSidePreviewLokalerTimeInterval() {
     guidelines: 'Leietaker er ansvarlig for å rydde opp etter seg. Røyking er ikke tillatt. Dyr er ikke tillatt.',
     faq: [
       { question: 'Hvor lang tid i forveien kan jeg booke?', answer: 'Du kan booke opptil 3 måneder i forveien.' },
-      { question: 'Kan jeg avlyse bookingen?', answer: 'Ja, du kan avlyse opptil 24 timer før bookingen starter.' }
+      { question: 'Kan jeg avlyse bookingen?', answer: 'Ja, du kan avlyse opptil 24 timer før bookingen starter.' },
+      { question: 'Er parkering tilgjengelig?', answer: 'Ja, det er gratis parkering rett ved bygningen.' }
     ],
     calendarData: {
       weekStart: '2026-01-19',

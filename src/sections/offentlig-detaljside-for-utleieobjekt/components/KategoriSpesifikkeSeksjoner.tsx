@@ -416,5 +416,369 @@ export default function KategoriSpesifikkeSeksjoner({
     )
   }
 
+  if (utleieobjekt.category === 'sport') {
+    const sport = utleieobjekt
+    return (
+      <>
+        {/* Fasiliteter */}
+        {sport.facilities && sport.facilities.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Fasiliteter</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {sport.facilities.map((facility, index) => (
+                  <span
+                    key={index}
+                    className="px-2.5 py-1 bg-stone-100 dark:bg-stone-800 rounded-md text-xs text-stone-700 dark:text-stone-300"
+                  >
+                    {facility}
+                  </span>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Pris og depositum - kompakt */}
+        {!sport.pricing.isFree && (sport.pricing.basePrice || sport.pricing.deposit) && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Pris og depositum</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                {sport.pricing.basePrice && (
+                  <div>
+                    <div className="text-xs text-stone-500 dark:text-stone-400 mb-1">Pris</div>
+                    <div className="text-lg font-semibold text-stone-900 dark:text-stone-100">
+                      {sport.pricing.basePrice} kr
+                    </div>
+                    {sport.interval && (
+                      <div className="text-xs text-stone-500 dark:text-stone-400 mt-1">
+                        per {sport.interval} min
+                      </div>
+                    )}
+                  </div>
+                )}
+                {sport.pricing.deposit && (
+                  <div>
+                    <div className="text-xs text-stone-500 dark:text-stone-400 mb-1">Depositum</div>
+                    <div className="text-lg font-semibold text-stone-900 dark:text-stone-100">
+                      {sport.pricing.deposit} kr
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </>
+    )
+  }
+
+  if (utleieobjekt.category === 'arrangementer') {
+    const arrangementer = utleieobjekt
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Arrangementstider med varighet og gjentakelse */}
+        {arrangementer.eventDates && arrangementer.eventDates.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Arrangementstider</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {arrangementer.eventDates.map((event, index) => (
+                  <div
+                    key={index}
+                    className="border-b border-stone-200 dark:border-stone-700 pb-3 last:border-0"
+                  >
+                    <div className="font-medium text-stone-900 dark:text-stone-100 mb-1">
+                      {new Date(event.date).toLocaleDateString('no-NO', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </div>
+                    <div className="text-sm text-stone-600 dark:text-stone-400">
+                      {event.time} - {event.endTime}
+                      {arrangementer.duration && ` (${arrangementer.duration})`}
+                    </div>
+                    {event.availableTickets !== undefined && (
+                      <div className="text-sm text-stone-500 dark:text-stone-500 mt-1">
+                        {event.availableTickets} {arrangementer.quantityUnit || 'billetter'} tilgjengelig
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {arrangementer.isRecurring && (
+                <div className="mt-3 text-sm text-stone-600 dark:text-stone-400">
+                  ⚠️ Gjentakende arrangement
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Påmelding og frist - kombinert */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Påmelding</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-stone-700 dark:text-stone-300">
+              {arrangementer.bookingType === 'tickets'
+                ? 'Billetter kan kjøpes for dette arrangementet'
+                : 'Påmelding kreves for dette arrangementet'}
+            </p>
+            {arrangementer.registrationDeadline && (
+              <div className="pt-3 border-t border-stone-200 dark:border-stone-700">
+                <div className="text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
+                  Påmeldingsfrist
+                </div>
+                <div className="text-sm text-stone-900 dark:text-stone-100">
+                  {new Date(arrangementer.registrationDeadline.date).toLocaleDateString('no-NO', {
+                    day: 'numeric',
+                    month: 'short'
+                  })}{' '}
+                  kl. {arrangementer.registrationDeadline.time}
+                </div>
+                {arrangementer.waitlistAllowed && (
+                  <div className="mt-2 text-xs text-stone-500 dark:text-stone-500">
+                    Venteliste tilgjengelig
+                  </div>
+                )}
+              </div>
+            )}
+            {arrangementer.bookingType === 'tickets' && (
+              <Button
+                className="w-full"
+                size="lg"
+                onClick={() => {
+                  console.log('Kjøp billett clicked')
+                }}
+              >
+                Kjøp billett
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Aldersgrenser og avbestilling - kombinert */}
+        {((arrangementer.minAge || arrangementer.maxAge) || arrangementer.cancellationDeadline) && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Viktig informasjon</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {(arrangementer.minAge || arrangementer.maxAge) && (
+                <div>
+                  <div className="text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
+                    Aldersgrenser
+                  </div>
+                  <div className="text-sm text-stone-900 dark:text-stone-100">
+                    {arrangementer.minAge && arrangementer.maxAge
+                      ? `${arrangementer.minAge} - ${arrangementer.maxAge} år`
+                      : arrangementer.minAge
+                        ? `Fra ${arrangementer.minAge} år`
+                        : arrangementer.maxAge
+                          ? `Til ${arrangementer.maxAge} år`
+                          : null}
+                  </div>
+                </div>
+              )}
+              {arrangementer.cancellationDeadline && (
+                <div className="pt-2 border-t border-stone-200 dark:border-stone-700">
+                  <div className="text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
+                    Avbestillingsfrist
+                  </div>
+                  <div className="text-sm text-stone-900 dark:text-stone-100">
+                    {arrangementer.cancellationDeadline} timer før start
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Vilkår og regler - kombinert */}
+        {(arrangementer.participationTerms || arrangementer.refundRules) && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Vilkår og regler</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {arrangementer.participationTerms && (
+                <div>
+                  <div className="text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
+                    Deltakelsesvilkår
+                  </div>
+                  <p className="text-sm text-stone-700 dark:text-stone-300 whitespace-pre-line">
+                    {arrangementer.participationTerms}
+                  </p>
+                </div>
+              )}
+              {arrangementer.refundRules && (
+                <div className="pt-2 border-t border-stone-200 dark:border-stone-700">
+                  <div className="text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
+                    Refunderingsregler
+                  </div>
+                  <p className="text-sm text-stone-700 dark:text-stone-300 whitespace-pre-line">
+                    {arrangementer.refundRules}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    )
+  }
+
+  if (utleieobjekt.category === 'torg') {
+    const torg = utleieobjekt
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Logistikk og transport - kombinert */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Logistikk</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div>
+              <div className="text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
+                Hentested
+              </div>
+              <div className="text-stone-900 dark:text-stone-100">
+                {torg.pickupLocation}
+              </div>
+            </div>
+            {torg.logistics.pickupRequired && (
+              <div>
+                <div className="text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
+                  Hentetider
+                </div>
+                <div className="text-stone-900 dark:text-stone-100">
+                  {torg.logistics.pickupHours}
+                </div>
+              </div>
+            )}
+            {torg.logistics.deliveryAvailable && (
+              <div>
+                <div className="text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
+                  Levering
+                </div>
+                <div className="text-stone-900 dark:text-stone-100">
+                  Levering er tilgjengelig
+                </div>
+              </div>
+            )}
+            {torg.shortDescription && (
+              <div className="pt-2 border-t border-stone-200 dark:border-stone-700">
+                <div className="text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
+                  Transportinfo
+                </div>
+                <p className="text-sm text-stone-700 dark:text-stone-300">
+                  {torg.shortDescription}
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Spesifikasjoner og returbetingelser - kombinert */}
+        {(torg.specifications || torg.returnDeadline || torg.damageLiability) && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Detaljer</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {torg.specifications && (
+                <div>
+                  <div className="text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
+                    Spesifikasjoner
+                  </div>
+                  <p className="text-sm text-stone-700 dark:text-stone-300 whitespace-pre-line">
+                    {torg.specifications}
+                  </p>
+                </div>
+              )}
+              {(torg.returnDeadline || torg.damageLiability) && (
+                <div className="pt-2 border-t border-stone-200 dark:border-stone-700 space-y-2">
+                  {torg.returnDeadline && (
+                    <div>
+                      <div className="text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
+                        Returfrist
+                      </div>
+                      <div className="text-sm text-stone-900 dark:text-stone-100">
+                        {torg.returnDeadline} dager etter utleie
+                      </div>
+                    </div>
+                  )}
+                  {torg.damageLiability && (
+                    <div>
+                      <div className="text-sm font-medium text-stone-600 dark:text-stone-400 mb-1">
+                        Skadeansvar
+                      </div>
+                      <p className="text-sm text-stone-700 dark:text-stone-300 whitespace-pre-line">
+                        {torg.damageLiability}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Pris og depositum - kompakt */}
+        {(torg.pricing.deposit || torg.damageFee || torg.pricing.basePrice) && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Pris og depositum</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                {torg.pricing.basePrice && (
+                  <div>
+                    <div className="text-xs text-stone-500 dark:text-stone-400 mb-1">Pris</div>
+                    <div className="text-lg font-semibold text-stone-900 dark:text-stone-100">
+                      {torg.pricing.basePrice} kr
+                    </div>
+                    {torg.quantityUnit && (
+                      <div className="text-xs text-stone-500 dark:text-stone-400 mt-1">
+                        per {torg.quantityUnit}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {torg.pricing.deposit && (
+                  <div>
+                    <div className="text-xs text-stone-500 dark:text-stone-400 mb-1">Depositum</div>
+                    <div className="text-lg font-semibold text-stone-900 dark:text-stone-100">
+                      {torg.pricing.deposit} kr
+                    </div>
+                  </div>
+                )}
+                {torg.damageFee && (
+                  <div>
+                    <div className="text-xs text-stone-500 dark:text-stone-400 mb-1">Skadeavgift</div>
+                    <div className="text-lg font-semibold text-stone-900 dark:text-stone-100">
+                      {torg.damageFee} kr
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    )
+  }
+
   return null
 }

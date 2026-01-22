@@ -6,13 +6,14 @@ export default function UtleieobjektDetaljSidePreviewTorgQuantity() {
   const data: UtleieobjektDetalj = {
     id: 'torg-quantity-001',
     category: 'torg',
+    subcategory: 'Bord og stoler',
     name: 'Bord og stoler - Kragerø',
     pickupLocation: 'Lagerhuset, Industriveien 20',
     address: 'Industriveien 20',
     postalCode: '3770',
     postalArea: 'Kragerø',
     map: { lat: 58.8683, lng: 9.4103 },
-    shortDescription: 'Bord og stoler tilgjengelig for utleie. Book antall du trenger per dag.',
+    shortDescription: 'Informasjon om transport: Hvert sett veier ca. 15 kg. Passer i standard bilbagasjerom. Maks 10 sett per bil.',
     longDescription: 'Bord og stoler tilgjengelig for utleie. Du kan leie så mange du trenger per dag. Når alle er utleid, vil dagen vises som utsolgt i kalenderen.',
     images: [
       'https://images.unsplash.com/photo-1511578314322-379afb476865?w=1200',
@@ -27,10 +28,10 @@ export default function UtleieobjektDetaljSidePreviewTorgQuantity() {
       deliveryAvailable: true,
       pickupHours: '08:00-16:00'
     },
-    specifications: 'Hvert sett består av 1 bord og 4 stoler. Totalt 200 sett tilgjengelig.',
+    specifications: 'Hvert sett består av:\n• 1 bord (rundt, 120 cm diameter)\n• 4 stoler\n\nTotalt 200 sett tilgjengelig. Alle deler er i god stand og egnet for aktiv bruk.',
     damageFee: 500,
     returnDeadline: 1,
-    damageLiability: 'Leietaker er ansvarlig for skader på utstyret.',
+    damageLiability: 'Leietaker er ansvarlig for skader på utstyret. Skader som overstiger depositumet vil bli fakturert separat. Alle skader må rapporteres umiddelbart ved retur.',
     pricing: {
       isFree: false,
       basePrice: 50,

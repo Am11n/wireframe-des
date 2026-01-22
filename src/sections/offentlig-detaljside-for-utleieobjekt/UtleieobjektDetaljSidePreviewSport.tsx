@@ -6,6 +6,7 @@ export default function UtleieobjektDetaljSidePreviewSport() {
   const data: UtleieobjektDetalj = {
     id: 'sport-001',
     category: 'sport',
+    subcategory: 'Padel',
     name: 'Padelbane - Kragerø',
     address: 'Idrettsveien 5',
     postalCode: '3770',
@@ -59,6 +60,7 @@ export default function UtleieobjektDetaljSidePreviewSport() {
     pricing: {
       isFree: false,
       basePrice: 300,
+      deposit: 500,
       priceModel: 'per 30 min',
       targetGroups: [
         { group: 'Standard', price: 300, free: false },

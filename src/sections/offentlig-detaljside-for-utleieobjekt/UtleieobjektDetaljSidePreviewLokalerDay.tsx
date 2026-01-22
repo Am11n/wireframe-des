@@ -6,6 +6,7 @@ export default function UtleieobjektDetaljSidePreviewLokalerDay() {
   const data: UtleieobjektDetalj = {
     id: 'lokale-day-001',
     category: 'lokaler',
+    subcategory: 'Selskapslokale',
     name: 'Selskapslokale - Kragerø (Hel dag)',
     address: 'Festveien 10',
     postalCode: '3770',
@@ -64,6 +65,10 @@ export default function UtleieobjektDetaljSidePreviewLokalerDay() {
         { group: 'Standard', price: 5000, free: false },
         { group: 'Organisasjoner', price: 4000, free: false }
       ],
+      timeBasedPricing: {
+        weekdays: 5000,
+        weekend: 6000
+      },
       paymentMethods: ['Kort', 'Vipps', 'Faktura (EHF)']
     },
     guidelines: 'Leietaker er ansvarlig for å rydde opp etter seg. Røyking er ikke tillatt. Dyr er ikke tillatt.',

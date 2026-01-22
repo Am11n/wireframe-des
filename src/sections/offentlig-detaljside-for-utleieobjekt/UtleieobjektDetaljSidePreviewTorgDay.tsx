@@ -6,13 +6,14 @@ export default function UtleieobjektDetaljSidePreviewTorgDay() {
   const data: UtleieobjektDetalj = {
     id: 'torg-day-001',
     category: 'torg',
+    subcategory: 'Telt',
     name: 'Festtelt - Kragerø',
     pickupLocation: 'Lagerhuset, Industriveien 20',
     address: 'Industriveien 20',
     postalCode: '3770',
     postalArea: 'Kragerø',
     map: { lat: 58.8683, lng: 9.4103 },
-    shortDescription: 'Stort festtelt med booking per dag med tidsintervall. Perfekt for arrangementer.',
+    shortDescription: 'Informasjon om transport: Teltet veier ca. 200 kg og må hentes med lastebil. Passer i standard lastebil.',
     longDescription: 'Stort festtelt tilgjengelig for utleie. Teltet kan bookes per dag med valgfritt tidsintervall. Perfekt for større arrangementer, fester og markeder.',
     images: [
       'https://images.unsplash.com/photo-1511578314322-379afb476865?w=1200',
@@ -27,10 +28,10 @@ export default function UtleieobjektDetaljSidePreviewTorgDay() {
       deliveryAvailable: true,
       pickupHours: '08:00-16:00'
     },
-    specifications: 'Teltet er 10x15 meter og kan romme opptil 150 personer.',
+    specifications: 'Teltet er 10x15 meter og kan romme opptil 150 personer. Inkluderer:\n• Hovedtelt (10x15m)\n• Sideskjørt\n• Stenger og tau\n• Alle nødvendige deler for oppsett',
     damageFee: 5000,
     returnDeadline: 1,
-    damageLiability: 'Leietaker er ansvarlig for skader på teltet.',
+    damageLiability: 'Leietaker er ansvarlig for skader på teltet. Skader som overstiger depositumet vil bli fakturert separat. Alle skader må rapporteres umiddelbart ved retur.',
     pricing: {
       isFree: false,
       basePrice: 3000,

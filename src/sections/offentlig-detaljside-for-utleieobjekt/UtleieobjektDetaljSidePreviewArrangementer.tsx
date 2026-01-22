@@ -6,6 +6,7 @@ export default function UtleieobjektDetaljSidePreviewArrangementer() {
   const data: UtleieobjektDetalj = {
     id: 'arrangementer-001',
     category: 'arrangementer',
+    subcategory: 'Konsert',
     name: 'Konsert i Kulturarena',
     address: 'Kulturveien 15',
     postalCode: '3770',
@@ -29,6 +30,20 @@ export default function UtleieobjektDetaljSidePreviewArrangementer() {
     cancellationDeadline: 24,
     refundRules: 'Full refusjon ved avbestilling mer enn 24 timer før arrangementet.',
     participationTerms: 'Alle deltakere må være minst 18 år.',
+    eventDates: [
+      {
+        date: '2026-01-19',
+        time: '19:00',
+        endTime: '21:00',
+        availableTickets: 100
+      },
+      {
+        date: '2026-01-20',
+        time: '19:00',
+        endTime: '21:00',
+        availableTickets: 150
+      }
+    ],
     pricing: {
       isFree: false,
       ticketPrice: 250,

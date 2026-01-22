@@ -122,6 +122,7 @@ export interface BaseUtleieobjektDetalj {
 // Lokaler (rooms/venues)
 export interface LokaleDetalj extends BaseUtleieobjektDetalj {
   category: 'lokaler'
+  subcategory?: string // Underkategori fra wizarden
   address: string
   postalCode: string
   postalArea: string
@@ -177,6 +178,7 @@ export interface OpplevelseDetalj extends BaseUtleieobjektDetalj {
 // Sport (sports facilities)
 export interface SportDetalj extends BaseUtleieobjektDetalj {
   category: 'sport'
+  subcategory?: string // Underkategori fra wizarden
   address: string
   postalCode: string
   postalArea: string
@@ -194,6 +196,7 @@ export interface SportDetalj extends BaseUtleieobjektDetalj {
 // Arrangementer (events/arrangements)
 export interface ArrangementerDetalj extends BaseUtleieobjektDetalj {
   category: 'arrangementer'
+  subcategory?: string // Underkategori fra wizarden
   address: string
   postalCode: string
   postalArea: string
@@ -216,6 +219,7 @@ export interface ArrangementerDetalj extends BaseUtleieobjektDetalj {
 // Torg (marketplace/equipment rental)
 export interface TorgDetalj extends BaseUtleieobjektDetalj {
   category: 'torg'
+  subcategory?: string // Underkategori fra wizarden
   pickupLocation: string
   address: string
   postalCode: string
