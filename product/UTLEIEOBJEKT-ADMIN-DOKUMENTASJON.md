@@ -14,7 +14,7 @@
 4. [Lokaler - Datamodell](#4-lokaler---datamodell)
 5. [Arrangementer - Datamodell](#5-arrangementer---datamodell)
 6. [Sport - Datamodell](#6-sport---datamodell)
-7. [Torg/Uteområde - Datamodell](#7-torguteområde---datamodell)
+7. [Torg - Datamodell](#7-torg---datamodell)
 8. [Wizard-flyt og UI](#8-wizard-flyt-og-ui)
 9. [Validering og sjekklister](#9-validering-og-sjekklister)
 10. [Statuser og livssyklus](#10-statuser-og-livssyklus)
@@ -34,9 +34,9 @@ Et backoffice-system for kommuner til å opprette, administrere og publisere utl
 | Kategori | Beskrivelse | Eksempler |
 |----------|-------------|-----------|
 | **Lokaler** | Fysiske rom og lokaler | Møterom, selskapslokale, gymsal, kulturarena |
-| **Sport** | Idrettsfasiliteter og utstyr | Padelbane, fotballbane, ballsett, nett |
+| **Sport** | Idrettsbaner (tidsbasert) | Padelbane, fotballbane, tennisbane, squashbane |
 | **Arrangementer** | Planlagte hendelser | Konserter, kurs, seminarer, workshops |
-| **Torg/Uteområde** | Utendørs arealer | Parker, torg, festivalareal, markedsplasser |
+| **Torg** | Utleibart utstyr og objekter | Telt, lydanlegg, projektor, bord og stoler, grill |
 
 ### 1.2 Designprinsipper
 
@@ -53,7 +53,7 @@ Et backoffice-system for kommuner til å opprette, administrere og publisere utl
 | **Saksbehandler** | Behandler bookingforespørsler | Godkjenne/avslå bookinger, redigere objekter |
 | **Driftsansvarlig** | Ansvar for vedlikehold | Oppdatere status, legge til sperringer |
 | **Innbygger** | Sluttbruker | Søke og booke (offentlig side) |
-| **Organisasjon** | Lag/foreninger | Booke med rabatt, sesongbooking |
+| **Organisasjon** | Lag/foreninger | Booke med rabatt |
 
 ---
 
@@ -76,31 +76,19 @@ Et backoffice-system for kommuner til å opprette, administrere og publisere utl
 │  - Metadata (status, opprettet, oppdatert)                 │
 └─────────────────────────────────────────────────────────────┘
                               │
-        ┌─────────────────────┼─────────────────────┐
-        │                     │                     │
-        ▼                     ▼                     ▼
-┌───────────────┐   ┌───────────────┐   ┌───────────────┐
-│    Lokaler    │   │ Arrangementer │   │     Sport     │
-│               │   │               │   │               │
-│ + Kapasitet   │   │ + Arrangør    │   │ ┌───────────┐ │
-│ + Rom-struktur│   │ + Program     │   │ │   Bane    │ │
-│ + Tilgang     │   │ + Kapasitet   │   │ │(tidsbasert)│ │
-│ + Utstyr      │   │ + Påmelding   │   │ └───────────┘ │
-│ + Støy        │   │ + Avlysning   │   │ ┌───────────┐ │
-│ + Sesongpris  │   │ + Dokumenter  │   │ │  Utstyr   │ │
-└───────────────┘   └───────────────┘   │ │(antallsb.) │ │
-                                        │ └───────────┘ │
-        ┌───────────────────────────────┘               │
-        ▼                                               │
-┌───────────────┐                                       │
-│     Torg      │◄──────────────────────────────────────┘
-│               │
-│ + Areal/soner │
-│ + Logistikk   │
-│ + Sikkerhet   │
-│ + Tillatelser │
-│ + Depositum   │
-└───────────────┘
+        ┌─────────────────────┼─────────────────────┬─────────────────────┐
+        │                     │                     │                     │
+        ▼                     ▼                     ▼                     ▼
+┌───────────────┐   ┌───────────────┐   ┌───────────────┐   ┌───────────────┐
+│    Lokaler    │   │ Arrangementer │   │     Sport     │   │     Torg      │
+│               │   │               │   │   (Baner)     │   │   (Utstyr)    │
+│ + Kapasitet   │   │ + Arrangør    │   │               │   │               │
+│ + Rom-struktur│   │ + Program     │   │ + Bane-info   │   │ + Antall      │
+│ + Tilgang     │   │ + Kapasitet   │   │ + Multi-bane  │   │ + Tilstand    │
+│ + Utstyr      │   │ + Påmelding   │   │ + Prioritet   │   │ + Utlån       │
+│ + Støy        │   │ + Avlysning   │   │ + Vedlikehold │   │ + Henting     │
+│               │   │ + Dokumenter  │   │               │   │ + Depositum   │
+└───────────────┘   └───────────────┘   └───────────────┘   └───────────────┘
 ```
 
 ### 2.2 Relasjoner
@@ -110,7 +98,7 @@ Utleieobjekt ──────────┬──────── Kontakter
                        ├──────── Bilder (1:N)
                        ├──────── Vedlegg (1:N)
                        ├──────── Målgrupper (1:N)
-                       ├──────── Prispla ner (1:N)
+                       ├──────── Prisplaner (1:N)
                        ├──────── Blackout-perioder (1:N)
                        ├──────── Tilleggstjenester (1:N)
                        └──────── Tillatelser (1:N)
@@ -124,13 +112,12 @@ Arrangementer ─────────┬──────── Eventdatoer
                        ├──────── Programposter (1:N)
                        └──────── Dokumentkrav (1:N)
 
-Sport (Bane) ──────────┬──────── Rammetider (1:N)
+Sport ─────────────────┬──────── Baner/Soner (1:N)
+                       ├──────── Tidsluker per bane (1:N)
                        └──────── Vedlikeholdslogg (1:N)
 
-Torg ──────────────────┬──────── Soner (1:N)
-                       ├──────── Strømuttak (1:N)
-                       ├──────── Vanntilkoblinger (1:N)
-                       └──────── Tillatelsestriggers (1:N)
+Torg ──────────────────┬──────── Vedlikeholdslogg (1:N)
+                       └──────── Skadehistorikk (1:N)
 ```
 
 ---
@@ -139,29 +126,29 @@ Torg ──────────────────┬──────
 
 Alle utleieobjekter arver fra `BaseResource` som inneholder felles felt.
 
-### 3.1 Identity (Identitet og struktur)
+### 3.1 Identity (Identitet)
 
-| Felt | Type | Påkrevd | Beskrivelse |
-|------|------|---------|-------------|
-| `objectId` | UUID | Auto | Unik identifikator, auto-generert |
-| `slug` | string | Ja | URL-vennlig identifikator (f.eks. "moeterom-y-kragero") |
-| `internalCode` | string | Anbefalt | Kortkode for drift (f.eks. "MR-Y-001") |
-| `ownerUnit` | string | Ja | Avdeling/virksomhet som eier objektet |
-| `ownerUnitId` | string | Nei | ID for eier-enhet (for integrasjon) |
-| `displayName` | string | Ja | Synlig navn for publikum |
-| `internalName` | string | Nei | Internt navn for admin (hvis forskjellig fra displayName) |
-| `externalId` | string | Nei | ID fra eksternt system ved import |
+| Felt | Type | Handling | Beskrivelse |
+|------|------|----------|-------------|
+| `objectId` | UUID | Auto-generert | Unik identifikator |
+| `displayName` | string | **Admin skriver inn** | Synlig navn for publikum |
+| `slug` | string | Auto-generert | URL-vennlig ID basert på displayName |
+| `ownerUnit` | string | Auto-satt | Settes fra innlogget admin sin enhet |
 
-**Eksempel:**
+**Admin skriver kun:**
+```json
+{
+  "displayName": "Møterom Y - Kragerø"
+}
+```
+
+**Systemet genererer:**
 ```json
 {
   "objectId": "550e8400-e29b-41d4-a716-446655440001",
-  "slug": "moeterom-y-kragero",
-  "internalCode": "MR-Y-001",
-  "ownerUnit": "Kultur og idrett",
-  "ownerUnitId": "unit-kultur-001",
   "displayName": "Møterom Y - Kragerø",
-  "internalName": "Møterom Y (Kulturhus 2. etg)"
+  "slug": "moeterom-y-kragero",
+  "ownerUnit": "Kultur og idrett"
 }
 ```
 
@@ -299,7 +286,7 @@ interface TargetGroup {
 }
 ```
 
-**Prisplaner (sesong/tidsbasert):**
+**Prisplaner (tidsbasert):**
 ```typescript
 interface PricePlan {
   id: string
@@ -309,8 +296,6 @@ interface PricePlan {
     dayOfWeek?: string[]           // "Mandag", "Tirsdag"...
     timeFrom?: string              // "08:00"
     timeTo?: string                // "16:00"
-    seasonStart?: string           // "01-01" (MM-DD)
-    seasonEnd?: string             // "05-31"
     minDuration?: number           // Minutter
   }
   priority: number                 // Ved overlapp
@@ -581,43 +566,7 @@ interface NoiseRules {
 }
 ```
 
-### 4.6 Sesongprising
-
-```typescript
-interface SeasonPricing {
-  enabled: boolean
-  seasons: Season[]
-  peakTimes: PeakTime[]
-  holidayPricing: HolidayPricing[]
-}
-
-interface Season {
-  id: string
-  name: string                    // "Høysesong", "Lavsesong"
-  startDate: string               // "MM-DD"
-  endDate: string                 // "MM-DD"
-  priceMultiplier: number         // 1.0 = normal, 1.5 = 50% høyere
-}
-
-interface PeakTime {
-  id: string
-  name: string                    // "Helg kveld"
-  dayOfWeek: string[]
-  timeFrom: string
-  timeTo: string
-  priceMultiplier: number
-}
-
-interface HolidayPricing {
-  id: string
-  date: string
-  name: string                    // "17. mai"
-  priceMultiplier: number
-  bookingRestrictions?: string
-}
-```
-
-### 4.7 Fasiliteter (standardliste)
+### 4.6 Fasiliteter (standardliste)
 
 ```typescript
 const VENUE_FACILITIES = [
@@ -814,9 +763,9 @@ interface EventVenue {
 
 ## 6. Sport - Datamodell
 
-Sport har to undertyper: **Bane** (tidsbasert) og **Utstyr** (antallsbasert).
+Sport dekker **idrettsbaner** - tidsbaserte ressurser som kan bookes i definerte tidsrom. Ett sport-objekt kan inneholde **flere baner/soner**, der hver bane har sin egen kalender.
 
-### 6.1 Sport-Bane (Court)
+### 6.1 Bane-info (Court)
 
 ```typescript
 interface SportCourtInfo {
@@ -832,27 +781,81 @@ interface SportCourtInfo {
 }
 ```
 
-### 6.2 Sesongbooking
+### 6.2 Multi-bane struktur
+
+Ett sport-objekt kan ha flere baner/soner som bookes individuelt. Kalenderen vises som en matrise med baner som rader og tidsluker som kolonner.
 
 ```typescript
-interface SeasonBooking {
-  enabled: boolean
-  seasonStart: string
-  seasonEnd: string
-  frameTimeSlots: FrameTimeSlot[]
-  applicationDeadline: string
-  allocationMethod: 'first_come' | 'lottery' | 'priority'
+interface MultiCourtStructure {
+  courts: Court[]
+  sharedFacilities: string[]      // Garderobe, dusj, klubbhus
+  commonRules: string             // Felles regler for alle baner
+  bookingRules: CourtBookingRules
 }
 
-interface FrameTimeSlot {
+interface CourtBookingRules {
+  slotDurationMinutes: 30 | 45 | 60   // Admin velger: 30, 45 eller 60 min per tidsluke
+  minDurationMinutes: number          // Min. varighet kunde kan booke (f.eks. 30, 60, 90)
+  maxDurationMinutes: number          // Maks varighet kunde kan booke (f.eks. 60, 90, 120)
+  bufferMinutes: number               // Buffer mellom bookinger (rigg/rydd)
+  advanceBookingDays: number          // Hvor langt frem kan man booke
+  cancellationHours: number           // Timer før for gratis avbestilling
+}
+
+interface Court {
   id: string
-  dayOfWeek: string
-  timeFrom: string
-  timeTo: string
-  allocatedTo?: string            // Organisasjon/lag
-  type: 'training' | 'match' | 'tournament' | 'open'
+  name: string                    // "Bane 1", "Bane 2", "Hovedbane"
+  courtInfo: SportCourtInfo
+  status: 'available' | 'maintenance' | 'closed'
+  priceAdjustment?: number        // Kan ha ulik pris per bane
+  bookingSlots: BookingSlot[]
+  bookingRulesOverride?: Partial<CourtBookingRules>  // Overstyr felles regler for denne banen
+}
+
+interface BookingSlot {
+  id: string
+  courtId: string
+  dayOfWeek: string               // "Mandag", "Tirsdag"...
+  timeFrom: string                // "08:00"
+  timeTo: string                  // "09:00"
+  status: 'available' | 'booked' | 'blocked'
+  bookedBy?: string
+  bookingId?: string
 }
 ```
+
+**Eksempel: Multi-bane kalender (Drammen Padel)**
+```
+              08:00   09:00   10:00   11:00   12:00   13:00   ...
+            ┌───────┬───────┬───────┬───────┬───────┬───────┐
+  Bane 1    │ Ledig │Opptatt│ Ledig │ Ledig │Opptatt│ Ledig │
+            ├───────┼───────┼───────┼───────┼───────┼───────┤
+  Bane 2    │Opptatt│ Ledig │ Ledig │Opptatt│ Ledig │ Ledig │
+            ├───────┼───────┼───────┼───────┼───────┼───────┤
+  Bane 3    │ Ledig │ Ledig │Opptatt│ Ledig │ Ledig │Opptatt│
+            ├───────┼───────┼───────┼───────┼───────┼───────┤
+  Bane 4    │ Ledig │Opptatt│ Ledig │ Ledig │ Ledig │ Ledig │
+            └───────┴───────┴───────┴───────┴───────┴───────┘
+```
+
+**Eksempel: Booking-regler**
+```json
+{
+  "slotDurationMinutes": 60,     // Admin velger 60 min tidsluker
+  "minDurationMinutes": 60,      // Kunde må booke minst 1 time
+  "maxDurationMinutes": 120,     // Kunde kan booke maks 2 timer
+  "bufferMinutes": 0,
+  "advanceBookingDays": 14,
+  "cancellationHours": 24
+}
+```
+
+**Tilgjengelige tidsluke-valg for admin:**
+| Varighet | Eksempel på min/max kombinasjoner |
+|----------|-----------------------------------|
+| 30 min   | Min: 30, 60, 90 / Max: 60, 90, 120 |
+| 45 min   | Min: 45, 90 / Max: 90, 135, 180 |
+| 60 min   | Min: 60, 120 / Max: 120, 180, 240 |
 
 ### 6.3 Prioritetsregler
 
@@ -889,55 +892,7 @@ interface MaintenanceEntry {
 }
 ```
 
-### 6.5 Sport-Utstyr (Equipment)
-
-```typescript
-interface SportInventory {
-  totalUnits: number
-  availableUnits: number
-  unitDescription: string
-  setContents: string[]           // Hva inneholder ett sett
-  serialNumbers?: string[]
-  purchaseDate?: string
-  expectedLifespan?: number       // Måneder
-}
-
-interface EquipmentCondition {
-  status: 'good' | 'fair' | 'poor' | 'needs_repair'
-  lastInspection: string
-  nextInspection: string
-  maintenanceLog: MaintenanceEntry[]
-  damageHistory: DamageEntry[]
-}
-
-interface DamageEntry {
-  id: string
-  date: string
-  description: string
-  repairCost?: number
-  repairedDate?: string
-  reportedBy: string
-  bookingId?: string
-}
-```
-
-### 6.6 Utlånskonfigurasjon
-
-```typescript
-interface LoanConfig {
-  maxLoanDurationDays: number
-  pickupRequired: boolean
-  deliveryAvailable: boolean
-  deliveryFee?: number
-  pickupLocation: string
-  pickupHours: string
-  returnDeadlineTime: string
-  lateReturnFeePerDay: number
-  graceHours: number              // Timer etter frist før gebyr
-}
-```
-
-### 6.7 Brukerkrav
+### 6.5 Brukerkrav
 
 ```typescript
 interface UserRequirements {
@@ -953,7 +908,92 @@ interface UserRequirements {
 }
 ```
 
-### 6.8 Utlåns-livssyklus
+---
+
+## 7. Torg - Datamodell
+
+Torg håndterer **utleibart utstyr og objekter** - antallsbaserte ressurser som kan lånes ut.
+
+### 7.1 Utstyrsinventar
+
+```typescript
+interface EquipmentInventory {
+  totalUnits: number
+  availableUnits: number
+  unitDescription: string
+  setContents: string[]           // Hva inneholder ett sett
+  serialNumbers?: string[]
+  purchaseDate?: string
+  expectedLifespan?: number       // Måneder
+}
+```
+
+### 7.2 Tilstand og vedlikehold
+
+```typescript
+interface EquipmentCondition {
+  status: 'good' | 'fair' | 'poor' | 'needs_repair'
+  lastInspection: string
+  nextInspection: string
+  maintenanceLog: MaintenanceEntry[]
+  damageHistory: DamageEntry[]
+}
+
+interface MaintenanceEntry {
+  id: string
+  date: string
+  type: string
+  description: string
+  performedBy?: string
+  nextScheduled?: string
+}
+
+interface DamageEntry {
+  id: string
+  date: string
+  description: string
+  repairCost?: number
+  repairedDate?: string
+  reportedBy: string
+  bookingId?: string
+}
+```
+
+### 7.3 Utlånskonfigurasjon
+
+```typescript
+interface LoanConfig {
+  maxLoanDurationDays: number
+  pickupRequired: boolean
+  deliveryAvailable: boolean
+  deliveryFee?: number
+  pickupLocation: string
+  pickupHours: string
+  returnDeadlineTime: string
+  lateReturnFeePerDay: number
+  graceHours: number              // Timer etter frist før gebyr
+}
+```
+
+### 7.4 Depositum og skadehåndtering
+
+```typescript
+interface EquipmentDeposit {
+  baseAmount: number
+  maxDeposit: number
+  inspectionProcess: {
+    preInspectionRequired: boolean   // Ved utlevering
+    postInspectionRequired: boolean  // Ved retur
+    photoDocumentationRequired: boolean
+  }
+  damageHandling: {
+    deductionProcess: string
+    disputeDeadlineDays: number
+  }
+}
+```
+
+### 7.5 Utlåns-livssyklus
 
 ```
 ┌─────────────┐
@@ -989,231 +1029,6 @@ interface UserRequirements {
 
 ---
 
-## 7. Torg/Uteområde - Datamodell
-
-Torg håndterer utendørs arealer med komplekse krav til tillatelser og sikkerhet.
-
-### 7.1 Areal og soner
-
-```typescript
-interface OutdoorArea {
-  totalArea: number               // m²
-  usableArea: number              // m² tilgjengelig for bruk
-  zones: OutdoorZone[]
-  infrastructure: OutdoorInfrastructure
-  mapOverlay?: {
-    imageUrl: string
-    zones: ZoneOverlay[]
-  }
-}
-
-interface OutdoorZone {
-  id: string
-  name: string
-  area: number                    // m²
-  type: 'general' | 'stage' | 'vendor' | 'seating' | 'parking' | 'backstage'
-  capacity: number
-  pricePerDay?: number
-  facilities: string[]
-  restrictions?: string
-}
-
-interface OutdoorInfrastructure {
-  powerOutlets: PowerOutlet[]
-  waterConnections: WaterConnection[]
-  drainagePoints: number
-  toiletFacilities: boolean
-  toiletCount?: number
-  wasteDisposal: boolean
-  lightingAvailable: boolean
-  fencingAvailable: boolean
-}
-
-interface PowerOutlet {
-  id: string
-  location: string
-  amperage: number                // 16A, 32A, 63A
-  phases: 1 | 3
-  available: boolean
-}
-
-interface WaterConnection {
-  id: string
-  location: string
-  type: 'drinking' | 'utility' | 'fire_hydrant'
-  available: boolean
-}
-```
-
-### 7.2 Logistikk
-
-```typescript
-interface OutdoorLogistics {
-  setupTime: {
-    defaultHours: number
-    maxHours: number
-    requiresApproval: boolean
-    approvalThresholdHours: number
-  }
-  teardownTime: {
-    defaultHours: number
-    maxHours: number
-    lateTeardownFeePerHour: number
-  }
-  deliveryWindows: DeliveryWindow[]
-  vehicleAccess: {
-    allowed: boolean
-    maxVehicleWeight: number      // Tonn
-    maxVehicleHeight: number      // Meter
-    loadingZone: boolean
-    loadingZoneHours?: string
-    accessRoute?: string
-  }
-  storageAvailable: boolean
-  storageArea?: number
-  storageFeePerDay?: number
-}
-
-interface DeliveryWindow {
-  id: string
-  dayOfWeek: string[]
-  timeFrom: string
-  timeTo: string
-  restrictions?: string
-}
-```
-
-### 7.3 Sikkerhetskrav
-
-```typescript
-interface OutdoorSafety {
-  noiseRestrictions: {
-    maxDecibels: number
-    measurementDistance: number   // Meter fra kilde
-    restrictedHoursFrom: string
-    restrictedHoursTo: string
-    musicCurfew: string
-    exemptionPossible: boolean
-  }
-  crowdManagement: {
-    maxCapacity: number
-    securityRequired: boolean
-    securityThreshold: number
-    securityRatioPerPerson: number // 1 vakt per X personer
-    firstAidRequired: boolean
-    firstAidThreshold: number
-    medicalStaffRequired: boolean
-    medicalStaffThreshold: number
-    evacuationPlanRequired: boolean
-    evacuationPlanThreshold: number
-  }
-  fireRequirements: {
-    fireExtinguishersRequired: boolean
-    fireExtinguisherCount: number
-    fireWatchRequired: boolean
-    fireWatchThreshold: number
-    fireWatchCertificationRequired: boolean
-    evacuationPlanRequired: boolean
-    emergencyExits: number
-  }
-  barriers: {
-    required: boolean
-    threshold: number
-    provided: boolean
-    rentalFee?: number
-  }
-}
-```
-
-### 7.4 Tillatelses-triggers
-
-```typescript
-interface PermitTrigger {
-  id: string
-  condition: 'capacity' | 'alcohol' | 'amplified_sound' | 'road_use' | 'food' | 'duration' | 'time_of_day'
-  threshold: number | boolean | string
-  operator?: 'gt' | 'gte' | 'lt' | 'lte' | 'eq'
-  requiredPermit: string
-  leadTimeDays: number
-  description: string
-}
-
-// Standard triggers
-const PERMIT_TRIGGERS: PermitTrigger[] = [
-  {
-    id: 'capacity-police',
-    condition: 'capacity',
-    threshold: 500,
-    operator: 'gt',
-    requiredPermit: 'policePermit',
-    leadTimeDays: 14,
-    description: 'Politigodkjenning kreves for arrangementer med over 500 deltakere'
-  },
-  {
-    id: 'alcohol',
-    condition: 'alcohol',
-    threshold: true,
-    requiredPermit: 'alcoholPermit',
-    leadTimeDays: 30,
-    description: 'Skjenkebevilling kreves for servering av alkohol'
-  },
-  {
-    id: 'noise',
-    condition: 'amplified_sound',
-    threshold: 85,
-    operator: 'gt',
-    requiredPermit: 'noiseExemption',
-    leadTimeDays: 7,
-    description: 'Støydispensasjon kreves for forsterket lyd over 85 dB'
-  },
-  {
-    id: 'road',
-    condition: 'road_use',
-    threshold: true,
-    requiredPermit: 'roadClosure',
-    leadTimeDays: 21,
-    description: 'Veisperring-tillatelse kreves ved bruk av offentlig vei'
-  },
-  {
-    id: 'food',
-    condition: 'food',
-    threshold: true,
-    requiredPermit: 'healthPermit',
-    leadTimeDays: 14,
-    description: 'Mattilsyn-godkjenning kreves ved matservering'
-  }
-]
-```
-
-### 7.5 Depositum og skadehåndtering
-
-```typescript
-interface OutdoorDeposit {
-  baseAmount: number
-  additionalPerZone: number
-  additionalForInfrastructure: boolean
-  infrastructureDepositPerUnit: number
-  maxDeposit: number
-  inspectionProcess: {
-    preInspectionRequired: boolean
-    postInspectionRequired: boolean
-    inspectorRole: string
-    inspectionChecklistId?: string
-    damageReportingDeadlineHours: number
-    photoDocumentationRequired: boolean
-  }
-  damageHandling: {
-    deductionProcess: string
-    disputeProcess: string
-    disputeDeadlineDays: number
-    insuranceRequirements?: string
-    insuranceMinCoverage?: number
-  }
-}
-```
-
----
-
 ## 8. Wizard-flyt og UI
 
 ### 8.1 Steg per kategori
@@ -1230,10 +1045,10 @@ interface OutdoorDeposit {
 #### Sport (5 steg)
 | Steg | Navn | Innhold |
 |------|------|---------|
-| 1 | Lokasjon | Identitet, adresse, bane/utstyr-info, egenskaper |
-| 2 | Tilgjengelighet | Tidsintervaller, sesongbooking, rammetider |
+| 1 | Lokasjon | Identitet, adresse, bane-info (underlag, dimensjoner, belysning), multi-bane oppsett |
+| 2 | Tilgjengelighet | Åpningstider per bane, tidsluker |
 | 3 | Regler | Godkjenning, prioritetsregler, vedlikeholdsstatus |
-| 4 | Pris/Depositum | Priser, depositum, skadeavgift, betalingsmetoder |
+| 4 | Pris/Depositum | Priser per bane, betalingsmetoder |
 | 5 | Publisering | Synlighet, sjekkliste |
 
 #### Arrangementer (5 steg)
@@ -1248,12 +1063,12 @@ interface OutdoorDeposit {
 #### Torg (6 steg)
 | Steg | Navn | Innhold |
 |------|------|---------|
-| 1 | Hentested/Logistikk | Identitet, plassering, soner, infrastruktur |
-| 2 | Antall/Lager | Tilgjengelig mengde, enheter, utstyr |
-| 3 | Tilgjengelighet | Dag/antall, leveringsvinduer, rigg/rydd |
-| 4 | Regler | Godkjenning, sikkerhetskrav, støybegrensninger |
-| 5 | Pris/Depositum | Priser, depositum, avgifter, skadehåndtering |
-| 6 | Publisering | Tillatelser, sjekkliste, synlighet |
+| 1 | Hentested | Identitet, hentested/plassering, utstyrsbeskrivelse |
+| 2 | Antall/Lager | Tilgjengelig mengde, enheter, tilstand |
+| 3 | Tilgjengelighet | Dag/antall-basert, hentetider |
+| 4 | Regler | Godkjenning, utlånsregler, returfrister |
+| 5 | Pris/Depositum | Priser, depositum, skadehåndtering |
+| 6 | Publisering | Sjekkliste, synlighet |
 
 ### 8.2 UI-komponenter
 
@@ -1356,27 +1171,19 @@ interface OutdoorDeposit {
 | `registration.deadline` | Hard | Før første eventDate |
 | `documentRequirements.*` | Soft | Varsel hvis krav ikke oppfylt |
 
-#### Sport (Bane)
+#### Sport
 | Felt | Type | Regel |
 |------|------|-------|
 | `courtInfo.surface` | Hard | Påkrevd |
 | `courtInfo.indoor` | Hard | Påkrevd |
 | `openingHours` | Hard | Minst 1 aktiv dag |
 
-#### Sport (Utstyr)
+#### Torg
 | Felt | Type | Regel |
 |------|------|-------|
 | `inventory.totalUnits` | Hard | Påkrevd, > 0 |
 | `loan.pickupLocation` | Hard | Påkrevd |
 | `loan.maxLoanDurationDays` | Hard | Påkrevd, > 0 |
-
-#### Torg
-| Felt | Type | Regel |
-|------|------|-------|
-| `area.totalArea` | Hard | Påkrevd, > 0 |
-| `outdoorLogistics.setupTime.defaultHours` | Hard | Påkrevd |
-| `outdoorLogistics.teardownTime.defaultHours` | Hard | Påkrevd |
-| `permits.*` | Soft | Varsel basert på triggers |
 
 ### 9.4 Publiserings-sjekkliste
 
@@ -1407,13 +1214,14 @@ interface OutdoorDeposit {
 - [ ] Avbestillingsregler definert
 
 **Sport:**
+- [ ] Bane-info komplett (underlag, dimensjoner)
+- [ ] Alle baner/soner definert med egne tider
 - [ ] Vedlikeholdsstatus oppdatert
-- [ ] Prioritetsregler definert (hvis sesongbooking)
 
 **Torg:**
-- [ ] Soner definert
-- [ ] Infrastruktur dokumentert
-- [ ] Tillatelses-krav gjennomgått
+- [ ] Antall enheter definert
+- [ ] Hentested oppgitt
+- [ ] Utlånsregler definert
 
 ---
 
@@ -1667,9 +1475,9 @@ CREATE TABLE blackout_periods (
    - Wizard for Lokaler
    - Enkel validering
 
-2. **Fase 2: Utvidelse**
-   - Sport-modul (bane + utstyr)
-   - Sesongbooking
+2. **Fase 2: Sport**
+   - Sport-modul (baner)
+   - Multi-bane kalender
    - Prioritetsregler
 
 3. **Fase 3: Arrangementer**
@@ -1678,9 +1486,9 @@ CREATE TABLE blackout_periods (
    - Dokumentkrav
 
 4. **Fase 4: Torg**
-   - Torg/uteområde-modul
-   - Tillatelses-system
-   - Sikkerhetskrav
+   - Torg-modul (utstyr/objekter)
+   - Utlånslogikk
+   - Depositum og skadehåndtering
 
 5. **Fase 5: Avansert**
    - Integrasjoner (BankID, EHF, Politi)
