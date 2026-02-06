@@ -1,4 +1,7 @@
 {
+  "_meta": {
+    "description": "Komplett eksempeldata for utleieobjekt-wizard med alle nye felt. Inkluderer BaseResource-felt og kategori-spesifikke felt."
+  },
   "wizard": {
     "currentStep": 0,
     "status": "draft",
@@ -7,48 +10,204 @@
       "startChoice": null,
       "copyFrom": null,
       "copyOptions": [],
-      "locationAndBasis": {
-        "name": "",
-        "address": "",
-        "postalCode": "",
-        "postalArea": "",
+      
+      "identity": {
+        "objectId": "",
+        "slug": "",
+        "internalCode": "",
+        "ownerUnit": "",
+        "ownerUnitId": "",
+        "displayName": "",
+        "internalName": "",
+        "externalId": ""
+      },
+      
+      "category": null,
+      "subcategory": null,
+      
+      "location": {
+        "address": {
+          "street": "",
+          "postalCode": "",
+          "postalArea": "",
+          "building": "",
+          "roomNumber": "",
+          "floor": ""
+        },
         "map": {
           "lat": null,
-          "lng": null,
-          "markerDraggable": true
+          "lng": null
         },
-        "shortDescription": "",
-        "longDescription": "",
-        "contacts": [],
-        "images": [],
-        "documents": {
-          "houseRules": null,
-          "fireInstructions": null,
-          "floorPlan": null
+        "building": "",
+        "roomNumber": "",
+        "floor": "",
+        "meetingPoint": "",
+        "directionsText": "",
+        "accessType": null,
+        "accessCode": "",
+        "accessInstructions": "",
+        "keyPickupLocation": "",
+        "keyPickupHours": "",
+        "keyReturnDeadline": "",
+        "parkingInfo": "",
+        "parkingSpots": null,
+        "loadingZone": false,
+        "loadingZoneHours": ""
+      },
+      
+      "audience": {
+        "visibility": [],
+        "bookableBy": [],
+        "priorityRules": [],
+        "restrictions": {
+          "requireOrgNumber": false,
+          "requireResponsibleAdult": false,
+          "minAge": null,
+          "maxAge": null,
+          "allowedOrganizationTypes": [],
+          "blockedOrganizations": [],
+          "membershipRequired": false,
+          "verificationLevel": "none"
         }
       },
-      "properties": {
-        "types": [],
-        "size": "",
-        "maxPersons": "",
-        "facilities": [],
-        "universalDesign": {
-          "stepFreeAccess": false,
-          "wcAccessible": false,
-          "elevator": false,
-          "hearingLoop": false,
-          "accessibleParking": false,
-          "otherAccommodation": ""
+      
+      "timeLogic": {
+        "defaultBookingLength": 60,
+        "minDuration": 30,
+        "maxDuration": 480,
+        "bufferBefore": 0,
+        "bufferAfter": 0,
+        "minLeadTime": 24,
+        "maxLeadTime": 90,
+        "maxBookingsPerUser": {
+          "perDay": null,
+          "perWeek": null,
+          "perMonth": null,
+          "activeBookings": null
         },
-        "addOnServices": []
+        "blackoutPeriods": [],
+        "cancellationRules": {
+          "cutoffHours": 24,
+          "allowPartialCancellation": false,
+          "lateCancellationFee": 0,
+          "lateCancellationThreshold": 2,
+          "refundPolicy": "full",
+          "refundPercentage": 100
+        },
+        "noShowRules": {
+          "fee": 0,
+          "warningCount": 3,
+          "consequenceAction": "none",
+          "blockDurationDays": 30
+        }
       },
+      
+      "pricing": {
+        "isFree": true,
+        "basePrice": 0,
+        "priceModel": "",
+        "currency": "NOK",
+        "vatRate": 25,
+        "vatIncluded": true,
+        "exemptFromVat": false,
+        "feeCode": "",
+        "targetGroups": [],
+        "pricePlans": [],
+        "discounts": [],
+        "deposit": {
+          "required": false,
+          "amount": 0,
+          "triggers": [],
+          "refundConditions": "",
+          "refundTimeline": 14,
+          "deductionRules": ""
+        },
+        "fees": [],
+        "paymentMethods": [],
+        "invoiceSettings": {
+          "allowInvoice": false,
+          "allowedForGroups": [],
+          "paymentTermsDays": 14,
+          "minimumAmount": 500,
+          "requireOrgNumber": true,
+          "ehfEnabled": false
+        }
+      },
+      
+      "workflow": {
+        "approvalMode": "",
+        "approvalSteps": [],
+        "autoApprovalConditions": [],
+        "prePublishChecklist": [],
+        "documentRequirements": [],
+        "termsAcceptance": {
+          "required": false,
+          "documentUrl": "",
+          "documentId": "",
+          "version": "1.0",
+          "signatureRequired": false,
+          "digitalSignature": false
+        }
+      },
+      
+      "content": {
+        "shortDescription": "",
+        "longDescription": "",
+        "gallery": [],
+        "attachments": [],
+        "languages": ["no"],
+        "translations": {},
+        "faq": [],
+        "guidelines": "",
+        "accessibilityInfo": {
+          "summary": "",
+          "universalDesign": {
+            "stepFreeAccess": false,
+            "wcAccessible": false,
+            "elevator": false,
+            "hearingLoop": false,
+            "accessibleParking": false,
+            "guideDogAllowed": true,
+            "signLanguageSupport": false,
+            "brailleSignage": false,
+            "otherAccommodation": ""
+          },
+          "wheelchairAccessible": false,
+          "hearingAidsCompatible": false,
+          "visualAidsAvailable": false,
+          "assistanceAvailable": false,
+          "assistanceBookingRequired": false,
+          "additionalInfo": ""
+        },
+        "keywords": [],
+        "seoDescription": ""
+      },
+      
+      "contacts": [],
+      
       "availability": {
+        "availabilityType": null,
         "rentalUnit": "",
         "interval": "",
+        "timeInterval": {
+          "interval": "",
+          "openingHours": []
+        },
+        "day": {
+          "type": "full",
+          "fromTime": "",
+          "toTime": "",
+          "openingHours": []
+        },
+        "quantity": {
+          "amount": "",
+          "unit": ""
+        },
         "openingHours": [],
         "exceptions": [],
         "presentationOnly": false
       },
+      
       "rules": {
         "approvalMode": "",
         "approvalRules": {
@@ -70,23 +229,7 @@
           "canLockTimes": false
         }
       },
-      "pricing": {
-        "isFree": true,
-        "priceModel": "",
-        "vat": "",
-        "feeCode": "",
-        "targetGroups": [],
-        "timeBasedPricing": {
-          "weekdays": "",
-          "weekend": ""
-        },
-        "externalPriceList": {
-          "active": false,
-          "attachment": null,
-          "link": "",
-          "explanation": ""
-        }
-      },
+      
       "payment": {
         "methods": [],
         "accountSetup": {
@@ -104,6 +247,7 @@
           "requireStrongAuth": false
         }
       },
+      
       "publishing": {
         "choice": "draft",
         "visibility": {
@@ -113,6 +257,841 @@
           "targetGroups": [],
           "organizations": []
         }
+      },
+      
+      "lokaler": {
+        "venueCapacity": {
+          "maxPersons": 0,
+          "seatedCapacity": 0,
+          "standingCapacity": 0,
+          "fireCapacity": 0,
+          "tableLayouts": []
+        },
+        "roomStructure": {
+          "isDivisible": false,
+          "subRooms": [],
+          "canBookSimultaneously": false,
+          "sharedFacilities": [],
+          "adjacentRooms": [],
+          "parentRoomId": ""
+        },
+        "venueAccess": {
+          "keyType": null,
+          "keyPickupLocation": "",
+          "keyPickupHours": "",
+          "keyReturnDeadline": "",
+          "keyDeposit": 0,
+          "setupTimeMinutes": 0,
+          "teardownTimeMinutes": 0,
+          "cleaningIncluded": false,
+          "cleaningFee": 0,
+          "cleaningInstructions": "",
+          "selfServiceCleaning": false
+        },
+        "venueEquipment": {
+          "includedEquipment": [],
+          "availableForRent": [],
+          "externalEquipmentAllowed": true,
+          "techSupportAvailable": false,
+          "techSupportFee": 0,
+          "techSupportHours": ""
+        },
+        "noiseRules": {
+          "maxDecibelLevel": null,
+          "quietHoursFrom": "23:00",
+          "quietHoursTo": "07:00",
+          "musicAllowed": true,
+          "amplifiedSoundAllowed": true,
+          "livePerformanceAllowed": false,
+          "neighborNotificationRequired": false,
+          "noiseComplaintProcess": ""
+        },
+        "seasonPricing": {
+          "enabled": false,
+          "seasons": [],
+          "peakTimes": [],
+          "holidayPricing": []
+        },
+        "facilities": [],
+        "universalDesign": {
+          "stepFreeAccess": false,
+          "wcAccessible": false,
+          "elevator": false,
+          "hearingLoop": false,
+          "accessibleParking": false,
+          "guideDogAllowed": true,
+          "signLanguageSupport": false,
+          "brailleSignage": false,
+          "otherAccommodation": ""
+        },
+        "addOnServices": []
+      },
+      
+      "arrangementer": {
+        "eventType": "single",
+        "eventVenue": {
+          "type": "custom_address",
+          "linkedVenueId": "",
+          "linkedOutdoorId": "",
+          "customAddress": null,
+          "venueRequirements": "",
+          "setupRequirements": ""
+        },
+        "organizer": {
+          "organizationType": "person",
+          "name": "",
+          "orgNumber": "",
+          "responsiblePerson": {
+            "name": "",
+            "role": "",
+            "phone": "",
+            "email": "",
+            "idVerified": false
+          },
+          "emergencyContact": {
+            "name": "",
+            "role": "Nødkontakt",
+            "phone": "",
+            "email": "",
+            "isPrimary": false,
+            "isEmergency": true
+          },
+          "previousEvents": 0,
+          "verificationStatus": "unverified"
+        },
+        "program": {
+          "checkInTime": "",
+          "doorsOpenTime": "",
+          "startTime": "",
+          "endTime": "",
+          "breaks": [],
+          "programItems": []
+        },
+        "eventCapacity": {
+          "totalCapacity": 0,
+          "ticketTypes": [],
+          "sections": [],
+          "waitlistCapacity": 0
+        },
+        "registration": {
+          "type": "tickets",
+          "deadline": { "date": "", "time": "" },
+          "earlyBirdDeadline": null,
+          "earlyBirdDiscount": 0,
+          "waitlistEnabled": false,
+          "waitlistCapacity": 0,
+          "autoPromoteFromWaitlist": false,
+          "confirmationRequired": false,
+          "confirmationDeadlineHours": 48,
+          "allowGroupRegistration": false,
+          "maxGroupSize": 10,
+          "requiresApproval": false,
+          "approvalCriteria": ""
+        },
+        "cancellation": {
+          "cancellationDeadlineHours": 24,
+          "refundPolicy": "full",
+          "partialRefundPercentage": 50,
+          "refundDeadlineDays": 14,
+          "weatherCancellation": false,
+          "weatherPolicy": "",
+          "minParticipantsRequired": null,
+          "minParticipantsDeadlineHours": 48,
+          "cancellationNotificationMethods": ["email"],
+          "alternativeDatePolicy": ""
+        },
+        "documentRequirements": {
+          "alcoholPermit": {
+            "required": false,
+            "status": "not_required",
+            "applicationDeadlineDays": 30,
+            "documentId": "",
+            "expiryDate": "",
+            "notes": ""
+          },
+          "fireWatch": {
+            "required": false,
+            "minPersons": 0,
+            "status": "not_required",
+            "certificateRequired": false
+          },
+          "policePermit": {
+            "required": false,
+            "status": "not_required",
+            "applicationDeadlineDays": 14,
+            "documentId": "",
+            "expiryDate": "",
+            "notes": ""
+          },
+          "eventPermit": {
+            "required": false,
+            "status": "not_required",
+            "applicationDeadlineDays": 14,
+            "documentId": "",
+            "expiryDate": "",
+            "notes": ""
+          },
+          "noisePermit": {
+            "required": false,
+            "status": "not_required",
+            "applicationDeadlineDays": 7,
+            "documentId": "",
+            "expiryDate": "",
+            "notes": ""
+          },
+          "roadClosure": {
+            "required": false,
+            "status": "not_required",
+            "applicationDeadlineDays": 21,
+            "documentId": "",
+            "expiryDate": "",
+            "notes": ""
+          },
+          "healthPermit": {
+            "required": false,
+            "status": "not_required",
+            "applicationDeadlineDays": 14,
+            "documentId": "",
+            "expiryDate": "",
+            "notes": ""
+          },
+          "insuranceRequired": false,
+          "insuranceMinCoverage": 0
+        },
+        "eventDates": []
+      },
+      
+      "sport": {
+        "resourceType": "court",
+        "courtInfo": {
+          "surface": "",
+          "dimensions": { "length": 0, "width": 0 },
+          "indoor": true,
+          "lighting": true,
+          "lightingHours": "",
+          "heatingAvailable": false,
+          "heatingIncluded": false,
+          "heatingFee": 0,
+          "markings": []
+        },
+        "seasonBooking": {
+          "enabled": false,
+          "seasonStart": "",
+          "seasonEnd": "",
+          "frameTimeSlots": [],
+          "applicationDeadline": "",
+          "allocationMethod": "first_come"
+        },
+        "priorityRules": {
+          "levels": ["training", "match", "tournament", "event"],
+          "trainingPriority": [],
+          "matchPriority": [],
+          "tournamentRequiresApproval": true,
+          "eventRequiresApproval": true,
+          "localClubPriority": false,
+          "localClubIds": []
+        },
+        "maintenance": {
+          "status": "available",
+          "nextMaintenance": "",
+          "maintenanceSchedule": [],
+          "lastInspection": "",
+          "inspectionFrequency": 30
+        },
+        "inventory": {
+          "totalUnits": 0,
+          "availableUnits": 0,
+          "unitDescription": "",
+          "setContents": [],
+          "serialNumbers": [],
+          "purchaseDate": "",
+          "expectedLifespan": 24
+        },
+        "condition": {
+          "status": "good",
+          "lastInspection": "",
+          "nextInspection": "",
+          "maintenanceLog": [],
+          "damageHistory": []
+        },
+        "loan": {
+          "maxLoanDurationDays": 7,
+          "pickupRequired": true,
+          "deliveryAvailable": false,
+          "deliveryFee": 0,
+          "pickupLocation": "",
+          "pickupHours": "08:00-16:00",
+          "returnDeadlineTime": "16:00",
+          "lateReturnFeePerDay": 100,
+          "graceHours": 2
+        },
+        "userRequirements": {
+          "minAge": null,
+          "maxAge": null,
+          "certificationRequired": false,
+          "certificationType": "",
+          "certificationVerification": "none",
+          "responsibleAdultRequired": false,
+          "trainingRequired": false,
+          "trainingUrl": "",
+          "physicalRequirements": ""
+        },
+        "facilities": [],
+        "universalDesign": {
+          "stepFreeAccess": false,
+          "wcAccessible": false,
+          "elevator": false,
+          "hearingLoop": false,
+          "accessibleParking": false,
+          "guideDogAllowed": true,
+          "signLanguageSupport": false,
+          "brailleSignage": false,
+          "otherAccommodation": ""
+        },
+        "addOnServices": []
+      },
+      
+      "torg": {
+        "area": {
+          "totalArea": 0,
+          "usableArea": 0,
+          "zones": [],
+          "infrastructure": {
+            "powerOutlets": [],
+            "waterConnections": [],
+            "drainagePoints": 0,
+            "toiletFacilities": false,
+            "toiletCount": 0,
+            "wasteDisposal": false,
+            "lightingAvailable": false,
+            "fencingAvailable": false
+          },
+          "mapOverlay": null
+        },
+        "outdoorLogistics": {
+          "setupTime": {
+            "defaultHours": 4,
+            "maxHours": 24,
+            "requiresApproval": false,
+            "approvalThresholdHours": 8
+          },
+          "teardownTime": {
+            "defaultHours": 4,
+            "maxHours": 24,
+            "lateTeardownFeePerHour": 500
+          },
+          "deliveryWindows": [],
+          "vehicleAccess": {
+            "allowed": true,
+            "maxVehicleWeight": 3.5,
+            "maxVehicleHeight": 3.0,
+            "loadingZone": false,
+            "loadingZoneHours": "",
+            "accessRoute": ""
+          },
+          "storageAvailable": false,
+          "storageArea": 0,
+          "storageFeePerDay": 0
+        },
+        "safety": {
+          "noiseRestrictions": {
+            "maxDecibels": 85,
+            "measurementDistance": 10,
+            "restrictedHoursFrom": "23:00",
+            "restrictedHoursTo": "07:00",
+            "musicCurfew": "23:00",
+            "exemptionPossible": true
+          },
+          "crowdManagement": {
+            "maxCapacity": 0,
+            "securityRequired": false,
+            "securityThreshold": 500,
+            "securityRatioPerPerson": 100,
+            "firstAidRequired": false,
+            "firstAidThreshold": 200,
+            "medicalStaffRequired": false,
+            "medicalStaffThreshold": 1000,
+            "evacuationPlanRequired": false,
+            "evacuationPlanThreshold": 500
+          },
+          "fireRequirements": {
+            "fireExtinguishersRequired": false,
+            "fireExtinguisherCount": 0,
+            "fireWatchRequired": false,
+            "fireWatchThreshold": 200,
+            "fireWatchCertificationRequired": true,
+            "evacuationPlanRequired": false,
+            "emergencyExits": 0
+          },
+          "barriers": {
+            "required": false,
+            "threshold": 500,
+            "provided": false,
+            "rentalFee": 0
+          }
+        },
+        "permits": {
+          "triggers": [
+            {
+              "id": "capacity-police",
+              "condition": "capacity",
+              "threshold": 500,
+              "operator": "gt",
+              "requiredPermit": "policePermit",
+              "leadTimeDays": 14,
+              "description": "Politigodkjenning kreves for arrangementer med over 500 deltakere"
+            },
+            {
+              "id": "alcohol",
+              "condition": "alcohol",
+              "threshold": true,
+              "requiredPermit": "alcoholPermit",
+              "leadTimeDays": 30,
+              "description": "Skjenkebevilling kreves for servering av alkohol"
+            },
+            {
+              "id": "noise",
+              "condition": "amplified_sound",
+              "threshold": 85,
+              "operator": "gt",
+              "requiredPermit": "noiseExemption",
+              "leadTimeDays": 7,
+              "description": "Støydispensasjon kreves for forsterket lyd over 85 dB"
+            },
+            {
+              "id": "road",
+              "condition": "road_use",
+              "threshold": true,
+              "requiredPermit": "roadClosure",
+              "leadTimeDays": 21,
+              "description": "Veisperring-tillatelse kreves ved bruk av offentlig vei"
+            },
+            {
+              "id": "food",
+              "condition": "food",
+              "threshold": true,
+              "requiredPermit": "healthPermit",
+              "leadTimeDays": 14,
+              "description": "Mattilsyn-godkjenning kreves ved matservering"
+            }
+          ],
+          "required": {
+            "policePermit": {
+              "required": false,
+              "status": "not_required",
+              "applicationDeadlineDays": 14,
+              "processingTimeDays": 7,
+              "fee": 0,
+              "documentId": "",
+              "expiryDate": "",
+              "contactInfo": "",
+              "applicationUrl": "",
+              "notes": ""
+            },
+            "alcoholPermit": {
+              "required": false,
+              "status": "not_required",
+              "applicationDeadlineDays": 30,
+              "processingTimeDays": 14,
+              "fee": 0,
+              "documentId": "",
+              "expiryDate": "",
+              "contactInfo": "",
+              "applicationUrl": "",
+              "notes": ""
+            },
+            "roadClosure": {
+              "required": false,
+              "status": "not_required",
+              "applicationDeadlineDays": 21,
+              "processingTimeDays": 10,
+              "fee": 0,
+              "documentId": "",
+              "expiryDate": "",
+              "contactInfo": "",
+              "applicationUrl": "",
+              "notes": ""
+            },
+            "noiseExemption": {
+              "required": false,
+              "status": "not_required",
+              "applicationDeadlineDays": 7,
+              "processingTimeDays": 3,
+              "fee": 0,
+              "documentId": "",
+              "expiryDate": "",
+              "contactInfo": "",
+              "applicationUrl": "",
+              "notes": ""
+            },
+            "firePermit": {
+              "required": false,
+              "status": "not_required",
+              "applicationDeadlineDays": 14,
+              "processingTimeDays": 7,
+              "fee": 0,
+              "documentId": "",
+              "expiryDate": "",
+              "contactInfo": "",
+              "applicationUrl": "",
+              "notes": ""
+            },
+            "healthPermit": {
+              "required": false,
+              "status": "not_required",
+              "applicationDeadlineDays": 14,
+              "processingTimeDays": 7,
+              "fee": 0,
+              "documentId": "",
+              "expiryDate": "",
+              "contactInfo": "",
+              "applicationUrl": "",
+              "notes": ""
+            },
+            "publicGatheringPermit": {
+              "required": false,
+              "status": "not_required",
+              "applicationDeadlineDays": 14,
+              "processingTimeDays": 7,
+              "fee": 0,
+              "documentId": "",
+              "expiryDate": "",
+              "contactInfo": "",
+              "applicationUrl": "",
+              "notes": ""
+            }
+          },
+          "integrations": {
+            "autoNotifyPolice": false,
+            "autoNotifyFireDept": false,
+            "autoNotifyHealthDept": false,
+            "autoCreateCase": false,
+            "caseSystemIntegration": ""
+          }
+        },
+        "outdoorDeposit": {
+          "baseAmount": 5000,
+          "additionalPerZone": 1000,
+          "additionalForInfrastructure": true,
+          "infrastructureDepositPerUnit": 500,
+          "maxDeposit": 50000,
+          "inspectionProcess": {
+            "preInspectionRequired": true,
+            "postInspectionRequired": true,
+            "inspectorRole": "Driftsansvarlig",
+            "inspectionChecklistId": "",
+            "damageReportingDeadlineHours": 48,
+            "photoDocumentationRequired": true
+          },
+          "damageHandling": {
+            "deductionProcess": "Skader dokumenteres med foto og trekkes fra depositum etter inspeksjon",
+            "disputeProcess": "Tvist kan klages inn til kommunens klagenemnd innen 14 dager",
+            "disputeDeadlineDays": 14,
+            "insuranceRequirements": "Ansvarsforsikring anbefales for arrangementer over 200 deltakere",
+            "insuranceMinCoverage": 1000000
+          }
+        },
+        "equipmentAvailable": [],
+        "facilities": []
+      }
+    }
+  },
+  
+  "sampleLokale": {
+    "identity": {
+      "objectId": "550e8400-e29b-41d4-a716-446655440001",
+      "slug": "moeterom-y-krageroe",
+      "internalCode": "MR-Y-001",
+      "ownerUnit": "Kultur og idrett",
+      "ownerUnitId": "unit-kultur-001",
+      "displayName": "Møterom Y - Kragerø",
+      "internalName": "Møterom Y (Kragerø kulturhus 2. etg)"
+    },
+    "category": "lokaler",
+    "subcategory": "Møterom",
+    "location": {
+      "address": {
+        "street": "Møterom Yveien 51",
+        "postalCode": "3770",
+        "postalArea": "Kragerø",
+        "building": "Kragerø kulturhus",
+        "roomNumber": "Y-201",
+        "floor": "2"
+      },
+      "map": { "lat": 58.8683, "lng": 9.4103 },
+      "building": "Kragerø kulturhus",
+      "roomNumber": "Y-201",
+      "floor": "2",
+      "meetingPoint": "Hovedinngang kulturhuset, ta heis til 2. etasje",
+      "directionsText": "Fra Kragerø sentrum: Følg skiltene mot kulturhuset. Parkering på baksiden.",
+      "accessType": "code",
+      "accessCode": "",
+      "accessInstructions": "Kode sendes på SMS 1 time før booking starter. Tast koden på panelet ved inngangen.",
+      "keyPickupLocation": "",
+      "keyPickupHours": "",
+      "keyReturnDeadline": "",
+      "parkingInfo": "Gratis parkering på baksiden av bygget. HC-parkering ved hovedinngang.",
+      "parkingSpots": 20,
+      "loadingZone": true,
+      "loadingZoneHours": "08:00-16:00"
+    },
+    "venueCapacity": {
+      "maxPersons": 30,
+      "seatedCapacity": 30,
+      "standingCapacity": 50,
+      "fireCapacity": 50,
+      "tableLayouts": [
+        { "id": "u-form", "name": "U-form", "capacity": 20, "description": "Egnet for workshops og diskusjoner" },
+        { "id": "klasserom", "name": "Klasserom", "capacity": 30, "description": "Rader mot presentasjonsskjerm" },
+        { "id": "bankett", "name": "Bankett", "capacity": 24, "description": "Rundbord for servering" }
+      ]
+    },
+    "contacts": [
+      {
+        "name": "Kragerø Kommune Drift",
+        "role": "Drift",
+        "email": "drift@kragero.kommune.no",
+        "phone": "+47 35 58 50 00",
+        "isPrimary": true,
+        "isEmergency": false
+      },
+      {
+        "name": "Vaktmester Kulturhuset",
+        "role": "Nøkkel",
+        "email": "vaktmester@kragero.kommune.no",
+        "phone": "+47 35 58 50 10",
+        "isPrimary": false,
+        "isEmergency": true
+      }
+    ],
+    "pricing": {
+      "isFree": false,
+      "basePrice": 500,
+      "priceModel": "per time",
+      "currency": "NOK",
+      "vatRate": 25,
+      "vatIncluded": true,
+      "targetGroups": [
+        { "id": "standard", "group": "Standard", "price": 500, "free": false },
+        { "id": "org", "group": "Lag og foreninger", "price": 300, "free": false, "discountPercent": 40, "requiresVerification": true },
+        { "id": "intern", "group": "Kommunale enheter", "price": 0, "free": true }
+      ],
+      "paymentMethods": [
+        { "id": "card", "type": "card", "enabled": true },
+        { "id": "vipps", "type": "vipps", "enabled": true },
+        { "id": "invoice", "type": "invoice", "enabled": true }
+      ]
+    }
+  },
+  
+  "sampleArrangement": {
+    "identity": {
+      "objectId": "550e8400-e29b-41d4-a716-446655440002",
+      "slug": "sommerkonsert-2026",
+      "internalCode": "ARR-2026-001",
+      "ownerUnit": "Kultur og idrett",
+      "displayName": "Sommerkonsert 2026"
+    },
+    "category": "arrangementer",
+    "subcategory": "Konsert",
+    "organizer": {
+      "organizationType": "municipality",
+      "name": "Kragerø Kommune Kultur",
+      "orgNumber": "964965226",
+      "responsiblePerson": {
+        "name": "Kari Kultursjef",
+        "role": "Kultursjef",
+        "phone": "+47 35 58 50 20",
+        "email": "kultur@kragero.kommune.no",
+        "idVerified": true
+      },
+      "emergencyContact": {
+        "name": "Ola Vaktmester",
+        "role": "Vaktmester",
+        "phone": "+47 35 58 50 30",
+        "email": "vakt@kragero.kommune.no",
+        "isPrimary": false,
+        "isEmergency": true
+      },
+      "previousEvents": 45,
+      "verificationStatus": "trusted"
+    },
+    "program": {
+      "checkInTime": "17:30",
+      "doorsOpenTime": "18:00",
+      "startTime": "19:00",
+      "endTime": "22:00",
+      "breaks": [
+        { "id": "pause1", "name": "Pause", "startTime": "20:00", "duration": 20 }
+      ],
+      "programItems": [
+        { "id": "1", "title": "Velkommen", "startTime": "19:00", "duration": 10, "presenter": "Ordfører" },
+        { "id": "2", "title": "Første sett", "startTime": "19:10", "duration": 50, "presenter": "Artist A" },
+        { "id": "3", "title": "Andre sett", "startTime": "20:20", "duration": 60, "presenter": "Artist B" },
+        { "id": "4", "title": "Ekstranummer", "startTime": "21:20", "duration": 40, "presenter": "Alle artister" }
+      ]
+    },
+    "eventCapacity": {
+      "totalCapacity": 500,
+      "ticketTypes": [
+        { "id": "voksen", "name": "Voksen", "price": 350, "quantity": 400, "availableQuantity": 350, "maxPerOrder": 10 },
+        { "id": "barn", "name": "Barn (under 16)", "price": 150, "quantity": 80, "availableQuantity": 80, "maxPerOrder": 5 },
+        { "id": "student", "name": "Student/Honnør", "price": 250, "quantity": 20, "availableQuantity": 20, "maxPerOrder": 2, "restrictions": "Krever gyldig legitimasjon" }
+      ],
+      "sections": [],
+      "waitlistCapacity": 50
+    },
+    "registration": {
+      "type": "tickets",
+      "deadline": { "date": "2026-06-14", "time": "18:00" },
+      "waitlistEnabled": true,
+      "autoPromoteFromWaitlist": true,
+      "confirmationRequired": true,
+      "confirmationDeadlineHours": 48
+    },
+    "cancellation": {
+      "cancellationDeadlineHours": 48,
+      "refundPolicy": "full",
+      "refundDeadlineDays": 14,
+      "weatherCancellation": true,
+      "weatherPolicy": "Ved ekstremvær flyttes konserten innendørs eller avlyses. Full refusjon ved avlysning.",
+      "minParticipantsRequired": 50,
+      "minParticipantsDeadlineHours": 72
+    },
+    "documentRequirements": {
+      "alcoholPermit": { "required": true, "status": "approved" },
+      "fireWatch": { "required": true, "minPersons": 2, "status": "pending" },
+      "policePermit": { "required": true, "status": "approved" },
+      "eventPermit": { "required": true, "status": "approved" }
+    }
+  },
+  
+  "sampleSportCourt": {
+    "identity": {
+      "objectId": "550e8400-e29b-41d4-a716-446655440003",
+      "slug": "padelbane-1-kragero",
+      "internalCode": "PADEL-001",
+      "ownerUnit": "Idrett og fritid",
+      "displayName": "Padelbane 1 - Kragerø"
+    },
+    "category": "sport",
+    "subcategory": "Padel",
+    "resourceType": "court",
+    "courtInfo": {
+      "surface": "Kunstgress",
+      "dimensions": { "length": 20, "width": 10 },
+      "indoor": true,
+      "lighting": true,
+      "heatingAvailable": true,
+      "heatingIncluded": false,
+      "heatingFee": 100
+    },
+    "seasonBooking": {
+      "enabled": true,
+      "seasonStart": "2026-09-01",
+      "seasonEnd": "2027-05-31",
+      "frameTimeSlots": [
+        { "id": "ft1", "dayOfWeek": "Mandag", "timeFrom": "17:00", "timeTo": "19:00", "allocatedTo": "Kragerø Padelklubb", "type": "training" },
+        { "id": "ft2", "dayOfWeek": "Onsdag", "timeFrom": "18:00", "timeTo": "20:00", "allocatedTo": "Kragerø Padelklubb", "type": "match" }
+      ],
+      "applicationDeadline": "2026-08-01",
+      "allocationMethod": "priority"
+    },
+    "priorityRules": {
+      "levels": ["training", "match", "tournament"],
+      "trainingPriority": ["org-padel-001"],
+      "matchPriority": ["org-padel-001"],
+      "tournamentRequiresApproval": true,
+      "localClubPriority": true,
+      "localClubIds": ["org-padel-001"]
+    },
+    "maintenance": {
+      "status": "available",
+      "nextMaintenance": "2026-03-15",
+      "maintenanceSchedule": [
+        { "id": "m1", "date": "2026-03-15", "type": "Årlig vedlikehold", "description": "Sjekk av nett, belysning og underlag" }
+      ],
+      "lastInspection": "2026-01-15",
+      "inspectionFrequency": 30
+    }
+  },
+  
+  "sampleTorg": {
+    "identity": {
+      "objectId": "550e8400-e29b-41d4-a716-446655440004",
+      "slug": "kragero-torg",
+      "internalCode": "TORG-001",
+      "ownerUnit": "Teknisk drift",
+      "displayName": "Kragerø Torg"
+    },
+    "category": "torg",
+    "subcategory": "Torg/Uteområde",
+    "area": {
+      "totalArea": 2000,
+      "usableArea": 1500,
+      "zones": [
+        { "id": "z1", "name": "Hovedscene", "area": 200, "type": "stage", "capacity": 0, "pricePerDay": 5000, "facilities": ["Strøm", "Belysning"] },
+        { "id": "z2", "name": "Markedsområde", "area": 800, "type": "vendor", "capacity": 40, "pricePerDay": 2000, "facilities": ["Strøm"] },
+        { "id": "z3", "name": "Publikumsområde", "area": 500, "type": "general", "capacity": 500, "pricePerDay": 1000, "facilities": [] }
+      ],
+      "infrastructure": {
+        "powerOutlets": [
+          { "id": "p1", "location": "Ved scenen", "amperage": 63, "phases": 3, "available": true },
+          { "id": "p2", "location": "Markedsområde nord", "amperage": 32, "phases": 1, "available": true },
+          { "id": "p3", "location": "Markedsområde sør", "amperage": 32, "phases": 1, "available": true }
+        ],
+        "waterConnections": [
+          { "id": "w1", "location": "Ved fontenen", "type": "utility", "available": true }
+        ],
+        "drainagePoints": 4,
+        "toiletFacilities": true,
+        "toiletCount": 4,
+        "wasteDisposal": true,
+        "lightingAvailable": true,
+        "fencingAvailable": false
+      }
+    },
+    "safety": {
+      "noiseRestrictions": {
+        "maxDecibels": 85,
+        "measurementDistance": 10,
+        "restrictedHoursFrom": "23:00",
+        "restrictedHoursTo": "07:00",
+        "musicCurfew": "23:00",
+        "exemptionPossible": true
+      },
+      "crowdManagement": {
+        "maxCapacity": 1000,
+        "securityRequired": true,
+        "securityThreshold": 300,
+        "securityRatioPerPerson": 100,
+        "firstAidRequired": true,
+        "firstAidThreshold": 200,
+        "evacuationPlanRequired": true,
+        "evacuationPlanThreshold": 500
+      },
+      "fireRequirements": {
+        "fireExtinguishersRequired": true,
+        "fireExtinguisherCount": 4,
+        "fireWatchRequired": true,
+        "fireWatchThreshold": 200,
+        "fireWatchCertificationRequired": true,
+        "evacuationPlanRequired": true,
+        "emergencyExits": 4
+      }
+    },
+    "outdoorDeposit": {
+      "baseAmount": 10000,
+      "additionalPerZone": 2000,
+      "additionalForInfrastructure": true,
+      "infrastructureDepositPerUnit": 1000,
+      "maxDeposit": 50000,
+      "inspectionProcess": {
+        "preInspectionRequired": true,
+        "postInspectionRequired": true,
+        "inspectorRole": "Driftsansvarlig torg",
+        "damageReportingDeadlineHours": 48,
+        "photoDocumentationRequired": true
       }
     }
   }

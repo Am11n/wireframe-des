@@ -24,11 +24,20 @@ import {
   MapPin,
   Map,
   Users,
-  Building,
   CreditCard,
-  Shield,
-  Globe,
-  Download
+  Download,
+  Hash,
+  Key,
+  Volume2,
+  Wrench,
+  Package,
+  AlertTriangle,
+  ClipboardCheck,
+  UserCheck,
+  Timer,
+  Receipt,
+  Layers,
+  Grid3X3
 } from 'lucide-react'
 import ImportUtleieobjekt from './components/ImportUtleieobjekt'
 
@@ -145,10 +154,53 @@ export default function UtleieobjektWizardKommune({
   })
   
   const [formData, setFormData] = useState({
+    // Identitet og struktur
+    identity: {
+      objectId: '',
+      slug: '',
+      internalCode: '',
+      ownerUnit: '',
+      ownerUnitId: '',
+      displayName: '',
+      internalName: '',
+      externalId: ''
+    },
+    
+    // Kategori (for bakoverkompatibilitet)
     subcategory: {
       selected: null as string | null,
       custom: '' as string
     },
+    
+    // Lokasjon og tilgang (utvidet)
+    location: {
+      address: {
+        street: '',
+        postalCode: '',
+        postalArea: '',
+        building: '',
+        roomNumber: '',
+        floor: ''
+      },
+      map: { lat: null as number | null, lng: null as number | null },
+      building: '',
+      roomNumber: '',
+      floor: '',
+      meetingPoint: '',
+      directionsText: '',
+      accessType: null as 'code' | 'reception' | 'janitor' | 'digital' | 'physical_key' | null,
+      accessCode: '',
+      accessInstructions: '',
+      keyPickupLocation: '',
+      keyPickupHours: '',
+      keyReturnDeadline: '',
+      parkingInfo: '',
+      parkingSpots: null as number | null,
+      loadingZone: false,
+      loadingZoneHours: ''
+    },
+    
+    // Bakoverkompatibilitet med gammel struktur
     locationAndBasis: {
       name: '',
       address: '',
@@ -157,10 +209,151 @@ export default function UtleieobjektWizardKommune({
       map: { lat: null as number | null, lng: null as number | null, markerDraggable: true },
       shortDescription: '',
       longDescription: '',
-      contacts: [] as Array<{ name: string; role: string; email: string; phone: string }>,
+      contacts: [] as Array<{ name: string; role: string; email: string; phone: string; isPrimary?: boolean; isEmergency?: boolean }>,
       images: [] as string[],
       documents: { houseRules: null as File | null, fireInstructions: null as File | null, floorPlan: null as File | null }
     },
+    
+    // Målgruppe og synlighet
+    audience: {
+      visibility: [] as ('public' | 'organization' | 'internal' | 'admin_only')[],
+      bookableBy: [] as string[],
+      priorityRules: [] as Array<{ group: string; priority: number; description: string }>,
+      restrictions: {
+        requireOrgNumber: false,
+        requireResponsibleAdult: false,
+        minAge: null as number | null,
+        maxAge: null as number | null,
+        allowedOrganizationTypes: [] as string[],
+        blockedOrganizations: [] as string[],
+        membershipRequired: false,
+        verificationLevel: 'none' as 'none' | 'basic' | 'strong'
+      }
+    },
+    
+    // Tidslogikk (utvidet)
+    timeLogic: {
+      defaultBookingLength: 60,
+      minDuration: 30,
+      maxDuration: 480,
+      bufferBefore: 0,
+      bufferAfter: 0,
+      minLeadTime: 24,
+      maxLeadTime: 90,
+      maxBookingsPerUser: {
+        perDay: null as number | null,
+        perWeek: null as number | null,
+        perMonth: null as number | null,
+        activeBookings: null as number | null
+      },
+      blackoutPeriods: [] as Array<{ id: string; name: string; startDate: string; endDate: string; reason: string; recurring: boolean }>,
+      cancellationRules: {
+        cutoffHours: 24,
+        allowPartialCancellation: false,
+        lateCancellationFee: 0,
+        lateCancellationThreshold: 2,
+        refundPolicy: 'full' as 'full' | 'partial' | 'none',
+        refundPercentage: 100
+      },
+      noShowRules: {
+        fee: 0,
+        warningCount: 3,
+        consequenceAction: 'none' as 'none' | 'warning' | 'block' | 'fee',
+        blockDurationDays: 30
+      }
+    },
+    
+    // Pris og økonomi (utvidet)
+    pricing: {
+      isFree: true,
+      basePrice: 0,
+      priceModel: '',
+      currency: 'NOK',
+      vatRate: 25,
+      vatIncluded: true,
+      exemptFromVat: false,
+      vat: '',
+      feeCode: '',
+      targetGroups: [] as Array<{ id: string; group: string; price: number; free: boolean; discountPercent?: number; requiresVerification?: boolean }>,
+      pricePlans: [] as Array<{ id: string; name: string; conditions: { dayOfWeek?: string[]; timeFrom?: string; timeTo?: string; seasonStart?: string; seasonEnd?: string }; price: number; active: boolean }>,
+      discounts: [] as Array<{ id: string; name: string; type: 'percentage' | 'fixed'; value: number; conditions: string; validFrom?: string; validTo?: string; code?: string }>,
+      deposit: {
+        required: false,
+        amount: 0,
+        triggers: [] as string[],
+        refundConditions: '',
+        refundTimeline: 14,
+        deductionRules: ''
+      },
+      fees: [] as Array<{ id: string; name: string; amount: number; type: 'fixed' | 'percentage'; mandatory: boolean; conditions: string }>,
+      paymentMethods: [] as Array<{ id: string; type: 'card' | 'vipps' | 'invoice' | 'cash'; enabled: boolean; accountId?: string }>,
+      invoiceSettings: {
+        allowInvoice: false,
+        allowedForGroups: [] as string[],
+        paymentTermsDays: 14,
+        minimumAmount: 500,
+        requireOrgNumber: true,
+        ehfEnabled: false
+      },
+      timeBasedPricing: { weekdays: '', weekend: '' },
+      externalPriceList: { active: false, attachment: null as File | null, link: '', explanation: '' }
+    },
+    
+    // Arbeidsflyt og godkjenning
+    workflow: {
+      approvalMode: '' as '' | 'automatic' | 'manual' | 'conditional',
+      approvalSteps: [] as Array<{ id: string; name: string; role: string; required: boolean; order: number }>,
+      autoApprovalConditions: [] as Array<{ id: string; condition: string; description: string }>,
+      prePublishChecklist: [] as Array<{ id: string; item: string; completed: boolean; required: boolean }>,
+      documentRequirements: [] as Array<{ id: string; name: string; type: string; required: boolean; templateUrl?: string; description: string }>,
+      termsAcceptance: {
+        required: false,
+        documentUrl: '',
+        documentId: '',
+        version: '1.0',
+        signatureRequired: false,
+        digitalSignature: false
+      }
+    },
+    
+    // Innhold og kvalitet
+    content: {
+      shortDescription: '',
+      longDescription: '',
+      gallery: [] as Array<{ id: string; url: string; thumbnailUrl?: string; caption?: string; isPrimary: boolean; order: number }>,
+      attachments: [] as Array<{ id: string; name: string; type: string; url: string; uploadedAt: string; category: string }>,
+      languages: ['no'] as string[],
+      translations: {} as Record<string, { shortDescription: string; longDescription: string }>,
+      faq: [] as Array<{ question: string; answer: string; category?: string }>,
+      guidelines: '',
+      accessibilityInfo: {
+        summary: '',
+        universalDesign: {
+          stepFreeAccess: false,
+          wcAccessible: false,
+          elevator: false,
+          hearingLoop: false,
+          accessibleParking: false,
+          guideDogAllowed: true,
+          signLanguageSupport: false,
+          brailleSignage: false,
+          otherAccommodation: ''
+        },
+        wheelchairAccessible: false,
+        hearingAidsCompatible: false,
+        visualAidsAvailable: false,
+        assistanceAvailable: false,
+        assistanceBookingRequired: false,
+        additionalInfo: ''
+      },
+      keywords: [] as string[],
+      seoDescription: ''
+    },
+    
+    // Kontakter
+    contacts: [] as Array<{ name: string; role: string; email: string; phone: string; isPrimary?: boolean; isEmergency?: boolean }>,
+    
+    // Bakoverkompatibilitet - properties
     properties: {
       types: [] as string[],
       size: '',
@@ -176,6 +369,8 @@ export default function UtleieobjektWizardKommune({
       },
       addOnServices: [] as Array<{ name: string; description: string; price: string; required: boolean; needsApproval: boolean }>
     },
+    
+    // Tilgjengelighet
     availability: {
       availabilityType: null as 'timeInterval' | 'day' | 'quantity' | null,
       rentalUnit: '',
@@ -198,6 +393,8 @@ export default function UtleieobjektWizardKommune({
       exceptions: [] as Array<{ fromDate: string; toDate: string; fromTime: string; toTime: string; reason: string; visible: boolean; repeating: boolean }>,
       presentationOnly: false
     },
+    
+    // Regler
     rules: {
       approvalMode: '',
       approvalRules: {
@@ -219,15 +416,8 @@ export default function UtleieobjektWizardKommune({
         canLockTimes: false
       }
     },
-    pricing: {
-      isFree: true,
-      priceModel: '',
-      vat: '',
-      feeCode: '',
-      targetGroups: [] as Array<{ group: string; priceReduction: string; free: boolean }>,
-      timeBasedPricing: { weekdays: '', weekend: '' },
-      externalPriceList: { active: false, attachment: null as File | null, link: '', explanation: '' }
-    },
+    
+    // Betaling
     payment: {
       methods: [] as string[],
       accountSetup: {
@@ -245,6 +435,8 @@ export default function UtleieobjektWizardKommune({
         requireStrongAuth: false
       }
     },
+    
+    // Publisering
     publishing: {
       choice: 'draft',
       visibility: {
@@ -254,6 +446,365 @@ export default function UtleieobjektWizardKommune({
         targetGroups: [] as string[],
         organizations: [] as string[]
       }
+    },
+    
+    // ===== KATEGORI-SPESIFIKKE FELT =====
+    
+    // Lokaler
+    lokaler: {
+      venueCapacity: {
+        maxPersons: 0,
+        seatedCapacity: 0,
+        standingCapacity: 0,
+        fireCapacity: 0,
+        tableLayouts: [] as Array<{ id: string; name: string; capacity: number; description: string }>
+      },
+      roomStructure: {
+        isDivisible: false,
+        subRooms: [] as Array<{ id: string; name: string; capacity: number; bookableSeparately: boolean }>,
+        canBookSimultaneously: false,
+        sharedFacilities: [] as string[],
+        adjacentRooms: [] as string[],
+        parentRoomId: ''
+      },
+      venueAccess: {
+        keyType: null as 'physical' | 'code' | 'card' | 'app' | null,
+        keyPickupLocation: '',
+        keyPickupHours: '',
+        keyReturnDeadline: '',
+        keyDeposit: 0,
+        setupTimeMinutes: 0,
+        teardownTimeMinutes: 0,
+        cleaningIncluded: false,
+        cleaningFee: 0,
+        cleaningInstructions: '',
+        selfServiceCleaning: false
+      },
+      venueEquipment: {
+        includedEquipment: [] as Array<{ id: string; name: string; quantity: number; description: string }>,
+        availableForRent: [] as Array<{ id: string; name: string; quantity: number; pricePerUnit: number; description: string }>,
+        externalEquipmentAllowed: true,
+        techSupportAvailable: false,
+        techSupportFee: 0,
+        techSupportHours: ''
+      },
+      noiseRules: {
+        maxDecibelLevel: null as number | null,
+        quietHoursFrom: '23:00',
+        quietHoursTo: '07:00',
+        musicAllowed: true,
+        amplifiedSoundAllowed: true,
+        livePerformanceAllowed: false,
+        neighborNotificationRequired: false,
+        noiseComplaintProcess: ''
+      },
+      seasonPricing: {
+        enabled: false,
+        seasons: [] as Array<{ id: string; name: string; startDate: string; endDate: string; priceMultiplier: number }>,
+        peakTimes: [] as Array<{ id: string; dayOfWeek: string; timeFrom: string; timeTo: string; priceMultiplier: number }>,
+        holidayPricing: [] as Array<{ id: string; date: string; name: string; priceMultiplier: number }>
+      },
+      facilities: [] as string[],
+      addOnServices: [] as Array<{ id: string; name: string; description: string; price: number; required: boolean; needsApproval: boolean }>
+    },
+    
+    // Arrangementer
+    arrangementer: {
+      eventType: 'single' as 'single' | 'recurring' | 'series',
+      eventVenue: {
+        type: 'custom_address' as 'linked_venue' | 'linked_outdoor' | 'custom_address',
+        linkedVenueId: '',
+        linkedOutdoorId: '',
+        customAddress: null as { street: string; postalCode: string; postalArea: string } | null,
+        venueRequirements: '',
+        setupRequirements: ''
+      },
+      organizer: {
+        organizationType: 'person' as 'person' | 'organization' | 'municipality',
+        name: '',
+        orgNumber: '',
+        responsiblePerson: {
+          name: '',
+          role: '',
+          phone: '',
+          email: '',
+          idVerified: false
+        },
+        emergencyContact: {
+          name: '',
+          role: 'Nødkontakt',
+          phone: '',
+          email: '',
+          isPrimary: false,
+          isEmergency: true
+        },
+        previousEvents: 0,
+        verificationStatus: 'unverified' as 'unverified' | 'verified' | 'trusted'
+      },
+      program: {
+        checkInTime: '',
+        doorsOpenTime: '',
+        startTime: '',
+        endTime: '',
+        breaks: [] as Array<{ id: string; name: string; startTime: string; duration: number }>,
+        programItems: [] as Array<{ id: string; title: string; startTime: string; duration: number; presenter?: string; description?: string }>
+      },
+      eventCapacity: {
+        totalCapacity: 0,
+        ticketTypes: [] as Array<{ id: string; name: string; price: number; quantity: number; availableQuantity: number; maxPerOrder: number; restrictions?: string }>,
+        sections: [] as Array<{ id: string; name: string; capacity: number; price: number }>,
+        waitlistCapacity: 0
+      },
+      registration: {
+        type: 'tickets' as 'tickets' | 'registration' | 'open',
+        deadline: { date: '', time: '' },
+        earlyBirdDeadline: null as { date: string; time: string } | null,
+        earlyBirdDiscount: 0,
+        waitlistEnabled: false,
+        waitlistCapacity: 0,
+        autoPromoteFromWaitlist: false,
+        confirmationRequired: false,
+        confirmationDeadlineHours: 48,
+        allowGroupRegistration: false,
+        maxGroupSize: 10,
+        requiresApproval: false,
+        approvalCriteria: ''
+      },
+      cancellation: {
+        cancellationDeadlineHours: 24,
+        refundPolicy: 'full' as 'full' | 'partial' | 'none',
+        partialRefundPercentage: 50,
+        refundDeadlineDays: 14,
+        weatherCancellation: false,
+        weatherPolicy: '',
+        minParticipantsRequired: null as number | null,
+        minParticipantsDeadlineHours: 48,
+        cancellationNotificationMethods: ['email'] as string[],
+        alternativeDatePolicy: ''
+      },
+      documentRequirements: {
+        alcoholPermit: { required: false, status: 'not_required' as 'not_required' | 'pending' | 'approved' | 'rejected', applicationDeadlineDays: 30, documentId: '', expiryDate: '', notes: '' },
+        fireWatch: { required: false, minPersons: 0, status: 'not_required' as 'not_required' | 'pending' | 'approved', certificateRequired: false },
+        policePermit: { required: false, status: 'not_required' as 'not_required' | 'pending' | 'approved' | 'rejected', applicationDeadlineDays: 14, documentId: '', expiryDate: '', notes: '' },
+        eventPermit: { required: false, status: 'not_required' as 'not_required' | 'pending' | 'approved' | 'rejected', applicationDeadlineDays: 14, documentId: '', expiryDate: '', notes: '' },
+        noisePermit: { required: false, status: 'not_required' as 'not_required' | 'pending' | 'approved' | 'rejected', applicationDeadlineDays: 7, documentId: '', expiryDate: '', notes: '' },
+        roadClosure: { required: false, status: 'not_required' as 'not_required' | 'pending' | 'approved' | 'rejected', applicationDeadlineDays: 21, documentId: '', expiryDate: '', notes: '' },
+        healthPermit: { required: false, status: 'not_required' as 'not_required' | 'pending' | 'approved' | 'rejected', applicationDeadlineDays: 14, documentId: '', expiryDate: '', notes: '' },
+        insuranceRequired: false,
+        insuranceMinCoverage: 0
+      },
+      eventDates: [] as Array<{ date: string; time: string; endTime: string; availableTickets: number }>
+    },
+    
+    // Sport
+    sport: {
+      resourceType: 'court' as 'court' | 'equipment',
+      courtInfo: {
+        surface: '',
+        dimensions: { length: 0, width: 0 },
+        indoor: true,
+        lighting: true,
+        lightingHours: '',
+        heatingAvailable: false,
+        heatingIncluded: false,
+        heatingFee: 0,
+        markings: [] as string[]
+      },
+      seasonBooking: {
+        enabled: false,
+        seasonStart: '',
+        seasonEnd: '',
+        frameTimeSlots: [] as Array<{ id: string; dayOfWeek: string; timeFrom: string; timeTo: string; allocatedTo: string; type: string }>,
+        applicationDeadline: '',
+        allocationMethod: 'first_come' as 'first_come' | 'lottery' | 'priority'
+      },
+      priorityRules: {
+        levels: ['training', 'match', 'tournament', 'event'] as string[],
+        trainingPriority: [] as string[],
+        matchPriority: [] as string[],
+        tournamentRequiresApproval: true,
+        eventRequiresApproval: true,
+        localClubPriority: false,
+        localClubIds: [] as string[]
+      },
+      maintenance: {
+        status: 'available' as 'available' | 'limited' | 'maintenance' | 'closed',
+        nextMaintenance: '',
+        maintenanceSchedule: [] as Array<{ id: string; date: string; type: string; description: string }>,
+        lastInspection: '',
+        inspectionFrequency: 30
+      },
+      inventory: {
+        totalUnits: 0,
+        availableUnits: 0,
+        unitDescription: '',
+        setContents: [] as string[],
+        serialNumbers: [] as string[],
+        purchaseDate: '',
+        expectedLifespan: 24
+      },
+      condition: {
+        status: 'good' as 'new' | 'good' | 'fair' | 'poor',
+        lastInspection: '',
+        nextInspection: '',
+        maintenanceLog: [] as Array<{ id: string; date: string; type: string; description: string; cost: number }>,
+        damageHistory: [] as Array<{ id: string; date: string; description: string; repaired: boolean; cost: number }>
+      },
+      loan: {
+        maxLoanDurationDays: 7,
+        pickupRequired: true,
+        deliveryAvailable: false,
+        deliveryFee: 0,
+        pickupLocation: '',
+        pickupHours: '08:00-16:00',
+        returnDeadlineTime: '16:00',
+        lateReturnFeePerDay: 100,
+        graceHours: 2
+      },
+      userRequirements: {
+        minAge: null as number | null,
+        maxAge: null as number | null,
+        certificationRequired: false,
+        certificationType: '',
+        certificationVerification: 'none' as 'none' | 'upload' | 'manual',
+        responsibleAdultRequired: false,
+        trainingRequired: false,
+        trainingUrl: '',
+        physicalRequirements: ''
+      },
+      facilities: [] as string[],
+      addOnServices: [] as Array<{ id: string; name: string; description: string; price: number; required: boolean; needsApproval: boolean }>
+    },
+    
+    // Torg
+    torg: {
+      area: {
+        totalArea: 0,
+        usableArea: 0,
+        zones: [] as Array<{ id: string; name: string; area: number; type: string; capacity: number; pricePerDay: number; facilities: string[] }>,
+        infrastructure: {
+          powerOutlets: [] as Array<{ id: string; location: string; amperage: number; phases: number; available: boolean }>,
+          waterConnections: [] as Array<{ id: string; location: string; type: string; available: boolean }>,
+          drainagePoints: 0,
+          toiletFacilities: false,
+          toiletCount: 0,
+          wasteDisposal: false,
+          lightingAvailable: false,
+          fencingAvailable: false
+        },
+        mapOverlay: null as string | null
+      },
+      outdoorLogistics: {
+        setupTime: {
+          defaultHours: 4,
+          maxHours: 24,
+          requiresApproval: false,
+          approvalThresholdHours: 8
+        },
+        teardownTime: {
+          defaultHours: 4,
+          maxHours: 24,
+          lateTeardownFeePerHour: 500
+        },
+        deliveryWindows: [] as Array<{ id: string; dayOfWeek: string; timeFrom: string; timeTo: string }>,
+        vehicleAccess: {
+          allowed: true,
+          maxVehicleWeight: 3.5,
+          maxVehicleHeight: 3.0,
+          loadingZone: false,
+          loadingZoneHours: '',
+          accessRoute: ''
+        },
+        storageAvailable: false,
+        storageArea: 0,
+        storageFeePerDay: 0
+      },
+      safety: {
+        noiseRestrictions: {
+          maxDecibels: 85,
+          measurementDistance: 10,
+          restrictedHoursFrom: '23:00',
+          restrictedHoursTo: '07:00',
+          musicCurfew: '23:00',
+          exemptionPossible: true
+        },
+        crowdManagement: {
+          maxCapacity: 0,
+          securityRequired: false,
+          securityThreshold: 500,
+          securityRatioPerPerson: 100,
+          firstAidRequired: false,
+          firstAidThreshold: 200,
+          medicalStaffRequired: false,
+          medicalStaffThreshold: 1000,
+          evacuationPlanRequired: false,
+          evacuationPlanThreshold: 500
+        },
+        fireRequirements: {
+          fireExtinguishersRequired: false,
+          fireExtinguisherCount: 0,
+          fireWatchRequired: false,
+          fireWatchThreshold: 200,
+          fireWatchCertificationRequired: true,
+          evacuationPlanRequired: false,
+          emergencyExits: 0
+        },
+        barriers: {
+          required: false,
+          threshold: 500,
+          provided: false,
+          rentalFee: 0
+        }
+      },
+      permits: {
+        triggers: [
+          { id: 'capacity-police', condition: 'capacity', threshold: 500, operator: 'gt', requiredPermit: 'policePermit', leadTimeDays: 14, description: 'Politigodkjenning kreves for arrangementer med over 500 deltakere' },
+          { id: 'alcohol', condition: 'alcohol', threshold: true, requiredPermit: 'alcoholPermit', leadTimeDays: 30, description: 'Skjenkebevilling kreves for servering av alkohol' },
+          { id: 'noise', condition: 'amplified_sound', threshold: 85, operator: 'gt', requiredPermit: 'noiseExemption', leadTimeDays: 7, description: 'Støydispensasjon kreves for forsterket lyd over 85 dB' },
+          { id: 'road', condition: 'road_use', threshold: true, requiredPermit: 'roadClosure', leadTimeDays: 21, description: 'Veisperring-tillatelse kreves ved bruk av offentlig vei' },
+          { id: 'food', condition: 'food', threshold: true, requiredPermit: 'healthPermit', leadTimeDays: 14, description: 'Mattilsyn-godkjenning kreves ved matservering' }
+        ] as Array<{ id: string; condition: string; threshold: number | boolean; operator?: string; requiredPermit: string; leadTimeDays: number; description: string }>,
+        required: {
+          policePermit: { required: false, status: 'not_required' as 'not_required' | 'pending' | 'approved' | 'rejected' | 'expired', applicationDeadlineDays: 14, processingTimeDays: 7, fee: 0, documentId: '', expiryDate: '', contactInfo: '', applicationUrl: '', notes: '' },
+          alcoholPermit: { required: false, status: 'not_required' as 'not_required' | 'pending' | 'approved' | 'rejected' | 'expired', applicationDeadlineDays: 30, processingTimeDays: 14, fee: 0, documentId: '', expiryDate: '', contactInfo: '', applicationUrl: '', notes: '' },
+          roadClosure: { required: false, status: 'not_required' as 'not_required' | 'pending' | 'approved' | 'rejected' | 'expired', applicationDeadlineDays: 21, processingTimeDays: 10, fee: 0, documentId: '', expiryDate: '', contactInfo: '', applicationUrl: '', notes: '' },
+          noiseExemption: { required: false, status: 'not_required' as 'not_required' | 'pending' | 'approved' | 'rejected' | 'expired', applicationDeadlineDays: 7, processingTimeDays: 3, fee: 0, documentId: '', expiryDate: '', contactInfo: '', applicationUrl: '', notes: '' },
+          firePermit: { required: false, status: 'not_required' as 'not_required' | 'pending' | 'approved' | 'rejected' | 'expired', applicationDeadlineDays: 14, processingTimeDays: 7, fee: 0, documentId: '', expiryDate: '', contactInfo: '', applicationUrl: '', notes: '' },
+          healthPermit: { required: false, status: 'not_required' as 'not_required' | 'pending' | 'approved' | 'rejected' | 'expired', applicationDeadlineDays: 14, processingTimeDays: 7, fee: 0, documentId: '', expiryDate: '', contactInfo: '', applicationUrl: '', notes: '' },
+          publicGatheringPermit: { required: false, status: 'not_required' as 'not_required' | 'pending' | 'approved' | 'rejected' | 'expired', applicationDeadlineDays: 14, processingTimeDays: 7, fee: 0, documentId: '', expiryDate: '', contactInfo: '', applicationUrl: '', notes: '' }
+        },
+        integrations: {
+          autoNotifyPolice: false,
+          autoNotifyFireDept: false,
+          autoNotifyHealthDept: false,
+          autoCreateCase: false,
+          caseSystemIntegration: ''
+        }
+      },
+      outdoorDeposit: {
+        baseAmount: 5000,
+        additionalPerZone: 1000,
+        additionalForInfrastructure: true,
+        infrastructureDepositPerUnit: 500,
+        maxDeposit: 50000,
+        inspectionProcess: {
+          preInspectionRequired: true,
+          postInspectionRequired: true,
+          inspectorRole: 'Driftsansvarlig',
+          inspectionChecklistId: '',
+          damageReportingDeadlineHours: 48,
+          photoDocumentationRequired: true
+        },
+        damageHandling: {
+          deductionProcess: 'Skader dokumenteres med foto og trekkes fra depositum etter inspeksjon',
+          disputeProcess: 'Tvist kan klages inn til kommunens klagenemnd innen 14 dager',
+          disputeDeadlineDays: 14,
+          insuranceRequirements: 'Ansvarsforsikring anbefales for arrangementer over 200 deltakere',
+          insuranceMinCoverage: 1000000
+        }
+      },
+      equipmentAvailable: [] as Array<{ id: string; name: string; quantity: number; pricePerDay: number; included: boolean }>,
+      facilities: [] as string[]
     }
   })
 
@@ -496,74 +1047,109 @@ export default function UtleieobjektWizardKommune({
     setStatus('published')
   }
 
-  // Checklist for publishing - kategori-spesifikk
+  // Checklist for publishing - kategori-spesifikk (utvidet med nye felt)
   const getPublishingChecklist = () => {
+    // Felles sjekker for alle kategorier
+    const commonRequired = [
+      { label: 'Synlig navn definert', checked: !!formData.identity.displayName || !!formData.locationAndBasis.name },
+      { label: 'Adresse definert', checked: !!formData.locationAndBasis.address || !!formData.location.address.street },
+      { label: 'Tilgangstype valgt', checked: !!formData.location.accessType },
+      { label: 'Målgruppe definert', checked: formData.audience.visibility.length > 0 },
+      { label: 'Godkjenningstype valgt', checked: !!formData.rules.approvalMode || !!formData.workflow.approvalMode }
+    ]
+    
+    const commonRecommended = [
+      { label: 'Eier-enhet angitt', checked: !!formData.identity.ownerUnit },
+      { label: 'Intern kode definert', checked: !!formData.identity.internalCode },
+      { label: 'Kort beskrivelse', checked: !!formData.locationAndBasis.shortDescription || !!formData.content.shortDescription },
+      { label: 'Kontaktpersoner', checked: formData.locationAndBasis.contacts.length > 0 || formData.contacts.length > 0 },
+      { label: 'Bilder lastet opp', checked: formData.locationAndBasis.images.length > 0 || formData.content.gallery.length > 0 }
+    ]
+
     if (selectedCategory === 'lokaler') {
       return {
         required: [
-          { label: 'Navn og adresse', checked: !!formData.locationAndBasis.name && !!formData.locationAndBasis.address },
-          { label: 'Tilgjengelighet definert eller "kun presentasjon"', checked: formData.availability.presentationOnly || formData.availability.openingHours.some(h => h.active) },
+          ...commonRequired,
+          { label: 'Tilgjengelighet definert', checked: formData.availability.presentationOnly || formData.availability.openingHours.some(h => h.active) },
+          { label: 'Kapasitet definert', checked: formData.lokaler.venueCapacity.maxPersons > 0 || !!formData.properties.maxPersons },
           ...(formData.pricing.isFree ? [] : [
-            { label: 'Pris definert', checked: formData.pricing.targetGroups.length > 0 },
-            { label: 'Betalingsmetode satt', checked: formData.payment.methods.length > 0 },
-            { label: 'Konto-oppsett ferdig', checked: true }
+            { label: 'Pris definert', checked: formData.pricing.targetGroups.length > 0 || formData.pricing.basePrice > 0 },
+            { label: 'Betalingsmetode satt', checked: formData.payment.methods.length > 0 || formData.pricing.paymentMethods.length > 0 }
           ])
         ],
         recommended: [
-          { label: 'Bilder', checked: formData.locationAndBasis.images.length > 0 },
+          ...commonRecommended,
+          { label: 'Støyregler definert', checked: formData.lokaler.noiseRules.maxDecibelLevel !== null },
+          { label: 'Universell utforming utfylt', checked: Object.values(formData.properties.universalDesign).some(v => v === true || (typeof v === 'string' && v.length > 0)) },
           { label: 'Leiebetingelser PDF', checked: !!formData.payment.terms.pdf },
-          { label: 'Universell utforming utfylt', checked: Object.values(formData.properties.universalDesign).some(v => v === true || (typeof v === 'string' && v.length > 0)) }
+          { label: 'Buffer-tider satt', checked: formData.timeLogic.bufferBefore > 0 || formData.timeLogic.bufferAfter > 0 }
         ]
       }
     }
     if (selectedCategory === 'sport') {
       return {
         required: [
-          { label: 'Navn og hentested', checked: !!formData.locationAndBasis.name && !!formData.locationAndBasis.address },
-          { label: 'Tilgjengelighet definert eller "kun presentasjon"', checked: formData.availability.presentationOnly || (formData.availability.availabilityType === 'timeInterval' && formData.availability.timeInterval.openingHours.some(h => h.active)) },
+          ...commonRequired,
+          { label: 'Ressurstype valgt (bane/utstyr)', checked: !!formData.sport.resourceType },
+          { label: 'Tilgjengelighet definert', checked: formData.availability.presentationOnly || (formData.availability.availabilityType === 'timeInterval' && formData.availability.timeInterval.openingHours.some(h => h.active)) },
           ...(formData.pricing.isFree ? [] : [
-            { label: 'Pris definert', checked: !!formData.pricing.priceModel },
+            { label: 'Pris definert', checked: !!formData.pricing.priceModel || formData.pricing.basePrice > 0 },
             { label: 'Betalingsmetode satt', checked: formData.payment.methods.length > 0 }
-          ])
+          ]),
+          ...(formData.sport.resourceType === 'equipment' ? [
+            { label: 'Antall enheter definert', checked: formData.sport.inventory.totalUnits > 0 },
+            { label: 'Hentested definert', checked: !!formData.sport.loan.pickupLocation }
+          ] : []),
+          ...(formData.sport.resourceType === 'court' ? [
+            { label: 'Baneunderlag definert', checked: !!formData.sport.courtInfo.surface }
+          ] : [])
         ],
         recommended: [
-          { label: 'Beskrivelse', checked: !!formData.locationAndBasis.longDescription },
-          { label: 'Kontaktpersoner', checked: formData.locationAndBasis.contacts.length > 0 },
-          { label: 'Vilkår PDF', checked: !!formData.payment.terms.pdf }
+          ...commonRecommended,
+          { label: 'Lang beskrivelse', checked: !!formData.locationAndBasis.longDescription },
+          { label: 'Vilkår PDF', checked: !!formData.payment.terms.pdf },
+          ...(formData.sport.resourceType === 'equipment' ? [
+            { label: 'Tilstandsvurdering', checked: !!formData.sport.condition.status },
+            { label: 'Utlånsregler definert', checked: formData.sport.loan.maxLoanDurationDays > 0 }
+          ] : [])
         ]
       }
     }
     if (selectedCategory === 'arrangementer') {
       return {
         required: [
-          { label: 'Navn på arrangement', checked: !!formData.locationAndBasis.name },
-          { label: 'Kapasitet definert', checked: formData.availability.availabilityType === 'quantity' && !!formData.availability.quantity.amount },
+          { label: 'Navn på arrangement', checked: !!formData.locationAndBasis.name || !!formData.identity.displayName },
+          { label: 'Arrangørtype valgt', checked: !!formData.arrangementer.organizer.organizationType },
+          { label: 'Ansvarlig person definert', checked: !!formData.arrangementer.organizer.responsiblePerson.name },
+          { label: 'Kapasitet definert', checked: (formData.availability.availabilityType === 'quantity' && !!formData.availability.quantity.amount) || formData.arrangementer.eventCapacity.totalCapacity > 0 },
+          { label: 'Programtider satt', checked: !!formData.arrangementer.program.startTime && !!formData.arrangementer.program.endTime },
           ...(formData.pricing.isFree ? [] : [
-            { label: 'Pris definert', checked: true }
+            { label: 'Pris definert', checked: formData.pricing.basePrice > 0 || formData.pricing.targetGroups.length > 0 }
           ])
         ],
         recommended: [
-          { label: 'Beskrivelse', checked: !!formData.locationAndBasis.longDescription },
-          { label: 'Datoer definert', checked: true },
-          { label: 'Vilkår definert', checked: true }
+          ...commonRecommended,
+          { label: 'Nødkontakt definert', checked: !!formData.arrangementer.organizer.emergencyContact.name },
+          { label: 'Avbestillingsregler definert', checked: formData.arrangementer.cancellation.cancellationDeadlineHours > 0 },
+          { label: 'Vilkår aksept konfigurert', checked: formData.workflow.termsAcceptance.required }
         ]
       }
     }
     if (selectedCategory === 'torg') {
       return {
         required: [
-          { label: 'Navn og hentested', checked: !!formData.locationAndBasis.name && !!formData.locationAndBasis.address },
-          { label: 'Antall enheter', checked: !!formData.properties.size },
-          { label: 'Tilgjengelighet definert eller "kun presentasjon"', checked: formData.availability.presentationOnly || (formData.availability.availabilityType === 'day' && formData.availability.day.openingHours.some(h => h.active)) || (formData.availability.availabilityType === 'quantity' && !!formData.availability.quantity.amount) },
+          ...commonRequired,
+          { label: 'Antall enheter definert', checked: !!formData.properties.size },
+          { label: 'Tilgjengelighet definert', checked: formData.availability.presentationOnly || (formData.availability.availabilityType === 'day' && formData.availability.day.openingHours.some(h => h.active)) || (formData.availability.availabilityType === 'quantity' && !!formData.availability.quantity.amount) },
           ...(formData.pricing.isFree ? [] : [
-            { label: 'Pris definert', checked: !!formData.pricing.priceModel },
+            { label: 'Pris definert', checked: !!formData.pricing.priceModel || formData.pricing.basePrice > 0 },
             { label: 'Betalingsmetode satt', checked: formData.payment.methods.length > 0 }
           ])
         ],
         recommended: [
-          { label: 'Beskrivelse', checked: !!formData.locationAndBasis.longDescription },
-          { label: 'Kontaktpersoner', checked: formData.locationAndBasis.contacts.length > 0 },
-          { label: 'Vilkår PDF', checked: !!formData.payment.terms.pdf }
+          ...commonRecommended,
+          { label: 'Depositum konfigurert', checked: formData.torg.outdoorDeposit.baseAmount > 0 },
+          { label: 'Kontrollprosess definert', checked: formData.torg.outdoorDeposit.inspectionProcess.preInspectionRequired || formData.torg.outdoorDeposit.inspectionProcess.postInspectionRequired }
         ]
       }
     }
@@ -901,12 +1487,17 @@ export default function UtleieobjektWizardKommune({
 
             {/* Lokaler: Step 1 - Lokasjon */}
             {selectedCategory === 'lokaler' && currentStep === 1 && startChoice === 'new' && (
+              <>
+              {/* Identitet og struktur */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Lokasjon</CardTitle>
-                  <CardDescription>Grunnleggende informasjon om lokale/banen</CardDescription>
+                  <CardTitle className="flex items-center gap-2">
+                    <Hash className="w-5 h-5" />
+                    Identitet og struktur
+                  </CardTitle>
+                  <CardDescription>Intern identifikasjon og organisatorisk tilhørighet</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-4">
                   <div>
                     <Label htmlFor="subcategory-select-lokaler">Underkategori {!formData.subcategory.selected && <span className="text-red-600">*</span>}</Label>
                     <select
@@ -927,22 +1518,102 @@ export default function UtleieobjektWizardKommune({
 
                   <Separator />
 
-                  <div>
-                    <Label htmlFor="name">Navn på utleieobjekt {!formData.locationAndBasis.name && <span className="text-red-600">*</span>}</Label>
-                    <Input
-                      id="name"
-                      value={formData.locationAndBasis.name}
-                      onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, name: e.target.value } })}
-                      className="mt-2"
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="displayName">Synlig navn (for publikum) {!formData.identity.displayName && <span className="text-red-600">*</span>}</Label>
+                      <Input
+                        id="displayName"
+                        value={formData.identity.displayName}
+                        onChange={(e) => {
+                          const value = e.target.value
+                          setFormData({ 
+                            ...formData, 
+                            identity: { ...formData.identity, displayName: value },
+                            locationAndBasis: { ...formData.locationAndBasis, name: value }
+                          })
+                        }}
+                        className="mt-2"
+                        placeholder="F.eks. Møterom Y - Kragerø"
+                      />
+                      <p className="text-xs text-stone-500 mt-1">Dette vises i katalogen og på bookingsiden</p>
+                    </div>
+                    <div>
+                      <Label htmlFor="internalName">Internt navn (valgfritt)</Label>
+                      <Input
+                        id="internalName"
+                        value={formData.identity.internalName}
+                        onChange={(e) => setFormData({ ...formData, identity: { ...formData.identity, internalName: e.target.value } })}
+                        className="mt-2"
+                        placeholder="F.eks. Møterom Y (2. etg kulturhus)"
+                      />
+                      <p className="text-xs text-stone-500 mt-1">Kun synlig for administratorer</p>
+                    </div>
                   </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="internalCode">Intern kortkode</Label>
+                      <Input
+                        id="internalCode"
+                        value={formData.identity.internalCode}
+                        onChange={(e) => setFormData({ ...formData, identity: { ...formData.identity, internalCode: e.target.value } })}
+                        className="mt-2"
+                        placeholder="F.eks. MR-Y-001"
+                      />
+                      <p className="text-xs text-stone-500 mt-1">For drift og rapporter</p>
+                    </div>
+                    <div>
+                      <Label htmlFor="ownerUnit">Eier-enhet / Avdeling</Label>
+                      <select
+                        id="ownerUnit"
+                        value={formData.identity.ownerUnit}
+                        onChange={(e) => setFormData({ ...formData, identity: { ...formData.identity, ownerUnit: e.target.value } })}
+                        className="w-full mt-2 p-2 border border-stone-300 dark:border-stone-600 rounded-md bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100"
+                      >
+                        <option value="">Velg avdeling...</option>
+                        <option value="Kultur og idrett">Kultur og idrett</option>
+                        <option value="Teknisk drift">Teknisk drift</option>
+                        <option value="Oppvekst">Oppvekst</option>
+                        <option value="Helse og omsorg">Helse og omsorg</option>
+                        <option value="Administrasjon">Administrasjon</option>
+                      </select>
+                    </div>
+                    <div>
+                      <Label htmlFor="slug">URL-slug (auto)</Label>
+                      <Input
+                        id="slug"
+                        value={formData.identity.slug || formData.identity.displayName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}
+                        onChange={(e) => setFormData({ ...formData, identity: { ...formData.identity, slug: e.target.value } })}
+                        className="mt-2"
+                        placeholder="moeterom-y-kragero"
+                      />
+                      <p className="text-xs text-stone-500 mt-1">Brukes i URL-en</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Lokasjon og adresse */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5" />
+                    Lokasjon
+                  </CardTitle>
+                  <CardDescription>Adresse og kartposisjon</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
                   <div className="grid grid-cols-3 gap-4">
                     <div className="col-span-2">
                       <Label htmlFor="address">Adresse {!formData.locationAndBasis.address && <span className="text-red-600">*</span>}</Label>
                       <Input
                         id="address"
                         value={formData.locationAndBasis.address}
-                        onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, address: e.target.value } })}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          locationAndBasis: { ...formData.locationAndBasis, address: e.target.value },
+                          location: { ...formData.location, address: { ...formData.location.address, street: e.target.value } }
+                        })}
                         className="mt-2"
                       />
                     </div>
@@ -951,18 +1622,67 @@ export default function UtleieobjektWizardKommune({
                       <Input
                         id="postalCode"
                         value={formData.locationAndBasis.postalCode}
-                        onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, postalCode: e.target.value } })}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          locationAndBasis: { ...formData.locationAndBasis, postalCode: e.target.value },
+                          location: { ...formData.location, address: { ...formData.location.address, postalCode: e.target.value } }
+                        })}
                         className="mt-2"
                       />
                     </div>
                   </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="postalArea">Poststed {!formData.locationAndBasis.postalArea && <span className="text-red-600">*</span>}</Label>
+                      <Input
+                        id="postalArea"
+                        value={formData.locationAndBasis.postalArea}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          locationAndBasis: { ...formData.locationAndBasis, postalArea: e.target.value },
+                          location: { ...formData.location, address: { ...formData.location.address, postalArea: e.target.value } }
+                        })}
+                        className="mt-2"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="building">Bygg / Anlegg</Label>
+                      <Input
+                        id="building"
+                        value={formData.location.building}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          location: { ...formData.location, building: e.target.value, address: { ...formData.location.address, building: e.target.value } }
+                        })}
+                        className="mt-2"
+                        placeholder="F.eks. Kulturhuset"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="floor">Etasje</Label>
+                      <Input
+                        id="floor"
+                        value={formData.location.floor}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          location: { ...formData.location, floor: e.target.value, address: { ...formData.location.address, floor: e.target.value } }
+                        })}
+                        className="mt-2"
+                        placeholder="F.eks. 2. etasje"
+                      />
+                    </div>
+                  </div>
                   <div>
-                    <Label htmlFor="postalArea">Poststed {!formData.locationAndBasis.postalArea && <span className="text-red-600">*</span>}</Label>
+                    <Label htmlFor="roomNumber">Romnummer / Sone</Label>
                     <Input
-                      id="postalArea"
-                      value={formData.locationAndBasis.postalArea}
-                      onChange={(e) => setFormData({ ...formData, locationAndBasis: { ...formData.locationAndBasis, postalArea: e.target.value } })}
+                      id="roomNumber"
+                      value={formData.location.roomNumber}
+                      onChange={(e) => setFormData({ 
+                        ...formData, 
+                        location: { ...formData.location, roomNumber: e.target.value, address: { ...formData.location.address, roomNumber: e.target.value } }
+                      })}
                       className="mt-2"
+                      placeholder="F.eks. Y-201"
                     />
                   </div>
                   <div>
@@ -979,13 +1699,183 @@ export default function UtleieobjektWizardKommune({
                         </Button>
                       </div>
                     </div>
-                    <div className="h-64 bg-stone-100 dark:bg-stone-800 rounded-lg border border-stone-200 dark:border-stone-700 flex items-center justify-center">
+                    <div className="h-48 bg-stone-100 dark:bg-stone-800 rounded-lg border border-stone-200 dark:border-stone-700 flex items-center justify-center">
                       <div className="text-center text-stone-500">
                         <Map className="w-12 h-12 mx-auto mb-2" />
                         <p className="text-sm">Kart-visning</p>
                       </div>
                     </div>
                   </div>
+                  <div>
+                    <Label htmlFor="meetingPoint">Møtepunkt / "Møt opp her"-tekst</Label>
+                    <Input
+                      id="meetingPoint"
+                      value={formData.location.meetingPoint}
+                      onChange={(e) => setFormData({ ...formData, location: { ...formData.location, meetingPoint: e.target.value } })}
+                      className="mt-2"
+                      placeholder="F.eks. Hovedinngang, ta heis til 2. etasje"
+                    />
+                    <p className="text-xs text-stone-500 mt-1">Vises til brukere som har booket</p>
+                  </div>
+                  <div>
+                    <Label htmlFor="directionsText">Veibeskrivelse</Label>
+                    <textarea
+                      id="directionsText"
+                      value={formData.location.directionsText}
+                      onChange={(e) => setFormData({ ...formData, location: { ...formData.location, directionsText: e.target.value } })}
+                      className="mt-2 w-full min-h-[60px] rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+                      placeholder="F.eks. Fra sentrum: Følg skiltene mot kulturhuset. Parkering på baksiden."
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Tilgang og logistikk */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Key className="w-5 h-5" />
+                    Tilgang og logistikk
+                  </CardTitle>
+                  <CardDescription>Hvordan brukere får tilgang til lokalet</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label>Tilgangstype</Label>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mt-2">
+                      {[
+                        { value: 'code', label: 'Kode', icon: Hash },
+                        { value: 'reception', label: 'Resepsjon', icon: Users },
+                        { value: 'janitor', label: 'Vaktmester', icon: Wrench },
+                        { value: 'digital', label: 'Digital nøkkel', icon: Key },
+                        { value: 'physical_key', label: 'Fysisk nøkkel', icon: Key }
+                      ].map(({ value, label, icon: Icon }) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, location: { ...formData.location, accessType: value as typeof formData.location.accessType } })}
+                          className={`p-3 border rounded-lg text-center transition-colors ${
+                            formData.location.accessType === value
+                              ? 'border-lime-500 bg-lime-50 dark:bg-lime-900/20 text-lime-700 dark:text-lime-300'
+                              : 'border-stone-200 dark:border-stone-700 hover:border-stone-400'
+                          }`}
+                        >
+                          <Icon className="w-5 h-5 mx-auto mb-1" />
+                          <span className="text-xs">{label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {formData.location.accessType === 'code' && (
+                    <div>
+                      <Label htmlFor="accessInstructions">Kodeinstruksjoner</Label>
+                      <textarea
+                        id="accessInstructions"
+                        value={formData.location.accessInstructions}
+                        onChange={(e) => setFormData({ ...formData, location: { ...formData.location, accessInstructions: e.target.value } })}
+                        className="mt-2 w-full min-h-[60px] rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+                        placeholder="F.eks. Kode sendes på SMS 1 time før booking starter"
+                      />
+                    </div>
+                  )}
+
+                  {(formData.location.accessType === 'physical_key' || formData.location.accessType === 'janitor') && (
+                    <div className="space-y-4 p-4 bg-stone-50 dark:bg-stone-800 rounded-lg">
+                      <div>
+                        <Label htmlFor="keyPickupLocation">Nøkkelhentested</Label>
+                        <Input
+                          id="keyPickupLocation"
+                          value={formData.location.keyPickupLocation}
+                          onChange={(e) => setFormData({ ...formData, location: { ...formData.location, keyPickupLocation: e.target.value } })}
+                          className="mt-2"
+                          placeholder="F.eks. Servicetorget, 1. etasje"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="keyPickupHours">Hentetider</Label>
+                          <Input
+                            id="keyPickupHours"
+                            value={formData.location.keyPickupHours}
+                            onChange={(e) => setFormData({ ...formData, location: { ...formData.location, keyPickupHours: e.target.value } })}
+                            className="mt-2"
+                            placeholder="F.eks. 08:00-16:00"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="keyReturnDeadline">Innleveringsfrist</Label>
+                          <Input
+                            id="keyReturnDeadline"
+                            value={formData.location.keyReturnDeadline}
+                            onChange={(e) => setFormData({ ...formData, location: { ...formData.location, keyReturnDeadline: e.target.value } })}
+                            className="mt-2"
+                            placeholder="F.eks. Neste virkedag kl 10:00"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <Separator />
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="parkingInfo">Parkeringsinfo</Label>
+                      <Input
+                        id="parkingInfo"
+                        value={formData.location.parkingInfo}
+                        onChange={(e) => setFormData({ ...formData, location: { ...formData.location, parkingInfo: e.target.value } })}
+                        className="mt-2"
+                        placeholder="F.eks. Gratis parkering på baksiden"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="parkingSpots">Antall plasser</Label>
+                      <Input
+                        id="parkingSpots"
+                        type="number"
+                        value={formData.location.parkingSpots || ''}
+                        onChange={(e) => setFormData({ ...formData, location: { ...formData.location, parkingSpots: e.target.value ? parseInt(e.target.value) : null } })}
+                        className="mt-2"
+                        placeholder="F.eks. 20"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.location.loadingZone}
+                        onChange={(e) => setFormData({ ...formData, location: { ...formData.location, loadingZone: e.target.checked } })}
+                        className="rounded"
+                      />
+                      <span className="text-sm">Innlastingssone tilgjengelig</span>
+                    </label>
+                    {formData.location.loadingZone && (
+                      <div className="flex-1">
+                        <Input
+                          value={formData.location.loadingZoneHours}
+                          onChange={(e) => setFormData({ ...formData, location: { ...formData.location, loadingZoneHours: e.target.value } })}
+                          placeholder="Tilgjengelig tider (f.eks. 08:00-16:00)"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Beskrivelse og innhold */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="w-5 h-5" />
+                    Beskrivelse
+                  </CardTitle>
+                  <CardDescription>Beskrivelse som vises for brukere</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
                   <div>
                     <Label htmlFor="shortDescription">Kort beskrivelse (maks 200 tegn)</Label>
                     <textarea
@@ -1251,13 +2141,351 @@ export default function UtleieobjektWizardKommune({
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Kapasitet og rom */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Layers className="w-5 h-5" />
+                    Kapasitet og rom
+                  </CardTitle>
+                  <CardDescription>Detaljert kapasitetsinformasjon for ulike oppsett</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <Label>Kapasitet i flere dimensjoner</Label>
+                    <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div>
+                        <Label className="text-xs">Sitteplasser</Label>
+                        <Input
+                          type="number"
+                          value={formData.lokaler.venueCapacity.seatedCapacity}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            lokaler: { 
+                              ...formData.lokaler, 
+                              venueCapacity: { ...formData.lokaler.venueCapacity, seatedCapacity: parseInt(e.target.value) || 0 } 
+                            } 
+                          })}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Ståplasser</Label>
+                        <Input
+                          type="number"
+                          value={formData.lokaler.venueCapacity.standingCapacity}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            lokaler: { 
+                              ...formData.lokaler, 
+                              venueCapacity: { ...formData.lokaler.venueCapacity, standingCapacity: parseInt(e.target.value) || 0 } 
+                            } 
+                          })}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Brannkapasitet</Label>
+                        <Input
+                          type="number"
+                          value={formData.lokaler.venueCapacity.fireCapacity}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            lokaler: { 
+                              ...formData.lokaler, 
+                              venueCapacity: { ...formData.lokaler.venueCapacity, fireCapacity: parseInt(e.target.value) || 0 } 
+                            } 
+                          })}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Maks personer totalt</Label>
+                        <Input
+                          type="number"
+                          value={formData.lokaler.venueCapacity.maxPersons}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            lokaler: { 
+                              ...formData.lokaler, 
+                              venueCapacity: { ...formData.lokaler.venueCapacity, maxPersons: parseInt(e.target.value) || 0 } 
+                            } 
+                          })}
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label>Bordoppsett</Label>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setFormData({
+                          ...formData,
+                          lokaler: {
+                            ...formData.lokaler,
+                            venueCapacity: {
+                              ...formData.lokaler.venueCapacity,
+                              tableLayouts: [...formData.lokaler.venueCapacity.tableLayouts, { id: `layout-${Date.now()}`, name: '', capacity: 0, description: '' }]
+                            }
+                          }
+                        })}
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Legg til oppsett
+                      </Button>
+                    </div>
+                    <div className="space-y-3">
+                      {formData.lokaler.venueCapacity.tableLayouts.map((layout, index) => (
+                        <div key={layout.id || index} className="flex items-center gap-4 p-3 border rounded-lg">
+                          <div className="flex-1">
+                            <Input
+                              value={layout.name}
+                              onChange={(e) => {
+                                const updated = formData.lokaler.venueCapacity.tableLayouts.map((l, i) =>
+                                  i === index ? { ...l, name: e.target.value } : l
+                                )
+                                setFormData({ 
+                                  ...formData, 
+                                  lokaler: { 
+                                    ...formData.lokaler, 
+                                    venueCapacity: { ...formData.lokaler.venueCapacity, tableLayouts: updated } 
+                                  } 
+                                })
+                              }}
+                              placeholder="F.eks. U-form"
+                            />
+                          </div>
+                          <div className="w-24">
+                            <Input
+                              type="number"
+                              value={layout.capacity}
+                              onChange={(e) => {
+                                const updated = formData.lokaler.venueCapacity.tableLayouts.map((l, i) =>
+                                  i === index ? { ...l, capacity: parseInt(e.target.value) || 0 } : l
+                                )
+                                setFormData({ 
+                                  ...formData, 
+                                  lokaler: { 
+                                    ...formData.lokaler, 
+                                    venueCapacity: { ...formData.lokaler.venueCapacity, tableLayouts: updated } 
+                                  } 
+                                })
+                              }}
+                              placeholder="Kap."
+                            />
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const updated = formData.lokaler.venueCapacity.tableLayouts.filter((_, i) => i !== index)
+                              setFormData({ 
+                                ...formData, 
+                                lokaler: { 
+                                  ...formData.lokaler, 
+                                  venueCapacity: { ...formData.lokaler.venueCapacity, tableLayouts: updated } 
+                                } 
+                              })
+                            }}
+                            className="text-red-600"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                      {formData.lokaler.venueCapacity.tableLayouts.length === 0 && (
+                        <div className="p-4 border border-dashed rounded-lg text-center text-stone-500 text-sm">
+                          Ingen bordoppsett definert
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label>Romstruktur</Label>
+                    <div className="mt-2 space-y-4">
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.lokaler.roomStructure.isDivisible}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            lokaler: { 
+                              ...formData.lokaler, 
+                              roomStructure: { ...formData.lokaler.roomStructure, isDivisible: e.target.checked } 
+                            } 
+                          })}
+                          className="rounded"
+                        />
+                        <span className="text-sm">Rommet kan deles i mindre soner</span>
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.lokaler.roomStructure.canBookSimultaneously}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            lokaler: { 
+                              ...formData.lokaler, 
+                              roomStructure: { ...formData.lokaler.roomStructure, canBookSimultaneously: e.target.checked } 
+                            } 
+                          })}
+                          className="rounded"
+                        />
+                        <span className="text-sm">Tillater samtidige bookinger (flere leietakere)</span>
+                      </label>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Støyregler */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Volume2 className="w-5 h-5" />
+                    Støyregler
+                  </CardTitle>
+                  <CardDescription>Regler for støy og musikk</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label className="text-xs">Maks desibelnivå (dB)</Label>
+                      <Input
+                        type="number"
+                        value={formData.lokaler.noiseRules.maxDecibelLevel || ''}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          lokaler: { 
+                            ...formData.lokaler, 
+                            noiseRules: { ...formData.lokaler.noiseRules, maxDecibelLevel: e.target.value ? parseInt(e.target.value) : null } 
+                          } 
+                        })}
+                        className="mt-1"
+                        placeholder="F.eks. 85"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Stilletid fra</Label>
+                      <Input
+                        type="time"
+                        value={formData.lokaler.noiseRules.quietHoursFrom}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          lokaler: { 
+                            ...formData.lokaler, 
+                            noiseRules: { ...formData.lokaler.noiseRules, quietHoursFrom: e.target.value } 
+                          } 
+                        })}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Stilletid til</Label>
+                      <Input
+                        type="time"
+                        value={formData.lokaler.noiseRules.quietHoursTo}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          lokaler: { 
+                            ...formData.lokaler, 
+                            noiseRules: { ...formData.lokaler.noiseRules, quietHoursTo: e.target.value } 
+                          } 
+                        })}
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.lokaler.noiseRules.musicAllowed}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            lokaler: { 
+                              ...formData.lokaler, 
+                              noiseRules: { ...formData.lokaler.noiseRules, musicAllowed: e.target.checked } 
+                            } 
+                          })}
+                          className="rounded"
+                        />
+                        <span className="text-sm">Musikk tillatt</span>
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.lokaler.noiseRules.amplifiedSoundAllowed}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            lokaler: { 
+                              ...formData.lokaler, 
+                              noiseRules: { ...formData.lokaler.noiseRules, amplifiedSoundAllowed: e.target.checked } 
+                            } 
+                          })}
+                          className="rounded"
+                        />
+                        <span className="text-sm">Forsterket lyd tillatt</span>
+                      </label>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.lokaler.noiseRules.livePerformanceAllowed}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            lokaler: { 
+                              ...formData.lokaler, 
+                              noiseRules: { ...formData.lokaler.noiseRules, livePerformanceAllowed: e.target.checked } 
+                            } 
+                          })}
+                          className="rounded"
+                        />
+                        <span className="text-sm">Liveopptreden tillatt</span>
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.lokaler.noiseRules.neighborNotificationRequired}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            lokaler: { 
+                              ...formData.lokaler, 
+                              noiseRules: { ...formData.lokaler.noiseRules, neighborNotificationRequired: e.target.checked } 
+                            } 
+                          })}
+                          className="rounded"
+                        />
+                        <span className="text-sm">Krever nabovarsel</span>
+                      </label>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              </>
             )}
 
             {/* Lokaler: Step 2 - Tilgjengelighet */}
             {selectedCategory === 'lokaler' && currentStep === 2 && (
+              <>
               <Card>
                 <CardHeader>
-                  <CardTitle>Tilgjengelighet</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="w-5 h-5" />
+                    Tilgjengelighet
+                  </CardTitle>
                   <CardDescription>Definer når objektet er tilgjengelig for booking</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -1708,13 +2936,440 @@ export default function UtleieobjektWizardKommune({
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Tidsregler */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Timer className="w-5 h-5" />
+                    Tidsregler
+                  </CardTitle>
+                  <CardDescription>Buffer-tider, avbestilling og no-show regler</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label>Standard booking-lengde (min)</Label>
+                      <Input
+                        type="number"
+                        value={formData.timeLogic.defaultBookingLength}
+                        onChange={(e) => setFormData({ ...formData, timeLogic: { ...formData.timeLogic, defaultBookingLength: parseInt(e.target.value) || 60 } })}
+                        className="mt-2"
+                      />
+                    </div>
+                    <div>
+                      <Label>Minimum varighet (min)</Label>
+                      <Input
+                        type="number"
+                        value={formData.timeLogic.minDuration}
+                        onChange={(e) => setFormData({ ...formData, timeLogic: { ...formData.timeLogic, minDuration: parseInt(e.target.value) || 30 } })}
+                        className="mt-2"
+                      />
+                    </div>
+                    <div>
+                      <Label>Maksimum varighet (min)</Label>
+                      <Input
+                        type="number"
+                        value={formData.timeLogic.maxDuration}
+                        onChange={(e) => setFormData({ ...formData, timeLogic: { ...formData.timeLogic, maxDuration: parseInt(e.target.value) || 480 } })}
+                        className="mt-2"
+                      />
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label>Buffer-tider (rigg/rydd)</Label>
+                    <p className="text-xs text-stone-500 mb-2">Tid som legges til før og etter booking for klargjøring</p>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-xs">Buffer før (minutter)</Label>
+                        <Input
+                          type="number"
+                          value={formData.timeLogic.bufferBefore}
+                          onChange={(e) => setFormData({ ...formData, timeLogic: { ...formData.timeLogic, bufferBefore: parseInt(e.target.value) || 0 } })}
+                          className="mt-1"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Buffer etter (minutter)</Label>
+                        <Input
+                          type="number"
+                          value={formData.timeLogic.bufferAfter}
+                          onChange={(e) => setFormData({ ...formData, timeLogic: { ...formData.timeLogic, bufferAfter: parseInt(e.target.value) || 0 } })}
+                          className="mt-1"
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label>Booking-frister</Label>
+                    <div className="grid grid-cols-2 gap-4 mt-2">
+                      <div>
+                        <Label className="text-xs">Minimum ledetid (timer)</Label>
+                        <Input
+                          type="number"
+                          value={formData.timeLogic.minLeadTime}
+                          onChange={(e) => setFormData({ ...formData, timeLogic: { ...formData.timeLogic, minLeadTime: parseInt(e.target.value) || 24 } })}
+                          className="mt-1"
+                          placeholder="24"
+                        />
+                        <p className="text-xs text-stone-500 mt-1">Hvor tidlig i forveien må man booke</p>
+                      </div>
+                      <div>
+                        <Label className="text-xs">Maksimum ledetid (dager)</Label>
+                        <Input
+                          type="number"
+                          value={formData.timeLogic.maxLeadTime}
+                          onChange={(e) => setFormData({ ...formData, timeLogic: { ...formData.timeLogic, maxLeadTime: parseInt(e.target.value) || 90 } })}
+                          className="mt-1"
+                          placeholder="90"
+                        />
+                        <p className="text-xs text-stone-500 mt-1">Hvor langt frem i tid kan man booke</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label>Avbestillingsregler</Label>
+                    <div className="mt-2 space-y-4 p-4 bg-stone-50 dark:bg-stone-800 rounded-lg">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-xs">Avbestillingsfrist (timer før)</Label>
+                          <Input
+                            type="number"
+                            value={formData.timeLogic.cancellationRules.cutoffHours}
+                            onChange={(e) => setFormData({ 
+                              ...formData, 
+                              timeLogic: { 
+                                ...formData.timeLogic, 
+                                cancellationRules: { ...formData.timeLogic.cancellationRules, cutoffHours: parseInt(e.target.value) || 24 } 
+                              } 
+                            })}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Refusjonspolicy</Label>
+                          <select
+                            value={formData.timeLogic.cancellationRules.refundPolicy}
+                            onChange={(e) => setFormData({ 
+                              ...formData, 
+                              timeLogic: { 
+                                ...formData.timeLogic, 
+                                cancellationRules: { ...formData.timeLogic.cancellationRules, refundPolicy: e.target.value as 'full' | 'partial' | 'none' } 
+                              } 
+                            })}
+                            className="mt-1 w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                          >
+                            <option value="full">Full refusjon</option>
+                            <option value="partial">Delvis refusjon</option>
+                            <option value="none">Ingen refusjon</option>
+                          </select>
+                        </div>
+                      </div>
+                      {formData.timeLogic.cancellationRules.refundPolicy === 'partial' && (
+                        <div>
+                          <Label className="text-xs">Refusjonsprosent</Label>
+                          <Input
+                            type="number"
+                            value={formData.timeLogic.cancellationRules.refundPercentage}
+                            onChange={(e) => setFormData({ 
+                              ...formData, 
+                              timeLogic: { 
+                                ...formData.timeLogic, 
+                                cancellationRules: { ...formData.timeLogic.cancellationRules, refundPercentage: parseInt(e.target.value) || 50 } 
+                              } 
+                            })}
+                            className="mt-1"
+                            max={100}
+                            min={0}
+                          />
+                        </div>
+                      )}
+                      <div>
+                        <Label className="text-xs">Gebyr for sen avbestilling (kr)</Label>
+                        <Input
+                          type="number"
+                          value={formData.timeLogic.cancellationRules.lateCancellationFee}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            timeLogic: { 
+                              ...formData.timeLogic, 
+                              cancellationRules: { ...formData.timeLogic.cancellationRules, lateCancellationFee: parseInt(e.target.value) || 0 } 
+                            } 
+                          })}
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label>No-show regler</Label>
+                    <div className="mt-2 space-y-4 p-4 bg-stone-50 dark:bg-stone-800 rounded-lg">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-xs">No-show gebyr (kr)</Label>
+                          <Input
+                            type="number"
+                            value={formData.timeLogic.noShowRules.fee}
+                            onChange={(e) => setFormData({ 
+                              ...formData, 
+                              timeLogic: { 
+                                ...formData.timeLogic, 
+                                noShowRules: { ...formData.timeLogic.noShowRules, fee: parseInt(e.target.value) || 0 } 
+                              } 
+                            })}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Konsekvens ved gjentatte no-shows</Label>
+                          <select
+                            value={formData.timeLogic.noShowRules.consequenceAction}
+                            onChange={(e) => setFormData({ 
+                              ...formData, 
+                              timeLogic: { 
+                                ...formData.timeLogic, 
+                                noShowRules: { ...formData.timeLogic.noShowRules, consequenceAction: e.target.value as 'none' | 'warning' | 'block' | 'fee' } 
+                              } 
+                            })}
+                            className="mt-1 w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                          >
+                            <option value="none">Ingen konsekvens</option>
+                            <option value="warning">Advarsel</option>
+                            <option value="block">Blokker bruker</option>
+                            <option value="fee">Gebyr</option>
+                          </select>
+                        </div>
+                      </div>
+                      {formData.timeLogic.noShowRules.consequenceAction === 'block' && (
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label className="text-xs">Antall no-shows før blokkering</Label>
+                            <Input
+                              type="number"
+                              value={formData.timeLogic.noShowRules.warningCount}
+                              onChange={(e) => setFormData({ 
+                                ...formData, 
+                                timeLogic: { 
+                                  ...formData.timeLogic, 
+                                  noShowRules: { ...formData.timeLogic.noShowRules, warningCount: parseInt(e.target.value) || 3 } 
+                                } 
+                              })}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs">Blokkeringsvarighet (dager)</Label>
+                            <Input
+                              type="number"
+                              value={formData.timeLogic.noShowRules.blockDurationDays}
+                              onChange={(e) => setFormData({ 
+                                ...formData, 
+                                timeLogic: { 
+                                  ...formData.timeLogic, 
+                                  noShowRules: { ...formData.timeLogic.noShowRules, blockDurationDays: parseInt(e.target.value) || 30 } 
+                                } 
+                              })}
+                              className="mt-1"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              </>
             )}
 
             {/* Lokaler: Step 3 - Regler */}
             {selectedCategory === 'lokaler' && currentStep === 3 && (
+              <>
+              {/* Målgruppe og synlighet */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Regler og godkjenning</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="w-5 h-5" />
+                    Målgruppe og synlighet
+                  </CardTitle>
+                  <CardDescription>Definer hvem som kan se og booke dette objektet</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <Label>Synlighet</Label>
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      {[
+                        { value: 'public', label: 'Offentlig (alle)', description: 'Synlig for alle i katalogen' },
+                        { value: 'organization', label: 'Lag og foreninger', description: 'Kun for registrerte organisasjoner' },
+                        { value: 'internal', label: 'Intern', description: 'Kun for kommunens ansatte' },
+                        { value: 'admin_only', label: 'Kun admin', description: 'Skjult fra katalogen' }
+                      ].map(({ value, label, description }) => (
+                        <label 
+                          key={value}
+                          className={`flex items-start gap-2 p-3 border rounded-lg cursor-pointer ${
+                            formData.audience.visibility.includes(value as typeof formData.audience.visibility[number])
+                              ? 'border-lime-500 bg-lime-50 dark:bg-lime-900/20'
+                              : 'border-stone-200 dark:border-stone-700'
+                          }`}
+                        >
+                          <input 
+                            type="checkbox" 
+                            checked={formData.audience.visibility.includes(value as typeof formData.audience.visibility[number])}
+                            onChange={(e) => {
+                              const current = formData.audience.visibility
+                              const updated = e.target.checked 
+                                ? [...current, value as typeof formData.audience.visibility[number]]
+                                : current.filter(v => v !== value)
+                              setFormData({ ...formData, audience: { ...formData.audience, visibility: updated } })
+                            }}
+                            className="mt-1 rounded"
+                          />
+                          <div>
+                            <div className="font-medium text-sm">{label}</div>
+                            <div className="text-xs text-stone-500">{description}</div>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label>Hvem kan booke</Label>
+                    <div className="mt-2 space-y-2">
+                      {['Innbygger (privatperson)', 'Lag og forening', 'Bedrift/næringsliv', 'Kommunale enheter'].map((group) => (
+                        <label key={group} className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={formData.audience.bookableBy.includes(group)}
+                            onChange={(e) => {
+                              const current = formData.audience.bookableBy
+                              const updated = e.target.checked 
+                                ? [...current, group]
+                                : current.filter(g => g !== group)
+                              setFormData({ ...formData, audience: { ...formData.audience, bookableBy: updated } })
+                            }}
+                            className="rounded"
+                          />
+                          <span className="text-sm">{group}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label>Restriksjoner</Label>
+                    <div className="mt-2 space-y-3">
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.audience.restrictions.requireOrgNumber}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            audience: { 
+                              ...formData.audience, 
+                              restrictions: { ...formData.audience.restrictions, requireOrgNumber: e.target.checked } 
+                            } 
+                          })}
+                          className="rounded"
+                        />
+                        <span className="text-sm">Krev organisasjonsnummer</span>
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.audience.restrictions.requireResponsibleAdult}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            audience: { 
+                              ...formData.audience, 
+                              restrictions: { ...formData.audience.restrictions, requireResponsibleAdult: e.target.checked } 
+                            } 
+                          })}
+                          className="rounded"
+                        />
+                        <span className="text-sm">Krev ansvarlig voksen (over 18 år)</span>
+                      </label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-xs">Minimum alder</Label>
+                          <Input
+                            type="number"
+                            value={formData.audience.restrictions.minAge || ''}
+                            onChange={(e) => setFormData({ 
+                              ...formData, 
+                              audience: { 
+                                ...formData.audience, 
+                                restrictions: { ...formData.audience.restrictions, minAge: e.target.value ? parseInt(e.target.value) : null } 
+                              } 
+                            })}
+                            className="mt-1"
+                            placeholder="Ingen grense"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Maksimum alder</Label>
+                          <Input
+                            type="number"
+                            value={formData.audience.restrictions.maxAge || ''}
+                            onChange={(e) => setFormData({ 
+                              ...formData, 
+                              audience: { 
+                                ...formData.audience, 
+                                restrictions: { ...formData.audience.restrictions, maxAge: e.target.value ? parseInt(e.target.value) : null } 
+                              } 
+                            })}
+                            className="mt-1"
+                            placeholder="Ingen grense"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-xs">Verifiseringsnivå</Label>
+                        <select
+                          value={formData.audience.restrictions.verificationLevel}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            audience: { 
+                              ...formData.audience, 
+                              restrictions: { ...formData.audience.restrictions, verificationLevel: e.target.value as 'none' | 'basic' | 'strong' } 
+                            } 
+                          })}
+                          className="mt-1 w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                        >
+                          <option value="none">Ingen (innlogging ikke påkrevd)</option>
+                          <option value="basic">Grunnleggende (innlogging)</option>
+                          <option value="strong">Sterk (BankID/MinID)</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Regler og godkjenning */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ClipboardCheck className="w-5 h-5" />
+                    Regler og godkjenning
+                  </CardTitle>
                   <CardDescription>Definer godkjenning, begrensninger og paraplyorganisasjon-disponering</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -1870,13 +3525,213 @@ export default function UtleieobjektWizardKommune({
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Dokumentkrav og vilkår */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="w-5 h-5" />
+                    Dokumentkrav og vilkår
+                  </CardTitle>
+                  <CardDescription>Krav til dokumenter og vilkårsaksept</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label>Påkrevde dokumenter fra leietaker</Label>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setFormData({
+                          ...formData,
+                          workflow: {
+                            ...formData.workflow,
+                            documentRequirements: [...formData.workflow.documentRequirements, { id: `doc-${Date.now()}`, name: '', type: '', required: false, description: '' }]
+                          }
+                        })}
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Legg til krav
+                      </Button>
+                    </div>
+                    <div className="space-y-3">
+                      {formData.workflow.documentRequirements.map((doc, index) => (
+                        <div key={doc.id || index} className="p-4 border rounded-lg space-y-3">
+                          <div className="grid grid-cols-3 gap-4">
+                            <div>
+                              <Label className="text-xs">Dokumentnavn</Label>
+                              <Input
+                                value={doc.name}
+                                onChange={(e) => {
+                                  const updated = formData.workflow.documentRequirements.map((d, i) => 
+                                    i === index ? { ...d, name: e.target.value } : d
+                                  )
+                                  setFormData({ ...formData, workflow: { ...formData.workflow, documentRequirements: updated } })
+                                }}
+                                className="mt-1"
+                                placeholder="F.eks. Skjenkebevilling"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Type</Label>
+                              <select
+                                value={doc.type}
+                                onChange={(e) => {
+                                  const updated = formData.workflow.documentRequirements.map((d, i) => 
+                                    i === index ? { ...d, type: e.target.value } : d
+                                  )
+                                  setFormData({ ...formData, workflow: { ...formData.workflow, documentRequirements: updated } })
+                                }}
+                                className="mt-1 w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                              >
+                                <option value="">Velg type...</option>
+                                <option value="permit">Tillatelse</option>
+                                <option value="insurance">Forsikring</option>
+                                <option value="certificate">Sertifikat</option>
+                                <option value="plan">Plan/tegning</option>
+                                <option value="other">Annet</option>
+                              </select>
+                            </div>
+                            <div className="flex items-end gap-2">
+                              <label className="flex items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  checked={doc.required}
+                                  onChange={(e) => {
+                                    const updated = formData.workflow.documentRequirements.map((d, i) => 
+                                      i === index ? { ...d, required: e.target.checked } : d
+                                    )
+                                    setFormData({ ...formData, workflow: { ...formData.workflow, documentRequirements: updated } })
+                                  }}
+                                  className="rounded"
+                                />
+                                <span className="text-xs">Påkrevd</span>
+                              </label>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  const updated = formData.workflow.documentRequirements.filter((_, i) => i !== index)
+                                  setFormData({ ...formData, workflow: { ...formData.workflow, documentRequirements: updated } })
+                                }}
+                                className="text-red-600"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                          <div>
+                            <Label className="text-xs">Beskrivelse</Label>
+                            <Input
+                              value={doc.description}
+                              onChange={(e) => {
+                                const updated = formData.workflow.documentRequirements.map((d, i) => 
+                                  i === index ? { ...d, description: e.target.value } : d
+                                )
+                                setFormData({ ...formData, workflow: { ...formData.workflow, documentRequirements: updated } })
+                              }}
+                              className="mt-1"
+                              placeholder="Beskriv når og hvorfor dette dokumentet kreves"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                      {formData.workflow.documentRequirements.length === 0 && (
+                        <div className="p-4 border border-dashed rounded-lg text-center text-stone-500 text-sm">
+                          Ingen dokumentkrav lagt til
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label>Vilkårsaksept</Label>
+                    <div className="mt-2 space-y-4">
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.workflow.termsAcceptance.required}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            workflow: { 
+                              ...formData.workflow, 
+                              termsAcceptance: { ...formData.workflow.termsAcceptance, required: e.target.checked } 
+                            } 
+                          })}
+                          className="rounded"
+                        />
+                        <span className="text-sm">Krev aksept av vilkår ved booking</span>
+                      </label>
+
+                      {formData.workflow.termsAcceptance.required && (
+                        <div className="space-y-4 p-4 bg-stone-50 dark:bg-stone-800 rounded-lg">
+                          <div>
+                            <Label className="text-xs">Vilkårdokument URL</Label>
+                            <Input
+                              value={formData.workflow.termsAcceptance.documentUrl}
+                              onChange={(e) => setFormData({ 
+                                ...formData, 
+                                workflow: { 
+                                  ...formData.workflow, 
+                                  termsAcceptance: { ...formData.workflow.termsAcceptance, documentUrl: e.target.value } 
+                                } 
+                              })}
+                              className="mt-1"
+                              placeholder="https://..."
+                            />
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <label className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                checked={formData.workflow.termsAcceptance.signatureRequired}
+                                onChange={(e) => setFormData({ 
+                                  ...formData, 
+                                  workflow: { 
+                                    ...formData.workflow, 
+                                    termsAcceptance: { ...formData.workflow.termsAcceptance, signatureRequired: e.target.checked } 
+                                  } 
+                                })}
+                                className="rounded"
+                              />
+                              <span className="text-xs">Krev signatur</span>
+                            </label>
+                            <label className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                checked={formData.workflow.termsAcceptance.digitalSignature}
+                                onChange={(e) => setFormData({ 
+                                  ...formData, 
+                                  workflow: { 
+                                    ...formData.workflow, 
+                                    termsAcceptance: { ...formData.workflow.termsAcceptance, digitalSignature: e.target.checked } 
+                                  } 
+                                })}
+                                className="rounded"
+                              />
+                              <span className="text-xs">Digital signatur (BankID)</span>
+                            </label>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              </>
             )}
 
             {/* Lokaler: Step 4 - Pris og betaling */}
             {selectedCategory === 'lokaler' && currentStep === 4 && (
+              <>
               <Card>
                 <CardHeader>
-                  <CardTitle>Pris og betaling</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <DollarSign className="w-5 h-5" />
+                    Pris og betaling
+                  </CardTitle>
                   <CardDescription>Kommunal prisstyring, betalingsmetoder og vilkår</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -1917,15 +3772,15 @@ export default function UtleieobjektWizardKommune({
                       <div>
                         <div className="flex items-center justify-between mb-2">
                           <Label>Målgrupper (kommunekjerne)</Label>
-                          <Button variant="outline" size="sm" onClick={() => setFormData({ ...formData, pricing: { ...formData.pricing, targetGroups: [...formData.pricing.targetGroups, { group: '', priceReduction: '', free: false }] } })}>
+                          <Button variant="outline" size="sm" onClick={() => setFormData({ ...formData, pricing: { ...formData.pricing, targetGroups: [...formData.pricing.targetGroups, { id: `tg-${Date.now()}`, group: '', price: 0, free: false, discountPercent: 0 }] } })}>
                             <Plus className="w-4 h-4 mr-2" />
                             Legg til målgruppe-linje
                           </Button>
                         </div>
                         <div className="space-y-4">
                           {formData.pricing.targetGroups.map((tg, index) => (
-                            <div key={index} className="p-4 border rounded-lg w-full">
-                              <div className="grid grid-cols-3 gap-4 items-end">
+                            <div key={tg.id || index} className="p-4 border rounded-lg w-full">
+                              <div className="grid grid-cols-4 gap-4 items-end">
                                 <div className="flex-1">
                                   <Label className="text-xs">Målgruppe</Label>
                                   <select
@@ -1939,23 +3794,40 @@ export default function UtleieobjektWizardKommune({
                                     className="mt-1 w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
                                   >
                                     <option value="">Velg målgruppe</option>
-                                    <option value="Ideell">Ideell</option>
+                                    <option value="Standard">Standard</option>
+                                    <option value="Ideell">Ideell / Lag og foreninger</option>
                                     <option value="Kommersiell">Kommersiell</option>
                                     <option value="Barn og unge">Barn og unge</option>
+                                    <option value="Kommunal">Kommunale enheter</option>
                                   </select>
                                 </div>
                                 <div className="flex-1">
-                                  <Label className="text-xs">Prisreduksjon prosent</Label>
+                                  <Label className="text-xs">Pris (kr)</Label>
                                   <Input
                                     type="number"
-                                    value={tg.priceReduction}
+                                    value={tg.price}
                                     onChange={(e) => {
                                       const updated = formData.pricing.targetGroups.map((item, i) =>
-                                        i === index ? { ...item, priceReduction: e.target.value } : item
+                                        i === index ? { ...item, price: parseFloat(e.target.value) || 0 } : item
                                       )
                                       setFormData({ ...formData, pricing: { ...formData.pricing, targetGroups: updated } })
                                     }}
                                     className="mt-1 w-full"
+                                  />
+                                </div>
+                                <div className="flex-1">
+                                  <Label className="text-xs">Rabatt %</Label>
+                                  <Input
+                                    type="number"
+                                    value={tg.discountPercent || ''}
+                                    onChange={(e) => {
+                                      const updated = formData.pricing.targetGroups.map((item, i) =>
+                                        i === index ? { ...item, discountPercent: parseFloat(e.target.value) || 0 } : item
+                                      )
+                                      setFormData({ ...formData, pricing: { ...formData.pricing, targetGroups: updated } })
+                                    }}
+                                    className="mt-1 w-full"
+                                    placeholder="0"
                                   />
                                 </div>
                                 <div className="flex items-end justify-end gap-3">
@@ -2105,6 +3977,239 @@ export default function UtleieobjektWizardKommune({
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Depositum og gebyrer */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CreditCard className="w-5 h-5" />
+                    Depositum og gebyrer
+                  </CardTitle>
+                  <CardDescription>Sikkerhet for skade og ekstra kostnader</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <label className="flex items-center gap-2">
+                      <input 
+                        type="checkbox" 
+                        checked={formData.pricing.deposit.required} 
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          pricing: { 
+                            ...formData.pricing, 
+                            deposit: { ...formData.pricing.deposit, required: e.target.checked } 
+                          } 
+                        })} 
+                        className="rounded" 
+                      />
+                      <span className="text-sm font-medium">Krev depositum</span>
+                    </label>
+                  </div>
+
+                  {formData.pricing.deposit.required && (
+                    <div className="space-y-4 p-4 bg-stone-50 dark:bg-stone-800 rounded-lg">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-xs">Depositumbeløp (kr)</Label>
+                          <Input
+                            type="number"
+                            value={formData.pricing.deposit.amount}
+                            onChange={(e) => setFormData({ 
+                              ...formData, 
+                              pricing: { 
+                                ...formData.pricing, 
+                                deposit: { ...formData.pricing.deposit, amount: parseInt(e.target.value) || 0 } 
+                              } 
+                            })}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Refusjonstid (dager etter arrangement)</Label>
+                          <Input
+                            type="number"
+                            value={formData.pricing.deposit.refundTimeline}
+                            onChange={(e) => setFormData({ 
+                              ...formData, 
+                              pricing: { 
+                                ...formData.pricing, 
+                                deposit: { ...formData.pricing.deposit, refundTimeline: parseInt(e.target.value) || 14 } 
+                              } 
+                            })}
+                            className="mt-1"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-xs">Triggere (når kreves depositum)</Label>
+                        <div className="mt-2 space-y-2">
+                          {['Alkoholservering', 'Over 50 personer', 'Privat arrangement', 'Kommersiell bruk'].map((trigger) => (
+                            <label key={trigger} className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                checked={formData.pricing.deposit.triggers.includes(trigger)}
+                                onChange={(e) => {
+                                  const current = formData.pricing.deposit.triggers
+                                  const updated = e.target.checked 
+                                    ? [...current, trigger]
+                                    : current.filter(t => t !== trigger)
+                                  setFormData({ 
+                                    ...formData, 
+                                    pricing: { 
+                                      ...formData.pricing, 
+                                      deposit: { ...formData.pricing.deposit, triggers: updated } 
+                                    } 
+                                  })
+                                }}
+                                className="rounded"
+                              />
+                              <span className="text-sm">{trigger}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-xs">Refusjonsbetingelser</Label>
+                        <textarea
+                          value={formData.pricing.deposit.refundConditions}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            pricing: { 
+                              ...formData.pricing, 
+                              deposit: { ...formData.pricing.deposit, refundConditions: e.target.value } 
+                            } 
+                          })}
+                          className="mt-1 w-full min-h-[60px] rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+                          placeholder="F.eks. Depositum refunderes i sin helhet dersom lokalet leveres tilbake i samme stand..."
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Trekkeregler ved skade</Label>
+                        <textarea
+                          value={formData.pricing.deposit.deductionRules}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            pricing: { 
+                              ...formData.pricing, 
+                              deposit: { ...formData.pricing.deposit, deductionRules: e.target.value } 
+                            } 
+                          })}
+                          className="mt-1 w-full min-h-[60px] rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+                          placeholder="F.eks. Ved skade trekkes dokumentert kostnad fra depositum..."
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <Separator />
+
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label>Tilleggsgebyrer</Label>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setFormData({
+                          ...formData,
+                          pricing: {
+                            ...formData.pricing,
+                            fees: [...formData.pricing.fees, { id: `fee-${Date.now()}`, name: '', amount: 0, type: 'fixed', mandatory: false, conditions: '' }]
+                          }
+                        })}
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Legg til gebyr
+                      </Button>
+                    </div>
+                    <div className="space-y-3">
+                      {formData.pricing.fees.map((fee, index) => (
+                        <div key={fee.id || index} className="p-4 border rounded-lg space-y-3">
+                          <div className="grid grid-cols-3 gap-4">
+                            <div>
+                              <Label className="text-xs">Navn på gebyr</Label>
+                              <Input
+                                value={fee.name}
+                                onChange={(e) => {
+                                  const updated = formData.pricing.fees.map((f, i) => 
+                                    i === index ? { ...f, name: e.target.value } : f
+                                  )
+                                  setFormData({ ...formData, pricing: { ...formData.pricing, fees: updated } })
+                                }}
+                                className="mt-1"
+                                placeholder="F.eks. Rengjøring"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Beløp</Label>
+                              <Input
+                                type="number"
+                                value={fee.amount}
+                                onChange={(e) => {
+                                  const updated = formData.pricing.fees.map((f, i) => 
+                                    i === index ? { ...f, amount: parseFloat(e.target.value) || 0 } : f
+                                  )
+                                  setFormData({ ...formData, pricing: { ...formData.pricing, fees: updated } })
+                                }}
+                                className="mt-1"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Type</Label>
+                              <select
+                                value={fee.type}
+                                onChange={(e) => {
+                                  const updated = formData.pricing.fees.map((f, i) => 
+                                    i === index ? { ...f, type: e.target.value as 'fixed' | 'percentage' } : f
+                                  )
+                                  setFormData({ ...formData, pricing: { ...formData.pricing, fees: updated } })
+                                }}
+                                className="mt-1 w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                              >
+                                <option value="fixed">Fast beløp (kr)</option>
+                                <option value="percentage">Prosent (%)</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <label className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                checked={fee.mandatory}
+                                onChange={(e) => {
+                                  const updated = formData.pricing.fees.map((f, i) => 
+                                    i === index ? { ...f, mandatory: e.target.checked } : f
+                                  )
+                                  setFormData({ ...formData, pricing: { ...formData.pricing, fees: updated } })
+                                }}
+                                className="rounded"
+                              />
+                              <span className="text-xs">Obligatorisk</span>
+                            </label>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const updated = formData.pricing.fees.filter((_, i) => i !== index)
+                                setFormData({ ...formData, pricing: { ...formData.pricing, fees: updated } })
+                              }}
+                              className="text-red-600"
+                            >
+                              <Trash2 className="w-4 h-4 mr-1" />
+                              Slett
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      {formData.pricing.fees.length === 0 && (
+                        <div className="p-4 border border-dashed rounded-lg text-center text-stone-500 text-sm">
+                          Ingen tilleggsgebyrer lagt til
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              </>
             )}
 
             {/* Lokaler: Step 5 - Publisering */}
@@ -2207,10 +4312,14 @@ export default function UtleieobjektWizardKommune({
 
             {/* Sport: Step 1 - Lokasjon */}
             {selectedCategory === 'sport' && currentStep === 1 && startChoice === 'new' && (
+              <>
               <Card>
                 <CardHeader>
-                  <CardTitle>Lokasjon</CardTitle>
-                  <CardDescription>Grunnleggende informasjon om banen/fasiliteten</CardDescription>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="w-5 h-5" />
+                    Ressurstype og grunninfo
+                  </CardTitle>
+                  <CardDescription>Type ressurs og grunnleggende informasjon</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div>
@@ -2403,6 +4512,320 @@ export default function UtleieobjektWizardKommune({
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Ressurstype-valg */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Package className="w-5 h-5" />
+                    Ressurstype
+                  </CardTitle>
+                  <CardDescription>Er dette en bane/fasilitet eller utstyr?</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    {[
+                      { value: 'court', label: 'Bane / Fasilitet', description: 'Tidsbasert booking (f.eks. padelbane, tennisbane)' },
+                      { value: 'equipment', label: 'Utstyr', description: 'Antallsbasert utlån (f.eks. racket, ball)' }
+                    ].map(({ value, label, description }) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setFormData({ 
+                          ...formData, 
+                          sport: { ...formData.sport, resourceType: value as 'court' | 'equipment' } 
+                        })}
+                        className={`p-4 border rounded-lg text-left transition-colors ${
+                          formData.sport.resourceType === value
+                            ? 'border-lime-500 bg-lime-50 dark:bg-lime-900/20'
+                            : 'border-stone-200 dark:border-stone-700 hover:border-stone-400'
+                        }`}
+                      >
+                        <div className="font-medium">{label}</div>
+                        <div className="text-xs text-stone-500 mt-1">{description}</div>
+                      </button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Baneinfo (hvis bane) */}
+              {formData.sport.resourceType === 'court' && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Grid3X3 className="w-5 h-5" />
+                      Baneinfo
+                    </CardTitle>
+                    <CardDescription>Detaljer om banen</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <Label className="text-xs">Underlag</Label>
+                        <select
+                          value={formData.sport.courtInfo.surface}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            sport: { ...formData.sport, courtInfo: { ...formData.sport.courtInfo, surface: e.target.value } } 
+                          })}
+                          className="mt-1 w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                        >
+                          <option value="">Velg underlag...</option>
+                          <option value="kunstgress">Kunstgress</option>
+                          <option value="gress">Gress</option>
+                          <option value="grus">Grus</option>
+                          <option value="asfalt">Asfalt</option>
+                          <option value="parkett">Parkett</option>
+                          <option value="gummi">Gummi</option>
+                          <option value="annet">Annet</option>
+                        </select>
+                      </div>
+                      <div>
+                        <Label className="text-xs">Lengde (m)</Label>
+                        <Input
+                          type="number"
+                          value={formData.sport.courtInfo.dimensions.length}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            sport: { 
+                              ...formData.sport, 
+                              courtInfo: { 
+                                ...formData.sport.courtInfo, 
+                                dimensions: { ...formData.sport.courtInfo.dimensions, length: parseFloat(e.target.value) || 0 } 
+                              } 
+                            } 
+                          })}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Bredde (m)</Label>
+                        <Input
+                          type="number"
+                          value={formData.sport.courtInfo.dimensions.width}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            sport: { 
+                              ...formData.sport, 
+                              courtInfo: { 
+                                ...formData.sport.courtInfo, 
+                                dimensions: { ...formData.sport.courtInfo.dimensions, width: parseFloat(e.target.value) || 0 } 
+                              } 
+                            } 
+                          })}
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={formData.sport.courtInfo.indoor}
+                            onChange={(e) => setFormData({ 
+                              ...formData, 
+                              sport: { ...formData.sport, courtInfo: { ...formData.sport.courtInfo, indoor: e.target.checked } } 
+                            })}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Innendørs</span>
+                        </label>
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={formData.sport.courtInfo.lighting}
+                            onChange={(e) => setFormData({ 
+                              ...formData, 
+                              sport: { ...formData.sport, courtInfo: { ...formData.sport.courtInfo, lighting: e.target.checked } } 
+                            })}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Lysanlegg</span>
+                        </label>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={formData.sport.courtInfo.heatingAvailable}
+                            onChange={(e) => setFormData({ 
+                              ...formData, 
+                              sport: { ...formData.sport, courtInfo: { ...formData.sport.courtInfo, heatingAvailable: e.target.checked } } 
+                            })}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Oppvarming tilgjengelig</span>
+                        </label>
+                        {formData.sport.courtInfo.heatingAvailable && (
+                          <label className="flex items-center gap-2 ml-6">
+                            <input
+                              type="checkbox"
+                              checked={formData.sport.courtInfo.heatingIncluded}
+                              onChange={(e) => setFormData({ 
+                                ...formData, 
+                                sport: { ...formData.sport, courtInfo: { ...formData.sport.courtInfo, heatingIncluded: e.target.checked } } 
+                              })}
+                              className="rounded"
+                            />
+                            <span className="text-xs">Inkludert i prisen</span>
+                          </label>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Utstyrsinfo (hvis utstyr) */}
+              {formData.sport.resourceType === 'equipment' && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Package className="w-5 h-5" />
+                      Utstyrsinfo
+                    </CardTitle>
+                    <CardDescription>Detaljer om utstyret</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-xs">Antall enheter</Label>
+                        <Input
+                          type="number"
+                          value={formData.sport.inventory.totalUnits}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            sport: { ...formData.sport, inventory: { ...formData.sport.inventory, totalUnits: parseInt(e.target.value) || 0 } } 
+                          })}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Tilgjengelig nå</Label>
+                        <Input
+                          type="number"
+                          value={formData.sport.inventory.availableUnits}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            sport: { ...formData.sport, inventory: { ...formData.sport.inventory, availableUnits: parseInt(e.target.value) || 0 } } 
+                          })}
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-xs">Beskrivelse av enhet</Label>
+                      <Input
+                        value={formData.sport.inventory.unitDescription}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          sport: { ...formData.sport, inventory: { ...formData.sport.inventory, unitDescription: e.target.value } } 
+                        })}
+                        className="mt-1"
+                        placeholder="F.eks. 1 racket + 3 baller"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Tilstand</Label>
+                      <select
+                        value={formData.sport.condition.status}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          sport: { ...formData.sport, condition: { ...formData.sport.condition, status: e.target.value as 'new' | 'good' | 'fair' | 'poor' } } 
+                        })}
+                        className="mt-1 w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                      >
+                        <option value="new">Nytt</option>
+                        <option value="good">God</option>
+                        <option value="fair">OK</option>
+                        <option value="poor">Dårlig</option>
+                      </select>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Utlånsregler (for utstyr) */}
+              {formData.sport.resourceType === 'equipment' && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <AlertTriangle className="w-5 h-5" />
+                      Utlånsregler
+                    </CardTitle>
+                    <CardDescription>Regler for utlån av utstyr</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-xs">Maks utlånstid (dager)</Label>
+                        <Input
+                          type="number"
+                          value={formData.sport.loan.maxLoanDurationDays}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            sport: { ...formData.sport, loan: { ...formData.sport.loan, maxLoanDurationDays: parseInt(e.target.value) || 7 } } 
+                          })}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Gebyr for sen retur (kr/dag)</Label>
+                        <Input
+                          type="number"
+                          value={formData.sport.loan.lateReturnFeePerDay}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            sport: { ...formData.sport, loan: { ...formData.sport.loan, lateReturnFeePerDay: parseInt(e.target.value) || 0 } } 
+                          })}
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-xs">Hentested</Label>
+                      <Input
+                        value={formData.sport.loan.pickupLocation}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          sport: { ...formData.sport, loan: { ...formData.sport.loan, pickupLocation: e.target.value } } 
+                        })}
+                        className="mt-1"
+                        placeholder="F.eks. Servicetorget"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-xs">Hentetider</Label>
+                        <Input
+                          value={formData.sport.loan.pickupHours}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            sport: { ...formData.sport, loan: { ...formData.sport.loan, pickupHours: e.target.value } } 
+                          })}
+                          className="mt-1"
+                          placeholder="F.eks. 08:00-16:00"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Returfrist (tid)</Label>
+                        <Input
+                          value={formData.sport.loan.returnDeadlineTime}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            sport: { ...formData.sport, loan: { ...formData.sport.loan, returnDeadlineTime: e.target.value } } 
+                          })}
+                          className="mt-1"
+                          placeholder="F.eks. 16:00"
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              </>
             )}
 
             {/* Sport: Step 2 - Tilgjengelighet */}
@@ -2825,10 +5248,15 @@ export default function UtleieobjektWizardKommune({
 
             {/* Arrangementer: Step 1 - Tidspunkter */}
             {selectedCategory === 'arrangementer' && currentStep === 1 && startChoice === 'new' && (
+              <>
+              {/* Grunninfo og arrangør */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Tidspunkter</CardTitle>
-                  <CardDescription>Datoer, klokkeslett og varighet for arrangementet</CardDescription>
+                  <CardTitle className="flex items-center gap-2">
+                    <UserCheck className="w-5 h-5" />
+                    Grunninfo og arrangør
+                  </CardTitle>
+                  <CardDescription>Grunnleggende informasjon og arrangørinformasjon</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div>
@@ -2949,6 +5377,278 @@ export default function UtleieobjektWizardKommune({
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Arrangør */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="w-5 h-5" />
+                    Arrangør
+                  </CardTitle>
+                  <CardDescription>Hvem er ansvarlig for arrangementet</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label>Arrangørtype</Label>
+                    <div className="mt-2 grid grid-cols-3 gap-2">
+                      {[
+                        { value: 'person', label: 'Privatperson' },
+                        { value: 'organization', label: 'Organisasjon' },
+                        { value: 'municipality', label: 'Kommunal enhet' }
+                      ].map(({ value, label }) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setFormData({ 
+                            ...formData, 
+                            arrangementer: { 
+                              ...formData.arrangementer, 
+                              organizer: { ...formData.arrangementer.organizer, organizationType: value as 'person' | 'organization' | 'municipality' } 
+                            } 
+                          })}
+                          className={`p-3 border rounded-lg text-center transition-colors ${
+                            formData.arrangementer.organizer.organizationType === value
+                              ? 'border-lime-500 bg-lime-50 dark:bg-lime-900/20'
+                              : 'border-stone-200 dark:border-stone-700 hover:border-stone-400'
+                          }`}
+                        >
+                          <span className="text-sm">{label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {formData.arrangementer.organizer.organizationType !== 'person' && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-xs">Organisasjonsnavn</Label>
+                        <Input
+                          value={formData.arrangementer.organizer.name}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            arrangementer: { 
+                              ...formData.arrangementer, 
+                              organizer: { ...formData.arrangementer.organizer, name: e.target.value } 
+                            } 
+                          })}
+                          className="mt-1"
+                          placeholder="F.eks. Skien Idrettsforening"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Org.nummer</Label>
+                        <Input
+                          value={formData.arrangementer.organizer.orgNumber}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            arrangementer: { 
+                              ...formData.arrangementer, 
+                              organizer: { ...formData.arrangementer.organizer, orgNumber: e.target.value } 
+                            } 
+                          })}
+                          className="mt-1"
+                          placeholder="F.eks. 912345678"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <Separator />
+
+                  <div>
+                    <Label>Ansvarlig person</Label>
+                    <div className="mt-2 grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-xs">Navn</Label>
+                        <Input
+                          value={formData.arrangementer.organizer.responsiblePerson.name}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            arrangementer: { 
+                              ...formData.arrangementer, 
+                              organizer: { 
+                                ...formData.arrangementer.organizer, 
+                                responsiblePerson: { ...formData.arrangementer.organizer.responsiblePerson, name: e.target.value } 
+                              } 
+                            } 
+                          })}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Rolle</Label>
+                        <Input
+                          value={formData.arrangementer.organizer.responsiblePerson.role}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            arrangementer: { 
+                              ...formData.arrangementer, 
+                              organizer: { 
+                                ...formData.arrangementer.organizer, 
+                                responsiblePerson: { ...formData.arrangementer.organizer.responsiblePerson, role: e.target.value } 
+                              } 
+                            } 
+                          })}
+                          className="mt-1"
+                          placeholder="F.eks. Prosjektleder"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Telefon</Label>
+                        <Input
+                          value={formData.arrangementer.organizer.responsiblePerson.phone}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            arrangementer: { 
+                              ...formData.arrangementer, 
+                              organizer: { 
+                                ...formData.arrangementer.organizer, 
+                                responsiblePerson: { ...formData.arrangementer.organizer.responsiblePerson, phone: e.target.value } 
+                              } 
+                            } 
+                          })}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">E-post</Label>
+                        <Input
+                          value={formData.arrangementer.organizer.responsiblePerson.email}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            arrangementer: { 
+                              ...formData.arrangementer, 
+                              organizer: { 
+                                ...formData.arrangementer.organizer, 
+                                responsiblePerson: { ...formData.arrangementer.organizer.responsiblePerson, email: e.target.value } 
+                              } 
+                            } 
+                          })}
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label>Nødkontakt</Label>
+                    <div className="mt-2 grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-xs">Navn</Label>
+                        <Input
+                          value={formData.arrangementer.organizer.emergencyContact.name}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            arrangementer: { 
+                              ...formData.arrangementer, 
+                              organizer: { 
+                                ...formData.arrangementer.organizer, 
+                                emergencyContact: { ...formData.arrangementer.organizer.emergencyContact, name: e.target.value } 
+                              } 
+                            } 
+                          })}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Telefon</Label>
+                        <Input
+                          value={formData.arrangementer.organizer.emergencyContact.phone}
+                          onChange={(e) => setFormData({ 
+                            ...formData, 
+                            arrangementer: { 
+                              ...formData.arrangementer, 
+                              organizer: { 
+                                ...formData.arrangementer.organizer, 
+                                emergencyContact: { ...formData.arrangementer.organizer.emergencyContact, phone: e.target.value } 
+                              } 
+                            } 
+                          })}
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Program */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="w-5 h-5" />
+                    Program
+                  </CardTitle>
+                  <CardDescription>Tidspunkter for innsjekk, dører og program</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-4 gap-4">
+                    <div>
+                      <Label className="text-xs">Innsjekk</Label>
+                      <Input
+                        type="time"
+                        value={formData.arrangementer.program.checkInTime}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          arrangementer: { 
+                            ...formData.arrangementer, 
+                            program: { ...formData.arrangementer.program, checkInTime: e.target.value } 
+                          } 
+                        })}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Dører åpner</Label>
+                      <Input
+                        type="time"
+                        value={formData.arrangementer.program.doorsOpenTime}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          arrangementer: { 
+                            ...formData.arrangementer, 
+                            program: { ...formData.arrangementer.program, doorsOpenTime: e.target.value } 
+                          } 
+                        })}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Start</Label>
+                      <Input
+                        type="time"
+                        value={formData.arrangementer.program.startTime}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          arrangementer: { 
+                            ...formData.arrangementer, 
+                            program: { ...formData.arrangementer.program, startTime: e.target.value } 
+                          } 
+                        })}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Slutt</Label>
+                      <Input
+                        type="time"
+                        value={formData.arrangementer.program.endTime}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          arrangementer: { 
+                            ...formData.arrangementer, 
+                            program: { ...formData.arrangementer.program, endTime: e.target.value } 
+                          } 
+                        })}
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              </>
             )}
 
             {/* Arrangementer: Step 2 - Kapasitet */}
@@ -3195,10 +5895,14 @@ export default function UtleieobjektWizardKommune({
 
             {/* Torg: Step 1 - Hentested/Logistikk */}
             {selectedCategory === 'torg' && currentStep === 1 && startChoice === 'new' && (
+              <>
               <Card>
                 <CardHeader>
-                  <CardTitle>Hentested/Logistikk</CardTitle>
-                  <CardDescription>Grunnleggende informasjon om utstyret</CardDescription>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5" />
+                    Grunninfo og lokasjon
+                  </CardTitle>
+                  <CardDescription>Grunnleggende informasjon om område/utstyr</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div>
@@ -3401,6 +6105,109 @@ export default function UtleieobjektWizardKommune({
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Depositum for utstyr */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Receipt className="w-5 h-5" />
+                    Depositum
+                  </CardTitle>
+                  <CardDescription>Depositum for sikkerhet mot skade på utstyr</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-xs">Depositumbeløp (kr)</Label>
+                      <Input
+                        type="number"
+                        value={formData.torg.outdoorDeposit.baseAmount}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          torg: { 
+                            ...formData.torg, 
+                            outdoorDeposit: { ...formData.torg.outdoorDeposit, baseAmount: parseInt(e.target.value) || 0 } 
+                          } 
+                        })}
+                        className="mt-1"
+                        placeholder="0 = ingen depositum"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Maks depositum (kr)</Label>
+                      <Input
+                        type="number"
+                        value={formData.torg.outdoorDeposit.maxDeposit}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          torg: { 
+                            ...formData.torg, 
+                            outdoorDeposit: { ...formData.torg.outdoorDeposit, maxDeposit: parseInt(e.target.value) || 10000 } 
+                          } 
+                        })}
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.torg.outdoorDeposit.inspectionProcess.preInspectionRequired}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          torg: { 
+                            ...formData.torg, 
+                            outdoorDeposit: { 
+                              ...formData.torg.outdoorDeposit, 
+                              inspectionProcess: { ...formData.torg.outdoorDeposit.inspectionProcess, preInspectionRequired: e.target.checked } 
+                            } 
+                          } 
+                        })}
+                        className="rounded"
+                      />
+                      <span className="text-sm">Kontroll av utstyr ved utlevering</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.torg.outdoorDeposit.inspectionProcess.postInspectionRequired}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          torg: { 
+                            ...formData.torg, 
+                            outdoorDeposit: { 
+                              ...formData.torg.outdoorDeposit, 
+                              inspectionProcess: { ...formData.torg.outdoorDeposit.inspectionProcess, postInspectionRequired: e.target.checked } 
+                            } 
+                          } 
+                        })}
+                        className="rounded"
+                      />
+                      <span className="text-sm">Kontroll av utstyr ved retur</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.torg.outdoorDeposit.inspectionProcess.photoDocumentationRequired}
+                        onChange={(e) => setFormData({ 
+                          ...formData, 
+                          torg: { 
+                            ...formData.torg, 
+                            outdoorDeposit: { 
+                              ...formData.torg.outdoorDeposit, 
+                              inspectionProcess: { ...formData.torg.outdoorDeposit.inspectionProcess, photoDocumentationRequired: e.target.checked } 
+                            } 
+                          } 
+                        })}
+                        className="rounded"
+                      />
+                      <span className="text-sm">Fotodokumentasjon av tilstand</span>
+                    </label>
+                  </div>
+                </CardContent>
+              </Card>
+              </>
             )}
 
             {/* Torg: Step 2 - Antall/Lager */}
